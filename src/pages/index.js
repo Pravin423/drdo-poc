@@ -40,7 +40,7 @@ export default function Home() {
         </div>
 
         {/* Right: Status / overview card */}
-        <div className="glass-panel p-6 sm:p-7 md:p-8 card-float">
+        <div className="glass-panel p-6  sm:p-7 md:p-8 card-float">
           <div className="flex items-start justify-between gap-3 mb-6">
             <div>
               <p className="text-xs font-medium text-slate-500">

@@ -9,9 +9,9 @@ export default function DashboardLayout({ children }) {
       <Sidebar />
       <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <main className="flex-1 flex flex-col">
-        <div className="flex-1 px-2 py-4 sm:px-6 sm:py-6 lg:px-12 lg:py-10">
+        <div className="flex-1 px-2 py-4 sm:px-6 sm:py-6 lg:px-2 lg:py-10">
           <div className="max-w-6xl mx-auto space-y-6">
-            <header className="flex items-center justify-between gap-4">
+            <header className="flex items-center justify-between lg:px-12 gap-4">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
