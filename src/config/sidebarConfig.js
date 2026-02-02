@@ -7,7 +7,7 @@ export const SIDEBAR_CONFIG = {
     {
       section: "CRP OPERATIONS",
       items: [
-        { name: "CRP Management", path: "#" },
+        { name: "CRP Management", path: "/dashboard/crp-management" },
         { name: "Attendance Management", path: "#" },
         { name: "Task Assignment", path: "#" },
       ],
@@ -55,5 +55,5 @@ export const SIDEBAR_CONFIG = {
       section: "CRP DASHBOARD",
       items: [{ name: "My Dashboard", path: "/dashboard/crp" }],
     },
-  ],
+  ],  
 };

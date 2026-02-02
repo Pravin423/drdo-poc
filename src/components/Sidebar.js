@@ -95,7 +95,10 @@ function SidebarContent({ onNavigate }) {
             </div>
           </div>
           <button
-            onClick={logout}
+             onClick={() => {
+    logout();
+    router.push("/login");
+  }}
             className="text-[11px] font-medium text-slate-300 hover:text-rose-300 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 transition hover:border-rose-500/80 hover:bg-rose-500/10"
           >
             Logout
