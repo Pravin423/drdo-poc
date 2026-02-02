@@ -1,48 +1,97 @@
 import { useState } from "react";
 import Sidebar, { MobileSidebar } from "./Sidebar";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield, MapPin, RefreshCw, Menu, Activity } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen w-full bg-transparent text-slate-900 flex page-fade">
+    <div className="min-h-screen w-full bg-[#f8fafc] text-slate-900 flex overflow-hidden">
+      {/* Navigation */}
       <Sidebar />
       <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 px-2 py-4 sm:px-6 sm:py-6 lg:px-2 lg:py-10">
-          <div className="max-w-6xl mx-auto space-y-6">
-            <header className="flex items-center justify-between lg:px-12 gap-4">
-              <div className="flex items-center gap-3">
+
+      <main className="flex-1 bg-gray-100 flex flex-col min-w-0 overflow-y-auto">
+        <div className="px-4 py-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto space-y-6">
+            
+            {/* 1. Top Compact Status Bar (The "Img" Look) */}
+            <motion.header 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between px-4 py-2 bg-white border border-slate-200/60 rounded-xl shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                {/* Mobile Menu Toggle */}
                 <button
                   type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-500/70 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 md:hidden"
+                  className="p-2 -ml-2 text-slate-500 hover:bg-slate-50 rounded-lg md:hidden transition-colors"
                   onClick={() => setMobileOpen(true)}
-                  aria-label="Open navigation menu"
                 >
-                  <span className="flex flex-col gap-0.5">
-                    <span className="h-0.5 w-4 rounded-full bg-current" />
-                    <span className="h-0.5 w-3.5 rounded-full bg-current" />
-                    <span className="h-0.5 w-4 rounded-full bg-current" />
-                  </span>
+                  <Menu size={20} />
                 </button>
-                <div>
-                  <p className="pill-badge">Dashboard space</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Monitor CRP activity with a calm, focused workspace.
-                  </p>
-                </div>
-              </div>
-              <div className="hidden sm:flex items-center gap-3 text-xs text-slate-500">
-                <div className="flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/70 px-3 py-1">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 live-pulse" />
-                  <span>System status · Stable</span>
-                </div>
-              </div>
-            </header>
 
-            <section className="glass-panel p-5 sm:p-8 md:p-10 card-float">
-              {children}
-            </section>
+                {/* Identity Badges */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 bg-[#0a3d62] text-white px-3 py-1 rounded-full shadow-sm">
+                    <Shield size={12} className="text-blue-300" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Super Admin</span>
+                  </div>
+                  
+                  <div className="h-3 w-px bg-slate-200 mx-1" />
+                  
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <MapPin size={13} />
+                    <span className="text-xs font-medium">State Level — <span className="text-slate-900">Goa</span></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sync Status */}
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-slate-400">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                >
+                  <RefreshCw size={12} className="text-slate-300" />
+                </motion.div>
+                <span className="hidden sm:inline">Last sync: 2026-01-30</span>
+                <span className="text-slate-300 hidden sm:inline">|</span>
+                <span>12:15 PM</span>
+              </div>
+            </motion.header>
+
+            {/* 2. Main Heading Section */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard Space</h1>
+                <p className="text-sm text-slate-500">Monitor CRP activity with a calm, focused workspace.</p>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-center px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">System Stable</span>
+              </div>
+            </div>
+
+            {/* 3. Main Content Area */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="relative min-h-[500px] rounded-[2rem] border border-white bg-white/60 shadow-xl shadow-slate-200/50 backdrop-blur-xl overflow-hidden"
+            >
+              {/* Inner container with padding for children */}
+             
+                 <div className="bg-white rounded-[1.5rem] border border-slate-100 p-6 shadow-sm min-h-[480px]">
+                    {children}
+                 </div>
+              
+            </motion.div>
           </div>
         </div>
       </main>

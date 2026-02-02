@@ -1,8 +1,33 @@
+// ✅ USE THIS ONE
 import {
-  Users, Activity, CreditCard,
-  Bell, ChevronRight, AlertCircle, ShieldAlert,
-  ShieldCheck, ArrowUpRight, ArrowDownRight, MoreHorizontal
+  Shield,
+  MapPin,
+  RefreshCw,
+  Menu,
+  Filter,
+  Download,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  UploadCloud,
+  AlertTriangle,
+  Users,
+  Activity,
+  CreditCard,
+  ShieldCheck,
+  FileText,
+  ShieldAlert,
+  Zap,
+
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal
+
 } from "lucide-react";
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 
@@ -19,7 +44,8 @@ import {
   AreaChart,
   Area,
   Line,
-  LineChart
+  LineChart,
+
 } from "recharts";
 
 const alerts = [
@@ -36,6 +62,110 @@ const ATTENDANCE_DATA = [
   { month: "Dec", attendance: 87, target: 85 },
   { month: "Jan", attendance: 89, target: 85 },
 ];
+
+const activities = [
+  {
+    id: 1,
+    title: 'Honorarium Approval Pending',
+    desc: 'Multiple approvals awaiting review',
+    status: 'Pending',
+    priority: 'High',
+    time: '30 Jan, 11:45 AM',
+    icon: AlertCircle,
+    color: 'text-amber-500'
+  },
+  {
+    id: 2,
+    title: 'Attendance Exception Alert',
+    desc: 'Geo-location mismatch detected',
+    status: 'In Progress',
+    priority: 'Medium',
+    time: '30 Jan, 10:30 AM',
+    icon: Clock,
+    color: 'text-blue-500'
+  },
+  {
+    id: 3,
+    title: 'System Configuration Updated',
+    desc: 'Rate master updated for vertical tasks',
+    status: 'Completed',
+    priority: 'Low',
+    time: '30 Jan, 09:15 AM',
+    icon: CheckCircle2,
+    color: 'text-emerald-500'
+  },
+  {
+    id: 4,
+    title: 'Bulk Import Completed',
+    desc: 'New records registered successfully',
+    status: 'Completed',
+    priority: 'Medium',
+    time: '29 Jan, 05:20 PM',
+    icon: UploadCloud,
+    color: 'text-indigo-500'
+  },
+  {
+    id: 5,
+    title: 'Task Assignment Bottleneck',
+    desc: 'Pending supervisor approvals detected',
+    status: 'Pending',
+    priority: 'High',
+    time: '29 Jan, 03:45 PM',
+    icon: AlertTriangle,
+    color: 'text-rose-500'
+  },
+  {
+    id: 6,
+    title: 'New Admin Onboarded',
+    desc: 'Access granted to North Goa district office',
+    status: 'Completed',
+    priority: 'Low',
+    time: '29 Jan, 11:20 AM',
+    icon: Users, // Needs 'Users' in imports
+    color: 'text-cyan-500'
+  },
+  {
+    id: 7,
+    title: 'Payment Disbursement Failed',
+    desc: 'Bank server timeout for Batch #402',
+    status: 'Pending',
+    priority: 'High',
+    time: '29 Jan, 09:10 AM',
+    icon: AlertCircle,
+    color: 'text-rose-600'
+  },
+  {
+    id: 8,
+    title: 'Monthly Performance Report',
+    desc: 'System generated report is ready for download',
+    status: 'Completed',
+    priority: 'Low',
+    time: '28 Jan, 06:30 PM',
+    icon: FileText, // Needs 'FileText' in imports
+    color: 'text-slate-500'
+  },
+  {
+    id: 9,
+    title: 'Unusual Login Detected',
+    desc: 'Failed login attempt from unrecognized IP',
+    status: 'In Progress',
+    priority: 'High',
+    time: '28 Jan, 02:15 PM',
+    icon: ShieldAlert, // Needs 'ShieldAlert' in imports
+    color: 'text-orange-500'
+  },
+  {
+    id: 10,
+    title: 'Database Optimization',
+    desc: 'Scheduled maintenance completed successfully',
+    status: 'Completed',
+    priority: 'Medium',
+    time: '28 Jan, 01:00 AM',
+    icon: Zap, // Needs 'Zap' in imports
+    color: 'text-purple-500'
+  },
+];
+
 
 const SUMMARY_CARDS = [
   {
@@ -91,7 +221,30 @@ const DATA_6_MONTHS = [
   { state: "West Bengal", active: 7020 },
 ];
 
+const PriorityBadge = ({ priority }) => {
+  const styles = {
+    High: "bg-rose-50 text-rose-700 border-rose-100",
+    Medium: "bg-amber-50 text-amber-700 border-amber-100",
+    Low: "bg-slate-50 text-slate-600 border-slate-200"
+  };
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${styles[priority]}`}>
+      {priority}
+    </span>
+  );
+};
+
 export default function SuperAdmin() {
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(activities.length / ITEMS_PER_PAGE);
+
+  const paginatedActivities = activities.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   const [range, setRange] = useState("30");
   const [chartData, setChartData] = useState(DATA_30_DAYS);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
@@ -297,6 +450,138 @@ export default function SuperAdmin() {
               </ResponsiveContainer>
             </div>
           </motion.section>
+
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Header Section */}
+            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Recent System Activities</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Latest administrative actions and alerts across all regions.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                  <Filter size={16} /> Filter
+                </button>
+                <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all shadow-md shadow-slate-200">
+                  <Download size={16} /> Export
+                </button>
+              </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50">
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Activity</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">State</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Priority</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Timestamp</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedActivities.map((item, idx) => (
+                    <motion.tr
+                      key={item.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="group hover:bg-slate-50/80 transition-colors cursor-default"
+                    >
+                      <td className="px-6 py-5">
+                        <div className="flex items-start gap-4">
+                          <div className={`mt-1 p-2 rounded-lg bg-white border border-slate-100 shadow-sm ${item.color}`}>
+                            <item.icon size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{item.title}</p>
+                            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-sm font-medium text-slate-700">{item.state}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2">
+                          <div className={`h-1.5 w-1.5 rounded-full ${item.status === 'Completed' ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                          <span className="text-sm text-slate-600 font-medium">{item.status}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <PriorityBadge priority={item.priority} />
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className="text-xs font-medium text-slate-500">{item.time}</span>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <button className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg transition-all hover:border-blue-400 hover:text-blue-600 shadow-sm">
+                          <Eye size={14} /> VIEW
+                        </button>
+
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer / Pagination */}
+            <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+              <p className="text-xs font-medium text-slate-500">
+                Showing{" "}
+                <span className="text-slate-900 font-bold">
+                  {ITEMS_PER_PAGE}
+                </span>{" "}
+
+                of{" "}
+                <span className="text-slate-900 font-bold">
+                  {activities.length}
+                </span>{" "}
+                activities
+              </p>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                <div className="flex items-center gap-1 mx-2">
+                  {Array.from({ length: totalPages }).map((_, i) => {
+                    const page = i + 1;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all
+            ${currentPage === page
+                            ? "bg-slate-900 text-white"
+                            : "text-slate-500 hover:bg-white border border-transparent hover:border-slate-200"
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 text-slate-600 hover:bg-white hover:shadow-sm rounded-lg transition-all border border-transparent hover:border-slate-200 disabled:opacity-30"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+
+            </div>
+          </div>
         </div>
       </DashboardLayout>
     </ProtectedRoute>
