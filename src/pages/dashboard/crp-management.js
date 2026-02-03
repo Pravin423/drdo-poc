@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Users, MapPin } from "lucide-react";
 import { Download } from "lucide-react";
 
+import { X } from "lucide-react";
+
 import {
   Eye,
   Edit,
@@ -139,6 +141,9 @@ const StatusBadge = ({ status }) => {
 
 /* ---------------- PAGE ---------------- */
 export default function CrpManagement() {
+  const [selectedCRP, setSelectedCRP] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [district, setDistrict] = useState("All Districts");
@@ -150,6 +155,7 @@ export default function CrpManagement() {
   const activeCRPs = CRP_DATA.filter((c) => c.status === "Active").length;
   const inactiveCRPs = CRP_DATA.filter((c) => c.status === "Inactive").length;
   const villagesCovered = CRP_DATA.reduce((sum, c) => sum + c.villages, 0);
+
 
   const summaryCards = [
     { label: "Total CRPs", value: totalCRPs, icon: Users, accent: "bg-blue-50 text-blue-600 border-blue-200" },
@@ -205,7 +211,16 @@ export default function CrpManagement() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+  const openModal = (crp) => {
+    setSelectedCRP(crp);
+    setIsModalOpen(true);
+  };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedCRP(null);
+  }
+  
 
   // Filter CRPs
   const filteredCRPs = CRP_DATA.filter((crp) => {
@@ -353,7 +368,7 @@ export default function CrpManagement() {
                   <RefreshCw size={16} />
                   Clear All
                 </button>
-                             
+
 
 
                 {/* Export CSV */}
@@ -430,7 +445,7 @@ export default function CrpManagement() {
 
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex gap-3 text-slate-500">
-                        <Eye size={18} className="cursor-pointer hover:text-blue-600" />
+                        <Eye size={18} onClick={() => openModal(crp)} className="cursor-pointer hover:text-blue-600" />
                         <Edit size={18} className="cursor-pointer hover:text-emerald-600" />
                         <MoreHorizontal size={18} className="cursor-pointer hover:text-slate-700" />
                       </div>
@@ -440,6 +455,105 @@ export default function CrpManagement() {
               </tbody>
             </table>
           </div>
+          {isModalOpen && selectedCRP && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden"
+              >
+
+                {/* ===== Header ===== */}
+                <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-slate-50 border-b">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-800">
+                      CRP Profile
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Community Resource Person details
+                    </p>
+                  </div>
+
+                  <X
+                    size={20}
+                    onClick={closeModal}
+                    className="cursor-pointer text-slate-400 hover:text-red-500 transition"
+                  />
+                </div>
+
+                {/* ===== Body ===== */}
+                <div className="p-6 space-y-8 max-h-[70vh] overflow-y-auto">
+
+                  {/* Profile Card */}
+                  <div className="flex items-center gap-5 p-5 rounded-2xl border bg-slate-50">
+                    <img
+                      src={selectedCRP.image}
+                      alt={selectedCRP.name}
+                      className="w-24 h-24 rounded-full object-cover border"
+                    />
+
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        {selectedCRP.name}
+                      </h3>
+
+                      <p className="text-sm text-slate-500 mt-1">
+                        Aadhaar: {selectedCRP.aadhaar}
+                      </p>
+
+                      <div className="mt-2">
+                        <StatusBadge status={selectedCRP.status} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info Sections */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+
+                    {[
+                      { label: "Mobile Number", value: selectedCRP.mobile },
+                      { label: "Email Address", value: selectedCRP.email },
+                      { label: "District", value: selectedCRP.district },
+                      { label: "Taluka", value: selectedCRP.taluka },
+                      { label: "Block", value: selectedCRP.block },
+                      { label: "Villages Covered", value: selectedCRP.villages },
+                    
+                     
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-xl border bg-white p-4 shadow-sm"
+                      >
+                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                          {item.label}
+                        </p>
+                        <p className="text-slate-900 font-medium break-words">
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ===== Footer ===== */}
+                <div className="sticky bottom-0 bg-slate-50 border-t px-6 py-4 flex justify-end gap-3">
+                  <button
+                    onClick={closeModal}
+                    className="px-5 py-2 rounded-xl border text-sm font-semibold hover:bg-slate-100"
+                  >
+                    Close
+                  </button>
+
+
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+
+
         </div>
       </DashboardLayout>
     </ProtectedRoute>
