@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }) {
             {/* 2. Main Heading Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard Space</h1>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight"> SuperAdmin Dashboard </h1>
                 <p className="text-sm text-slate-500">Monitor CRP activity with a calm, focused workspace.</p>
               </div>
 
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }) {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">System Stable</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">Logged In</span>
               </div>
             </div>
 

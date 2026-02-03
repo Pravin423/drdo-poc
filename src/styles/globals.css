@@ -1,5 +1,48 @@
 @import "tailwindcss";
 
+@theme inline {
+  /* Brand Colors - Tech Blue */
+  --color-tech-blue-50: #D2E4FA;
+  --color-tech-blue-100: #A5C9F5;
+  --color-tech-blue-200: #78AEF0;
+  --color-tech-blue-300: #4A93EB;
+  --color-tech-blue-400: #1D78E6;
+  --color-tech-blue-500: #1560BD;
+  --color-tech-blue-600: #11509D;
+  --color-tech-blue-700: #0E407D;
+  --color-tech-blue-800: #0A305E;
+  --color-tech-blue-900: #07203F;
+
+  /* Steel Blue Secondary */
+  --color-steel-50: #E0EAF3;
+  --color-steel-100: #C1D6E7;
+  --color-steel-200: #A1C1DB;
+  --color-steel-300: #82ACCE;
+  --color-steel-400: #6397C2;
+  --color-steel-500: #4682B4;
+  --color-steel-600: #3A6D96;
+  --color-steel-700: #2F5778;
+  --color-steel-800: #23415A;
+  --color-steel-900: #172B3C;
+
+  /* Navy Accent */
+  --color-navy-600: #000080;
+  --color-navy-700: #00006A;
+  --color-navy-800: #000055;
+  --color-navy-900: #000040;
+
+  /* Dark Slate */
+  --color-dark-slate-800: #2F4F4F;
+  --color-dark-slate-900: #284242;
+
+  /* Custom Shadows */
+  --shadow-float: 0 8px 32px rgba(21, 96, 189, 0.12);
+  --shadow-hover: 0 12px 48px rgba(21, 96, 189, 0.18);
+  --shadow-glass: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-card-hover: 0 4px 16px rgba(21, 96, 189, 0.15);
+}
+
 @layer base {
   html,
   body,
@@ -10,31 +53,56 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
     background:
-      radial-gradient(circle at top left, rgba(37, 99, 235, 0.09), transparent 60%),
-      radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.12), transparent 55%),
-      #f8fafc;
+      radial-gradient(circle at top left, rgba(21, 96, 189, 0.06), transparent 60%),
+      radial-gradient(circle at bottom right, rgba(70, 130, 180, 0.08), transparent 55%),
+      #F8FAFC;
   }
 
   ::selection {
-    @apply bg-sky-400/40 text-slate-900;
+    @apply bg-tech-blue-200/40 text-slate-900;
   }
 }
 
 @layer components {
   .glass-panel {
-    @apply rounded-3xl border border-slate-200 bg-white/95 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl;
+    @apply rounded-3xl border border-slate-200/60 bg-white/95 backdrop-blur-xl;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .bento-card {
+    @apply rounded-3xl border border-slate-200/60 bg-white p-6 transition-all duration-300;
+    box-shadow: var(--shadow-card);
+  }
+
+  .bento-card:hover {
+    @apply border-tech-blue-200/60;
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
   }
 
   .pill-badge {
-    @apply inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-blue-700;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.05em];
+  }
+
+  .metadata-label {
+    @apply text-xs font-semibold uppercase tracking-[0.05em] text-slate-500;
   }
 
   .primary-button {
-    @apply inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_12px_40px_rgba(37,99,235,0.45)] transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-[0_18px_60px_rgba(37,99,235,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50;
+    @apply inline-flex items-center justify-center rounded-xl bg-tech-blue-500 px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-tech-blue-600 focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-tech-blue-300;
+    box-shadow: var(--shadow-float);
+  }
+
+  .primary-button:hover {
+    box-shadow: var(--shadow-hover);
   }
 
   .secondary-button {
-    @apply inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/90 px-5 py-2 text-sm font-medium text-slate-800 shadow-sm transition-colors transition-transform duration-200 hover:-translate-y-0.5 hover:border-blue-500/70 hover:bg-blue-50 hover:text-blue-800;
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-tech-blue-400 hover:bg-tech-blue-50 hover:text-tech-blue-700;
+  }
+
+  .icon-badge {
+    @apply flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300;
   }
 
   .page-fade {
