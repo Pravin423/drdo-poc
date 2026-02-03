@@ -9,10 +9,10 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] text-slate-900 flex overflow-hidden">
       {/* Navigation */}
-      <Sidebar />
+      <Sidebar  />
       <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-      <main className="flex-1 bg-gray-100 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 lg:ml-[330px] bg-gray-100 flex flex-col min-w-0 overflow-y-auto">
         <div className="px-4 py-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto space-y-6">
             
@@ -83,11 +83,11 @@ export default function DashboardLayout({ children }) {
               initial={{ opacity: 0, scale: 0.99 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="relative min-h-[500px] rounded-[2rem] border border-white bg-white/60 shadow-xl shadow-slate-200/50 backdrop-blur-xl overflow-hidden"
+              className="relative min-h-[500px]  rounded-[2rem] border border-white bg-white/60 shadow-xl shadow-slate-200/50 backdrop-blur-xl overflow-hidden"
             >
               {/* Inner container with padding for children */}
              
-                 <div className="bg-white rounded-[1.5rem] border border-slate-100 p-6 shadow-sm min-h-[480px]">
+                 <div className="bg-white  rounded-[1.5rem] border border-slate-100 p-6 shadow-sm min-h-[480px]">
                     {children}
                  </div>
               

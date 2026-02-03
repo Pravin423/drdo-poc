@@ -111,7 +111,7 @@ function SidebarContent({ onNavigate }) {
 
 export default function Sidebar() {
   return (
-    <aside className="hidden md:flex md:w-72 xl:w-80 min-h-screen flex-col border-r border-slate-200 bg-gradient-to-b from-blue-950 via-blue-900 to-slate-950 text-slate-50 backdrop-blur-xl">
+    <aside className="hidden lg:flex fixed z-2    md:flex md:w-72 xl:w-80 h-screen flex-col border-r border-slate-200 bg-gradient-to-b from-blue-950 via-blue-900 to-slate-950 text-slate-50 backdrop-blur-xl">
       <SidebarContent />
     </aside>
   );
