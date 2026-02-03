@@ -353,24 +353,15 @@ export default function CrpManagement() {
                   <RefreshCw size={16} />
                   Clear All
                 </button>
+                             
+
 
                 {/* Export CSV */}
                 <button
                   onClick={exportToCSV}
-                  className="
-    w-full sm:w-auto
-    bg-gradient-to-r from-emerald-500 to-green-600
-    hover:from-emerald-600 hover:to-green-700
-    text-white
-    rounded-xl
-    px-5 py-2.5
-    text-sm font-semibold
-    flex items-center justify-center gap-2
-    shadow-sm hover:shadow-md
-    transition-all
-  "
+                  className="px-4 py-2 border rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50"
                 >
-                  <Download size={16} />
+                  <UploadCloud size={16} />
                   Export CSV
                 </button>
 
