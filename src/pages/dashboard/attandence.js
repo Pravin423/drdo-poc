@@ -16,6 +16,15 @@ import {
   AlertTriangle,
   Clock,
   Timer,
+  Filter,
+  Download,
+  ChevronDown,
+  MapPin,
+  User,
+  Building2,
+  Info,
+  MessageSquare,
+  Eye,
 } from "lucide-react";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -28,7 +37,7 @@ export default function AttendanceManagement() {
 
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "musterRoll", label: "Master Role", icon: Users },
+    { id: "musterRoll", label: "Muster Roll", icon: Users },
     { id: "regularization", label: "Regularization", icon: FileCheck },
     { id: "gisMap", label: "GIS Map", icon: MapIcon },
   ];
@@ -101,11 +110,10 @@ export default function AttendanceManagement() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                {activeTab === "overview" ? (
-                  <OverviewGrid />
-                ) : (
-                  <PlaceholderSection tabName={activeTab} />
-                )}
+                {activeTab === "overview" && <OverviewGrid />}
+                {activeTab === "musterRoll" && <PlaceholderSection tabName={activeTab} />}
+                {activeTab === "regularization" && <PlaceholderSection tabName={activeTab} />}
+                {activeTab === "gisMap" && <PlaceholderSection tabName={activeTab} />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -243,6 +251,9 @@ function OverviewGrid() {
 
       {/* District-wise Breakdown Section */}
       <DistrictBreakdown />
+
+      {/* Daily Muster Roll and Regularization Requests Section */}
+      <DailyMusterRollAndRegularization />
     </>
       
   );
@@ -493,6 +504,678 @@ function StatBlock({ label, value, color, bgColor, delay, inView }) {
     </motion.div>
   );
 }
+
+// Combined Daily Muster Roll and Regularization Component for Overview
+function DailyMusterRollAndRegularization() {
+  const [filters, setFilters] = useState({
+    district: "all",
+    block: "all",
+    date: "2026-01-30",
+    exceptionType: "all"
+  });
+  const [selectedEntries, setSelectedEntries] = useState([]);
+  const [showWorkDetails, setShowWorkDetails] = useState({});
+  const [attendanceEntries, setAttendanceEntries] = useState([
+    {
+      id: 1,
+      name: "Rajesh Kumar Naik",
+      status: "Present",
+      statusColor: "emerald",
+      employeeId: "CRP2024001",
+      district: "North Goa",
+      block: "Pernem",
+      location: "Arambol, Pernem, North Goa",
+      punchIn: "09:15 AM",
+      punchOut: "05:30 PM",
+      workHours: "8h 15m",
+      supervisor: "Suresh Rane",
+      remarks: "Regular attendance",
+      approved: true,
+      approvedStatus: "Approved",
+      exceptionType: null
+    },
+    {
+      id: 2,
+      name: "Priya Desai",
+      status: "Exception",
+      statusColor: "orange",
+      employeeId: "CRP2024002",
+      district: "North Goa",
+      block: "Bicholim",
+      location: "Mayem, Bicholim, North Goa",
+      punchIn: "09:45 AM",
+      punchOut: "05:15 PM",
+      workHours: "7h 30m",
+      supervisor: "Mangesh Naik",
+      remarks: "Location 2.3km from assigned village - Field visit to neighboring SHG",
+      crpJustification: "Attended inter-village SHG coordination meeting at Mayem Community Hall as per Block Manager instruction dated 2026-01-29",
+      approved: false,
+      approvedStatus: "Pending",
+      exceptionType: "geo"
+    },
+    {
+      id: 3,
+      name: "Amit Patil",
+      status: "Exception",
+      statusColor: "orange",
+      employeeId: "CRP2024003",
+      district: "South Goa",
+      block: "Quepem",
+      location: "Balli, Quepem, South Goa",
+      punchIn: "10:15 AM",
+      punchOut: "05:45 PM",
+      workHours: "7h 30m",
+      supervisor: "Rita Fernandes",
+      remarks: "Late entry - Traffic jam on national highway",
+      approved: false,
+      approvedStatus: "Pending",
+      exceptionType: "late"
+    },
+    {
+      id: 4,
+      name: "Sunita Verma",
+      status: "Present",
+      statusColor: "emerald",
+      employeeId: "CRP2024004",
+      district: "South Goa",
+      block: "Sanguem",
+      location: "Verna, Sanguem, South Goa",
+      punchIn: "09:00 AM",
+      punchOut: "05:30 PM",
+      workHours: "8h 30m",
+      supervisor: "John D'Souza",
+      remarks: "Regular attendance",
+      approved: true,
+      approvedStatus: "Approved",
+      exceptionType: null
+    },
+    {
+      id: 5,
+      name: "Kavita Parsekar",
+      status: "Exception",
+      statusColor: "orange",
+      employeeId: "CRP2024005",
+      district: "North Goa",
+      block: "Pernem",
+      location: "Mandrem, Pernem, North Goa",
+      punchIn: "09:30 AM",
+      punchOut: "03:45 PM",
+      workHours: "6h 15m",
+      supervisor: "Ramesh Naik",
+      remarks: "Early exit - Medical emergency",
+      approved: false,
+      approvedStatus: "Pending",
+      exceptionType: "early"
+    }
+  ]);
+
+  const [regularizationRequests, setRegularizationRequests] = useState([
+    {
+      id: 1,
+      name: "Kavita Parsekar",
+      priority: "Medium",
+      priorityColor: "orange",
+      status: "Pending Review",
+      requestId: "REG2026001",
+      employeeId: "CRP2024008",
+      location: "Balli, Quepem",
+      requestType: "Missed Punch-out",
+      requestDate: "29 Jan 2026",
+      submittedOn: "2026-01-30 08:15 AM",
+      supervisor: "Ramesh Naik",
+      reason: "Mobile phone battery died during field visit to remote SHG location. Unable to mark punch-out at 5:30 PM."
+    },
+    {
+      id: 2,
+      name: "Deepak Velip",
+      priority: "High Priority",
+      priorityColor: "rose",
+      status: "Pending Review",
+      requestId: "REG2026002",
+      employeeId: "CRP2024012",
+      location: "Valpoi, Sattari",
+      requestType: "Late Punch-in",
+      requestDate: "30 Jan 2026",
+      submittedOn: "2026-01-30 09:45 AM",
+      supervisor: "Sunita Desai",
+      reason: "Vehicle breakdown on route to village. Arrived 1 hour late after arranging alternate transport."
+    }
+  ]);
+
+  const toggleWorkDetails = (id) => {
+    setShowWorkDetails(prev => ({...prev, [id]: !prev[id]}));
+  };
+
+  // Filter attendance entries
+  const filteredAttendanceEntries = attendanceEntries.filter(entry => {
+    if (filters.district !== "all" && !entry.district.toLowerCase().includes(filters.district)) {
+      return false;
+    }
+    if (filters.block !== "all" && !entry.block.toLowerCase().includes(filters.block)) {
+      return false;
+    }
+    if (filters.exceptionType !== "all" && entry.exceptionType !== filters.exceptionType) {
+      return false;
+    }
+    return true;
+  });
+
+  // Get pending entries
+  const pendingEntries = filteredAttendanceEntries.filter(entry => !entry.approved);
+
+  // Handle select all pending
+  const handleSelectAllPending = (checked) => {
+    if (checked) {
+      setSelectedEntries(pendingEntries.map(e => e.id));
+    } else {
+      setSelectedEntries([]);
+    }
+  };
+
+  // Handle individual entry selection
+  const handleEntrySelection = (id, checked) => {
+    if (checked) {
+      setSelectedEntries(prev => [...prev, id]);
+    } else {
+      setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
+    }
+  };
+
+  // Handle approve entry
+  const handleApproveEntry = (id) => {
+    setAttendanceEntries(prev => prev.map(entry => 
+      entry.id === id 
+        ? {...entry, approved: true, approvedStatus: "Approved"} 
+        : entry
+    ));
+    setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
+  };
+
+  // Handle bulk approve
+  const handleBulkApprove = () => {
+    setAttendanceEntries(prev => prev.map(entry => 
+      selectedEntries.includes(entry.id)
+        ? {...entry, approved: true, approvedStatus: "Approved"} 
+        : entry
+    ));
+    setSelectedEntries([]);
+  };
+
+  // Handle reject entry
+  const handleRejectEntry = (id) => {
+    setAttendanceEntries(prev => prev.map(entry => 
+      entry.id === id 
+        ? {...entry, approved: true, approvedStatus: "Rejected"} 
+        : entry
+    ));
+    setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
+  };
+
+  // Handle request info
+  const handleRequestInfo = (id) => {
+    alert(`Requesting additional information for entry ${id}`);
+  };
+
+  // Handle export PDF
+  const handleExportPDF = () => {
+    alert(`Exporting ${filteredAttendanceEntries.length} entries to PDF for date ${filters.date}`);
+  };
+
+  // Handle approve regularization request
+  const handleApproveRequest = (id) => {
+    setRegularizationRequests(prev => prev.map(req => 
+      req.id === id 
+        ? {...req, status: "Approved"} 
+        : req
+    ));
+  };
+
+  // Handle reject regularization request
+  const handleRejectRequest = (id) => {
+    setRegularizationRequests(prev => prev.map(req => 
+      req.id === id 
+        ? {...req, status: "Rejected"} 
+        : req
+    ));
+  };
+
+  // Handle request clarification
+  const handleRequestClarification = (id) => {
+    alert(`Requesting clarification for request ${id}`);
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Daily Muster Roll Section */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200">
+          <h2 className="text-xl font-bold text-slate-900">Daily Muster Roll</h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Attendance entries requiring supervisor approval (3 pending)
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="p-6 border-b border-slate-200 bg-slate-50/50">
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">District</label>
+              <div className="relative">
+                <select
+                  value={filters.district}
+                  onChange={(e) => setFilters({...filters, district: e.target.value})}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                >
+                  <option value="all">All Districts</option>
+                  <option value="north">North Goa</option>
+                  <option value="south">South Goa</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Block</label>
+              <div className="relative">
+                <select
+                  value={filters.block}
+                  onChange={(e) => setFilters({...filters, block: e.target.value})}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                >
+                  <option value="all">All Blocks</option>
+                  <option value="pernem">Pernem</option>
+                  <option value="bicholim">Bicholim</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
+              <input
+                type="date"
+                value={filters.date}
+                onChange={(e) => setFilters({...filters, date: e.target.value})}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Exception Type</label>
+              <div className="relative">
+                <select
+                  value={filters.exceptionType}
+                  onChange={(e) => setFilters({...filters, exceptionType: e.target.value})}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                >
+                  <option value="all">All Types</option>
+                  <option value="late">Late Entry</option>
+                  <option value="early">Early Exit</option>
+                  <option value="geo">Geo-fence Issue</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedEntries.length > 0 && selectedEntries.length === pendingEntries.length}
+                  onChange={(e) => handleSelectAllPending(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-slate-700">Select All Pending</span>
+              </label>
+              {selectedEntries.length > 0 && (
+                <button
+                  onClick={handleBulkApprove}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Approve {selectedEntries.length} Selected
+                </button>
+              )}
+            </div>
+
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Attendance Entries List */}
+        <div className="overflow-y-auto max-h-[600px]">
+          {filteredAttendanceEntries.length === 0 ? (
+            <div className="p-12 text-center">
+              <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 font-medium">No attendance entries found for the selected filters</p>
+            </div>
+          ) : (
+            filteredAttendanceEntries.map((entry, index) => (
+            <motion.div
+              key={entry.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="p-6 border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+            >
+              {/* Header Row */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3 flex-1">
+                  {!entry.approved && (
+                    <input
+                      type="checkbox"
+                      checked={selectedEntries.includes(entry.id)}
+                      onChange={(e) => handleEntrySelection(entry.id, e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 mt-1"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-slate-900">{entry.name}</h3>
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                        entry.statusColor === 'emerald' 
+                          ? 'bg-emerald-50 text-emerald-700' 
+                          : 'bg-orange-50 text-orange-700'
+                      }`}>
+                        {entry.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600 flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <User className="w-3.5 h-3.5" />
+                        {entry.employeeId}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {entry.location}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                {entry.approved && (
+                  <span className={`flex items-center gap-1 text-sm font-semibold ${
+                    entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
+                  }`}>
+                    {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                    {entry.approvedStatus}
+                  </span>
+                )}
+                {!entry.approved && (
+                  <span className="flex items-center gap-1 text-orange-600 text-sm font-semibold">
+                    <Clock className="w-4 h-4" />
+                    {entry.approvedStatus}
+                  </span>
+                )}
+              </div>
+
+              {/* Time Details Grid */}
+              <div className="grid grid-cols-4 gap-4 mb-3 p-3 bg-slate-50 rounded-lg">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Punch In</p>
+                  <p className="text-sm font-semibold text-slate-900">{entry.punchIn}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Punch Out</p>
+                  <p className="text-sm font-semibold text-slate-900">{entry.punchOut}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Work Hours</p>
+                  <p className="text-sm font-semibold text-slate-900">{entry.workHours}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Supervisor</p>
+                  <p className="text-sm font-semibold text-slate-900">{entry.supervisor}</p>
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-slate-500 mb-1">Remarks</p>
+                <p className="text-sm text-slate-700">{entry.remarks}</p>
+              </div>
+
+              {/* CRP Justification (if exists) */}
+              {entry.crpJustification && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs font-semibold text-blue-900 mb-1">CRP Justification</p>
+                  <p className="text-sm text-blue-800">{entry.crpJustification}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              {!entry.approved && (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleApproveEntry(entry.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Approve
+                  </button>
+                  <button 
+                    onClick={() => handleRejectEntry(entry.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reject
+                  </button>
+                  <button 
+                    onClick={() => handleRequestInfo(entry.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    <Info className="w-4 h-4" />
+                    Request Info
+                  </button>
+                </div>
+              )}
+            </motion.div>
+            ))
+          )}
+        </div>
+      </motion.div>
+
+      {/* Regularization Requests Section */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Regularization Requests</h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Missed punch and exception requests with justification trails (2 pending)
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <Filter className="w-5 h-5" />
+              </button>
+              <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <Download className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Requests List */}
+        <div className="overflow-y-auto max-h-[600px]">
+          {regularizationRequests.map((request, index) => (
+            <motion.div
+              key={request.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="p-6 border-b border-slate-100"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-slate-900">{request.name}</h3>
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                      request.priorityColor === 'rose'
+                        ? 'bg-rose-50 text-rose-700'
+                        : 'bg-orange-50 text-orange-700'
+                    }`}>
+                      {request.priority}
+                    </span>
+                    <span className={`flex items-center gap-1 text-xs font-semibold ${
+                      request.status === 'Approved' ? 'text-emerald-600' : 
+                      request.status === 'Rejected' ? 'text-rose-600' : 
+                      'text-orange-600'
+                    }`}>
+                      {request.status === 'Approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : 
+                       request.status === 'Rejected' ? <XCircle className="w-3.5 h-3.5" /> : 
+                       <Clock className="w-3.5 h-3.5" />}
+                      {request.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600 flex items-center gap-3">
+                    <span>#{request.requestId}</span>
+                    <span className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5" />
+                      {request.employeeId}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {request.location}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Request Details Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-4 p-3 bg-slate-50 rounded-lg">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Request Type</p>
+                  <p className="text-sm font-semibold text-slate-900">{request.requestType}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Request Date</p>
+                  <p className="text-sm font-semibold text-slate-900">{request.requestDate}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Submitted On</p>
+                  <p className="text-sm font-semibold text-slate-900">{request.submittedOn}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-0.5">Supervisor</p>
+                  <p className="text-sm font-semibold text-slate-900">{request.supervisor}</p>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-slate-500 mb-1">Reason for Regularization</p>
+                <p className="text-sm text-slate-700">{request.reason}</p>
+              </div>
+
+              {/* Collapsible Work Details */}
+              <button
+                onClick={() => toggleWorkDetails(request.id)}
+                className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 mb-4 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                {showWorkDetails[request.id] ? 'Hide' : 'Show'} Work Details & Documents
+              </button>
+
+              {showWorkDetails[request.id] && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <p className="text-sm text-blue-800">
+                    Work details and supporting documents would be displayed here.
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Action Buttons */}
+              {request.status === "Pending Review" && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button 
+                    onClick={() => handleApproveRequest(request.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Approve Request
+                  </button>
+                  <button 
+                    onClick={() => handleRejectRequest(request.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Reject Request
+                  </button>
+                  <button 
+                    onClick={() => handleRequestClarification(request.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Request Clarification
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+const mockRegularizationRequests = [
+    {
+      id: 1,
+      name: "Kavita Parsekar",
+      priority: "Medium",
+      priorityColor: "orange",
+      status: "Pending Review",
+      requestId: "REG2026001",
+      employeeId: "CRP2024008",
+      location: "Balli, Quepem",
+      requestType: "Missed Punch-out",
+      requestDate: "29 Jan 2026",
+      submittedOn: "2026-01-30 08:15 AM",
+      supervisor: "Ramesh Naik",
+      reason: "Mobile phone battery died during field visit to remote SHG location. Unable to mark punch-out at 5:30 PM."
+    },
+    {
+      id: 2,
+      name: "Deepak Velip",
+      priority: "High Priority",
+      priorityColor: "rose",
+      status: "Pending Review",
+      requestId: "REG2026002",
+      employeeId: "CRP2024012",
+      location: "Valpoi, Sattari",
+      requestType: "Late Punch-in",
+      requestDate: "30 Jan 2026",
+      submittedOn: "2026-01-30 09:45 AM",
+      supervisor: "Sunita Desai",
+      reason: "Vehicle breakdown on route to village. Arrived 1 hour late after arranging alternate transport."
+    }
+  ];
+
+
 
 function PlaceholderSection({ tabName }) {
   return (
