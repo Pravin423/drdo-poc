@@ -147,9 +147,9 @@ export default function CrpManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
-const [otp, setOtp] = useState("");
-const [aadhaarVerified, setAadhaarVerified] = useState(false);
-const [otpError, setOtpError] = useState("");
+  const [otp, setOtp] = useState("");
+  const [aadhaarVerified, setAadhaarVerified] = useState(false);
+  const [otpError, setOtpError] = useState("");
 
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -242,30 +242,30 @@ const [otpError, setOtpError] = useState("");
   }
 
   const handleSubmit = () => {
-  setSubmitted(true);
+    setSubmitted(true);
 
-  if (!form.name || !form.aadhaar || !form.mobile) {
-    alert("Please fill all required fields");
-    return;
-  }
+    if (!form.name || !form.aadhaar || !form.mobile) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
-  setTimeout(() => {
-    setIsSubmitting(false);
-    setIsRegisterOpen(false);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsRegisterOpen(false);
 
-    setForm({
-      name: "",
-      aadhaar: "",
-      mobile: "",
-      email: ""
-    });
+      setForm({
+        name: "",
+        aadhaar: "",
+        mobile: "",
+        email: ""
+      });
 
-    setConfirmChecked(false);
-    setSubmitted(false);
-  }, 1500);
-};
+      setConfirmChecked(false);
+      setSubmitted(false);
+    }, 1500);
+  };
 
 
 
@@ -286,34 +286,34 @@ const [otpError, setOtpError] = useState("");
   });
 
   const [form, setForm] = useState({
-  // Personal Details
-  name: "",
-  aadhaar: "",
-  mobile: "",
-  email: "",
+    // Personal Details
+    name: "",
+    aadhaar: "",
+    mobile: "",
+    email: "",
 
-  // Assignment Details
-  district: "",
-  taluka: "",
-  block: "",
-  vertical: "",
+    // Assignment Details
+    district: "",
+    taluka: "",
+    block: "",
+    vertical: "",
 
-  // Work Details
-  villagesAssigned: "",
+    // Work Details
+    villagesAssigned: "",
 
-  // Banking Details
-  bankAccountNo: "",
-  ifscCode: "",
-  bankName: "",
-  branchName: "",
+    // Banking Details
+    bankAccountNo: "",
+    ifscCode: "",
+    bankName: "",
+    branchName: "",
 
-  // Documents
-  photo: null,
+    // Documents
+    photo: null,
 
-  // Status / Meta
-  status: "Active",
-  remarks: ""
-});
+    // Status / Meta
+    status: "Active",
+    remarks: ""
+  });
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -766,51 +766,51 @@ const [otpError, setOtpError] = useState("");
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                       />
                     </div>
-                   <div className="space-y-1">
-  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-    Aadhaar Number *
-  </p>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                        Aadhaar Number *
+                      </p>
 
-  <div className="relative">
-    <input
-      type="text"
-      inputMode="numeric"
-      maxLength={12}
-      placeholder="000000000000"
-      value={form.aadhaar}
-      disabled={aadhaarVerified}
-      onChange={(e) => {
-        const value = e.target.value.replace(/\D/g, "");
-        setForm({ ...form, aadhaar: value });
-      }}
-      className={`w-full px-4 py-2.5 rounded-xl pr-28 text-sm outline-none transition-all
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={12}
+                          placeholder="000000000000"
+                          value={form.aadhaar}
+                          disabled={aadhaarVerified}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            setForm({ ...form, aadhaar: value });
+                          }}
+                          className={`w-full px-4 py-2.5 rounded-xl pr-28 text-sm outline-none transition-all
         ${aadhaarVerified
-          ? "bg-slate-100 border border-emerald-400 text-slate-600"
-          : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"
-        }`}
-    />
+                              ? "bg-slate-100 border border-emerald-400 text-slate-600"
+                              : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"
+                            }`}
+                        />
 
-    {/* Right Button */}
-    {aadhaarVerified ? (
-      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-600 font-semibold text-sm">
-        Verified
-      </span>
-    ) : (
-      <button
-        type="button"
-        disabled={form.aadhaar.length !== 12}
-        onClick={() => setIsOtpModalOpen(true)}
-        className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold
+                        {/* Right Button */}
+                        {aadhaarVerified ? (
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-600 font-semibold text-sm">
+                            Verified
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={form.aadhaar.length !== 12}
+                            onClick={() => setIsOtpModalOpen(true)}
+                            className={`absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-sm font-semibold
           ${form.aadhaar.length === 12
-            ? "text-orange-500 hover:underline"
-            : "text-slate-300 cursor-not-allowed"
-          }`}
-      >
-        Verify Aadhaar
-      </button>
-    )}
-  </div>
-</div>
+                                ? "text-blue-500 hover:underline"
+                                : "text-slate-300 cursor-not-allowed"
+                              }`}
+                          >
+                            Verify Aadhaar
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile Number *</p>
@@ -1011,72 +1011,72 @@ const [otpError, setOtpError] = useState("");
       )}
 
       {isOtpModalOpen && (
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6"
-    >
-      {/* Header */}
-      <h2 className="text-xl font-bold text-slate-900 mb-2">
-        Verify Aadhaar OTP
-      </h2>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6"
+          >
+            {/* Header */}
+            <h2 className="text-xl font-bold text-slate-900 mb-2">
+              Verify Aadhaar OTP
+            </h2>
 
-      {/* Info Box */}
-      <div className="bg-emerald-50 text-emerald-700 text-sm p-3 rounded-lg mb-4">
-        UIDAI has sent a temporary OTP to your registered mobile number
-        (valid for 10 mins).
-      </div>
+            {/* Info Box */}
+            <div className="bg-emerald-50 text-emerald-700 text-sm p-3 rounded-lg mb-4">
+              UIDAI has sent a temporary OTP to your registered mobile number
+              (valid for 10 mins).
+            </div>
 
-      {/* OTP Input */}
-      <p className="text-sm text-slate-600 mb-1">
-        Please enter OTP to complete verification
-      </p>
+            {/* OTP Input */}
+            <p className="text-sm text-slate-600 mb-1">
+              Please enter OTP to complete verification
+            </p>
 
-      <input
-        type="text"
-        inputMode="numeric"
-        maxLength={6}
-        value={otp}
-        onChange={(e) => {
-          setOtp(e.target.value.replace(/\D/g, ""));
-          setOtpError("");
-        }}
-        placeholder="Enter 6-digit OTP"
-        className="w-full px-4 py-2.5 rounded-xl border border-emerald-500 outline-none text-lg tracking-widest text-center"
-      />
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={otp}
+              onChange={(e) => {
+                setOtp(e.target.value.replace(/\D/g, ""));
+                setOtpError("");
+              }}
+              placeholder="Enter 6-digit OTP"
+              className="w-full px-4 py-2.5 rounded-xl border border-emerald-500 outline-none text-lg tracking-widest text-center"
+            />
 
-      {otpError && (
-        <p className="text-xs text-red-500 mt-1">{otpError}</p>
+            {otpError && (
+              <p className="text-xs text-red-500 mt-1">{otpError}</p>
+            )}
+
+            {/* Submit */}
+            <button
+              className="w-full mt-4 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold hover:bg-emerald-700 transition"
+              onClick={() => {
+                if (otp === "123456") {
+                  setAadhaarVerified(true);
+                  setIsOtpModalOpen(false);
+                  setOtp("");
+                } else {
+                  setOtpError("Invalid OTP. Please try again.");
+                }
+              }}
+            >
+              Submit
+            </button>
+
+            {/* Resend */}
+            <p className="text-center text-sm text-slate-500 mt-3">
+              Didn’t get the OTP?{" "}
+              <button className="text-blue-600 font-semibold hover:underline">
+                Resend OTP
+              </button>
+            </p>
+          </motion.div>
+        </div>
       )}
-
-      {/* Submit */}
-      <button
-        className="w-full mt-4 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold hover:bg-emerald-700 transition"
-        onClick={() => {
-          if (otp === "123456") {
-            setAadhaarVerified(true);
-            setIsOtpModalOpen(false);
-            setOtp("");
-          } else {
-            setOtpError("Invalid OTP. Please try again.");
-          }
-        }}
-      >
-        Submit
-      </button>
-
-      {/* Resend */}
-      <p className="text-center text-sm text-slate-500 mt-3">
-        Didn’t get the OTP?{" "}
-        <button className="text-blue-600 font-semibold hover:underline">
-          Resend OTP
-        </button>
-      </p>
-    </motion.div>
-  </div>
-)}
 
     </ProtectedRoute>
   );
