@@ -8,13 +8,13 @@ export const SIDEBAR_CONFIG = {
       section: "CRP OPERATIONS",
       items: [
         { name: "CRP Management", path: "/dashboard/crp-management" },
-        { name: "Attendance Management", path: "#" },
+        { name: "Attendance Management", path: "/dashboard/attandence" },
         { name: "Task Assignment", path: "#" },
       ],
     },
     {
       section: "FINANCIAL MANAGEMENT",
-      items: [{ name: "Honorarium Calculation", path: "#" }],
+      items: [{ name: "Honorarium Calculation", path: "" }],
     },
     {
       section: "PROGRAM MANAGEMENT",

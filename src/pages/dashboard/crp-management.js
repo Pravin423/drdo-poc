@@ -705,74 +705,100 @@ export default function CrpManagement() {
           </div>
 
           {/* ---------- TABLE ---------- */}
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-slate-50/60">
-                <tr>
-                  {["Image", "CRP Details", "Contact", "Assignment", "Status", "Last Activity", "Actions"].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase ${h === "Actions" ? "text-right" : "text-left"
-                          }`}
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
+         <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+  {/* Make table horizontally scrollable on small screens */}
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[600px]">
+      <thead className="bg-slate-50/60">
+        <tr>
+          {[
+            "Image",
+            "CRP Details",
+            "Contact",
+            "Assignment",
+            "Status",
+            "Last Activity",
+            "Actions",
+          ].map((h) => (
+            <th
+              key={h}
+              className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${
+                h === "Actions" ? "text-right" : "text-left"
+              }`}
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
 
-              <tbody className="divide-y divide-slate-100">
-                {filteredCRPs.map((crp, idx) => (
-                  <motion.tr
-                    key={crp.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="hover:bg-slate-50/70"
-                  >
-                    <td className="px-6 py-4">
-                      <img src={crp.image} alt={crp.name} className="w-10 h-10 rounded-full object-cover" />
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-slate-900">{crp.name}</p>
-                      <p className="text-xs text-slate-500">Aadhaar: {crp.aadhaar}</p>
-                    </td>
+      <tbody className="divide-y divide-slate-100">
+        {filteredCRPs.map((crp, idx) => (
+          <motion.tr
+            key={crp.id}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="hover:bg-slate-50/70"
+          >
+            <td className="px-4 py-3">
+              <img
+                src={crp.image}
+                alt={crp.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            </td>
 
-                    <td className="px-6 py-4 text-sm">
-                      <p>{crp.mobile}</p>
-                      <p className="text-xs text-slate-500">{crp.email}</p>
-                    </td>
+            <td className="px-4 py-3">
+              <p className="font-semibold text-slate-900">{crp.name}</p>
+              <p className="text-xs text-slate-500">Aadhaar: {crp.aadhaar}</p>
+            </td>
 
-                    <td className="px-6 py-4 text-sm">
-                      <p className="font-medium">{crp.district}</p>
-                      <p className="text-xs text-slate-500">
-                        {crp.taluka} – {crp.block} • {crp.villages} villages
-                      </p>
-                    </td>
+            <td className="px-4 py-3 text-sm">
+              <p>{crp.mobile}</p>
+              <p className="text-xs text-slate-500">{crp.email}</p>
+            </td>
 
-                    <td className="px-6 py-4">
-                      <StatusBadge status={crp.status} />
-                    </td>
+            <td className="px-4 py-3 text-sm">
+              <p className="font-medium">{crp.district}</p>
+              <p className="text-xs text-slate-500">
+                {crp.taluka} – {crp.block} • {crp.villages} villages
+              </p>
+            </td>
 
-                    <td className="px-6 py-4 text-sm">
-                      <p>{crp.lastActivity}</p>
-                      <p className="text-xs text-slate-500">{crp.time}</p>
-                    </td>
+            <td className="px-4 py-3">
+              <StatusBadge status={crp.status} />
+            </td>
 
-                    <td className="px-6 py-4 text-right">
-                      <div className="inline-flex gap-3 text-slate-500">
-                        <Eye size={18} onClick={() => openModal(crp)} className="cursor-pointer hover:text-blue-600" />
-                        <Edit size={18} className="cursor-pointer hover:text-emerald-600" />
-                        <MoreHorizontal size={18} className="cursor-pointer hover:text-slate-700" />
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <td className="px-4 py-3 text-sm">
+              <p>{crp.lastActivity}</p>
+              <p className="text-xs text-slate-500">{crp.time}</p>
+            </td>
+
+            <td className="px-4 py-3 text-right">
+              <div className="inline-flex gap-2 text-slate-500">
+                <Eye
+                  size={18}
+                  onClick={() => openModal(crp)}
+                  className="cursor-pointer hover:text-blue-600"
+                />
+                <Edit
+                  size={18}
+                  className="cursor-pointer hover:text-emerald-600"
+                />
+                <MoreHorizontal
+                  size={18}
+                  className="cursor-pointer hover:text-slate-700"
+                />
+              </div>
+            </td>
+          </motion.tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 
 
