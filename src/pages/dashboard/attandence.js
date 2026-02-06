@@ -34,7 +34,7 @@ export default function AttendanceManagement() {
   return (
     <ProtectedRoute allowedRole="super-admin">
       <DashboardLayout>
-        <div className="min-h-screen bg-[#f8fafc] p-4 lg:p-8">
+        <div className="min-h-screen  p-2 lg:p-3 xl:p-4">
           <div className="max-w-[1600px] mx-auto space-y-8">
 
             {/* --- Page Header --- */}
