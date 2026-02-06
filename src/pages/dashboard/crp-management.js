@@ -14,9 +14,9 @@ import {
   RefreshCw,
   UploadCloud,
   ChevronDown,
-  UserPlus, Upload
+  UserPlus, Upload,Activity ,FileText,Shield ,ShieldCheck ,Zap
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // Update your framer-motion import to include AnimatePresence
 import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -143,8 +143,38 @@ const StatusBadge = ({ status }) => {
 
 /* ---------------- PAGE ---------------- */
 export default function CrpManagement() {
+  const goaVillages = [
+    "Panjim",
+    "Mapusa",
+    "Margao",
+    "Vasco da Gama",
+    "Ponda",
+    "Calangute",
+    "Candolim",
+    "Benaulim",
+    "Colva",
+    "Curchorem",
+    "Quepem",
+    "Sanquelim",
+    "Pernem",
+    "Canacona",
+    "Assagao",
+    "Siolim",
+    "Anjuna",
+    "Aldona",
+    "Saligao",
+    "Verna"
+  ];
   const [selectedCRP, setSelectedCRP] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [open, setOpen] = useState(false);
+  const [searchvill, setSearchvill] = useState("");
+  const [village, setVillage] = useState("");
+
+  const filteredVillages = goaVillages.filter(v =>
+    v.toLowerCase().includes(searchvill.toLowerCase())
+  );
 
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [otp, setOtp] = useState("");
@@ -176,7 +206,32 @@ export default function CrpManagement() {
   const inactiveCRPs = CRP_DATA.filter((c) => c.status === "Inactive").length;
   const villagesCovered = CRP_DATA.reduce((sum, c) => sum + c.villages, 0);
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState('');
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
 
+    if (file) {
+      // Check file size (2MB = 2 * 1024 * 1024 bytes)
+      if (file.size > 2 * 1024 * 1024) {
+        setError('File size must be less than 2MB');
+        setSelectedFile(null);
+        return;
+      }
+
+      // Check file type (optional - add your allowed types)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Please upload a valid document (JPG, PNG, or PDF)');
+        setSelectedFile(null);
+        return;
+      }
+
+      setError('');
+      setSelectedFile(file);
+      console.log('File selected:', file.name);
+    }
+  };
   const summaryCards = [
     { label: "Total CRPs", value: totalCRPs, icon: Users, accent: "bg-blue-50 text-blue-600 border-blue-200" },
     { label: "Active CRPs", value: activeCRPs, icon: Users, accent: "bg-emerald-50 text-emerald-600 border-emerald-200" },
@@ -286,37 +341,45 @@ export default function CrpManagement() {
   });
 
   const [form, setForm] = useState({
-    // Personal Details
+    // Personal
     name: "",
     aadhaar: "",
     mobile: "",
     email: "",
 
-    // Assignment Details
+    // Administrative Assignment
     district: "",
     taluka: "",
     block: "",
-    vertical: "",
+    villages: [],
 
-    // Work Details
-    villagesAssigned: "",
+    // Vertical Assignment
+    verticals: [],
 
-    // Banking Details
-    bankAccountNo: "",
-    ifscCode: "",
-    bankName: "",
-    branchName: "",
+    // Financial
+    bankAccount: "",
+    ifsc: "",
+    pan: "",
 
-    // Documents
+    // Document
     photo: null,
-
-    // Status / Meta
-    status: "Active",
-    remarks: ""
   });
+
 
   const [submitted, setSubmitted] = useState(false);
 
+  // Disable background scroll when any modal is open
+  useEffect(() => {
+    if (isModalOpen || isRegisterOpen || isBulkImportOpen || isOtpModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen, isRegisterOpen, isBulkImportOpen, isOtpModalOpen]);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -718,7 +781,7 @@ export default function CrpManagement() {
       </DashboardLayout>
       <AnimatePresence>
         {isRegisterOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md px-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -835,32 +898,219 @@ export default function CrpManagement() {
 
                 <hr className="border-slate-100" />
 
-                {/* Section: Assignment & Financial */}
+                {/* Section: Administrative Assignment */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1">
-                    <h3 className="text-sm font-bold text-slate-900">Work & Finance</h3>
-                    <p className="text-xs text-slate-500 mt-1">Village assignments and banking credentials.</p>
+                    <h3 className="text-sm font-bold text-slate-900">Administrative Assignment</h3>
+                    <p className="text-xs text-slate-500 mt-1">Geographical responsibility details.</p>
                   </div>
-                  <div className="md:col-span-2 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"><option>Select District</option></select>
-                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"><option>Select Vertical</option></select>
+
+                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">District *</p>
+                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        <option>Select District</option>
+                        <option>North Goa</option>
+                        <option>South Goa</option>
+                      </select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <input className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none" placeholder="Bank Account No." />
-                      <input className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none" placeholder="IFSC Code" />
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Block *</p>
+                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        <option>Select Block</option>
+                        <option> Block 1</option>
+                        <option> Block 2</option>
+                        <option> Block 3</option>
+                      </select>
                     </div>
-                    <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
-                      <div className="p-2 bg-white rounded-lg shadow-sm"><Upload size={16} className="text-blue-600" /></div>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Document Upload</p>
-                        <p className="text-xs text-slate-500">Upload Photo (Max 2MB)</p>
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Taluka *</p>
+                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        <option>Select Taluka</option>
+                        <optgroup label="North Goa">
+                          <option>Bardez</option>
+                          <option>Bicholim</option>
+                          <option>Pernem</option>
+                          <option>Ponda</option>
+                          <option>Sattari</option>
+                          <option>Tiswadi</option>
+                        </optgroup>
+                        <optgroup label="South Goa">
+                          <option>Canacona</option>
+                          <option>Dharbandora</option>
+                          <option>Mormugao</option>
+                          <option>Quepem</option>
+                          <option>Salcete</option>
+                          <option>Sanguem</option>
+                        </optgroup>
+                      </select>
+                    </div>
+
+
+                    <div className="relative col-span-2 w-full space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Assigned Village *</p>
+                      {/* Select Box */}
+                      <div
+                        onClick={() => setOpen((prev) => !prev)}
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm cursor-pointer flex items-center justify-between transition-all ${open ? "bg-white border-blue-500 ring-4 ring-blue-500/10" : "bg-slate-50 border-slate-100 hover:border-slate-200"
+                          }`}
+                      >
+                        <span className={village ? "text-slate-900 font-medium" : "text-slate-400"}>
+                          {village || "Select Village"}
+                        </span>
+                        <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
                       </div>
-                      <input type="file" className="hidden" id="file-upload" />
-                      <label htmlFor="file-upload" className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
+
+                      {open && (
+                        <div className="absolute z-50 mt-2 w-full rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          {/* Search */}
+                          <div className="p-2 border-b border-slate-100 bg-slate-50/50">
+                            <div className="relative">
+                              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                              <input
+                                type="text"
+                                placeholder="Search village..."
+                                value={searchvill}
+                                onChange={(e) => setSearchvill(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+
+                          {/* Options */}
+                          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+                            {filteredVillages.length > 0 ? (
+                              filteredVillages.map((v, i) => (
+                                <div
+                                  key={i}
+                                  onClick={() => {
+                                    setVillage(v);
+                                    setOpen(false);
+                                    setSearchvill("");
+                                  }}
+                                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${village === v ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-600 hover:bg-slate-50"}`}
+                                >
+                                  {v}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-4 py-8 text-center text-sm text-slate-400">
+                                No results found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
+
+                <hr className="border-slate-100" />
+                {/* Section: Vertical Assignment */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-1">
+                    <h3 className="text-sm font-bold text-slate-900">Vertical Assignment</h3>
+                    <p className="text-xs text-slate-500 mt-1">Program or department mapping.</p>
+                  </div>
+
+                  <div className="md:col-span-2 grid  gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vertical *</p>
+                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
+                        <option>Select Vertical</option>
+                        <option>Health & Nutrition</option>
+                        <option>Education & Literacy</option>
+                        <option>Livelihood & Skills</option>
+                        <option>Agriculture & Allied</option>
+                        <option>Infrastructure Development</option>
+                        <option>Social Welfare</option>
+                      </select>
+                    </div>
+
+
+                  </div>
+                </div>
+
+                <hr className="border-slate-100" />
+                {/* Section: Financial Information */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-1">
+                    <h3 className="text-sm font-bold text-slate-900">Financial Information</h3>
+                    <p className="text-xs text-slate-500 mt-1">Banking and payment details.</p>
+                  </div>
+
+                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Number</p>
+                      <input
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
+                        placeholder="Bank Account Number"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">IFSC Code</p>
+                      <input
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
+                        placeholder="IFSC Code"
+                      />
+                    </div>
+
+                    <div className="col-span-2 space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pan Card Number</p>
+                      <input
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
+                        placeholder="Pan Card Number"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-slate-100" />
+                {/* Section: Document Upload */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-1">
+                    <h3 className="text-sm font-bold text-slate-900">Document Upload</h3>
+                    <p className="text-xs text-slate-500 mt-1">Verification documents.</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-lg shadow-sm">
+                        <Upload size={16} className="text-blue-600" />
+                      </div>
+
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+                          Upload Document
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {selectedFile ? selectedFile.name : 'Aadhaar / ID Proof (Max 2MB)'}
+                        </p>
+                        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+                      </div>
+
+                      <input
+                        type="file"
+                        id="doc-upload"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept="image/jpeg,image/jpg,image/png,application/pdf"
+                      />
+                      <label
+                        htmlFor="doc-upload"
+                        className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+                      >
+                        BROWSE
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+
 
                 {/* Confirmation Checkbox */}
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -941,32 +1191,30 @@ export default function CrpManagement() {
               </div>
             </div>
 
-            {/* 2. Content Body */}
-            <div className="pt-20 px-8 pb-8 space-y-8">
+            {/* 2. Content Body (Scrollable) */}
+            <div className="pt-20 px-8 pb-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
 
               {/* Navigation Tabs (Visual only for now) */}
-              <div className="flex gap-8 border-b border-slate-100">
-                <button className="pb-3 border-b-2 border-blue-600 text-sm font-bold text-slate-900">Overview</button>
-                <button className="pb-3 text-sm font-medium text-slate-400 hover:text-slate-600">Activity Log</button>
-                <button className="pb-3 text-sm font-medium text-slate-400 hover:text-slate-600">Assigned Villages</button>
+              <div className="flex gap-6 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <button className="pb-3 border-b-2 border-slate-900 text-sm font-bold text-slate-900">Overview</button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Main Info Column */}
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
                   {[
-                    { label: "Phone", value: selectedCRP.mobile, icon: "📞" },
-                    { label: "Email", value: selectedCRP.email, icon: "✉️" },
-                    { label: "Taluka", value: selectedCRP.taluka, icon: "🏛️" },
-                    { label: "Block", value: selectedCRP.block, icon: "🏢" },
-                    { label: "Aadhaar", value: selectedCRP.aadhaar, icon: "🪪" },
-                    { label: "Vertical", value: selectedCRP.vertical, icon: "🎯" },
+                    { label: "Phone", value: selectedCRP.mobile, icon: <Activity size={14} /> },
+                    { label: "Email", value: selectedCRP.email, icon: <FileText size={14} /> },
+                    { label: "Taluka", value: selectedCRP.taluka, icon: <MapPin size={14} /> },
+                    { label: "Block", value: selectedCRP.block, icon: <Shield size={14} /> },
+                    { label: "Aadhaar", value: selectedCRP.aadhaar, icon: <ShieldCheck size={14} /> },
+                    { label: "Vertical", value: selectedCRP.vertical, icon: <Zap size={14} /> },
                   ].map((item) => (
-                    <div key={item.label} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:border-slate-200 transition-colors">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                        {item.label}
+                    <div key={item.label} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-sm transition-all">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                        {item.icon} {item.label}
                       </p>
-                      <p className="text-slate-800 font-semibold truncate">{item.value}</p>
+                      <p className="text-sm text-slate-800 font-bold truncate">{item.value}</p>
                     </div>
                   ))}
                 </div>
@@ -974,20 +1222,20 @@ export default function CrpManagement() {
                 {/* Side Summary Stats */}
                 <div className="space-y-4">
                   <div className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100">
-                    <p className="text-xs font-bold text-blue-600 uppercase mb-3">Coverage</p>
+                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Coverage</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl font-black text-blue-700">{selectedCRP.villages}</span>
                       <span className="text-blue-600/70 font-semibold text-sm">Villages</span>
                     </div>
-                    <div className="mt-4 h-2 bg-blue-100 rounded-full overflow-hidden">
+                    <div className="mt-4 h-1.5 bg-blue-100 rounded-full overflow-hidden">
                       <div className="h-full bg-blue-600 w-2/3 rounded-full" />
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-3xl bg-slate-900 text-white">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Last Activity</p>
-                    <p className="text-sm font-medium mb-1">{selectedCRP.lastActivity}</p>
-                    <p className="text-xs text-slate-500">{selectedCRP.time}</p>
+                  <div className="p-5 rounded-3xl bg-slate-900 text-white shadow-lg shadow-slate-200">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Last Activity</p>
+                    <p className="text-sm font-bold mb-1">{selectedCRP.lastActivity}</p>
+                    <p className="text-[11px] text-slate-400 font-medium">{selectedCRP.time}</p>
                   </div>
                 </div>
               </div>
@@ -995,15 +1243,14 @@ export default function CrpManagement() {
 
             {/* 3. Footer Actions */}
             <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center">
-
               <div className="flex gap-3">
                 <button
                   onClick={closeModal}
-                  className="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all shadow-sm"
+                  className="px-6 py-2.5 cursor-pointer rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all"
                 >
                   Close
                 </button>
-
+                
               </div>
             </div>
           </motion.div>
@@ -1080,4 +1327,4 @@ export default function CrpManagement() {
 
     </ProtectedRoute>
   );
-}
+} 
