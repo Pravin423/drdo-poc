@@ -9,7 +9,7 @@ export const SIDEBAR_CONFIG = {
       items: [
         { name: "CRP Management", path: "/dashboard/crp-management" },
         { name: "Attendance Management", path: "/dashboard/attandence" },
-        { name: "Task Assignment", path: "#" },
+        { name: "Task Assignment", path: "/dashboard/task-assignment" },
       ],
     },
     {

@@ -131,6 +131,7 @@ export default function GISMapTab() {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [expandedCard, setExpandedCard] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Real-time updates simulation - updates every 30 seconds
   useEffect(() => {
@@ -253,20 +254,23 @@ export default function GISMapTab() {
           className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
           <div className="relative">
-            <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_API_KEY_HERE"}>
+            <LoadScript 
+              googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_API_KEY_HERE"}
+              onLoad={() => setIsMapLoaded(true)}
+            >
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
                 center={center}
                 zoom={10}
                 options={mapOptions}
               >
-                {filteredData.map((crp) => (
+                {isMapLoaded && filteredData.map((crp) => (
                   <Marker
                     key={crp.id}
                     position={crp.coordinates}
                     onClick={() => setSelectedMarker(crp)}
                     icon={{
-                      path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                      path: window.google.maps.SymbolPath.CIRCLE,
                       fillColor: statusConfig[crp.status].markerColor,
                       fillOpacity: 1,
                       strokeColor: "#ffffff",
