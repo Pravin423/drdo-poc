@@ -120,20 +120,40 @@ const VERIFICATION_SUBMISSIONS = [
       membersEnrolled: 144,
       trainingSessions: 8,
     },
-    activityReport: "Conducted SHG formation drive in 5 villages of North Goa District.\n\nActivities Completed:\n- Organized awareness meetings in Mapusa, Bicholim, Pernem, Bardez, and Tiswadi...",
+    activityReport:
+      "Conducted SHG formation drive in 5 villages of North Goa District.\n\nActivities Completed:\n- Organized awareness meetings in Mapusa, Bicholim, Pernem, Bardez, and Tiswadi...",
     evidenceImages: [
       "https://picsum.photos/200/150?random=1",
       "https://picsum.photos/200/150?random=2",
       "https://picsum.photos/200/150?random=3",
     ],
+    attachments: [
+      {
+        name: "SHG_Registration_Photos.pdf",
+        size: "2.4 MB",
+        url: "/files/SHG_Registration_Photos.pdf",
+      },
+      {
+        name: "Attendance_Sheets.xlsx",
+        size: "156 KB",
+        url: "/files/Attendance_Sheets.xlsx",
+      },
+      {
+        name: "Training_Report.docx",
+        size: "890 KB",
+        url: "/files/Training_Report.docx",
+      },
+    ],
     status: "Pending Review",
   },
 ];
+
 
 /* Helper function to generate unique task ID */
 const generateTaskId = () => {
   return `TASK${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
 };
+
 
 /* Helper function to format date */
 const formatDateForDisplay = (dateString) => {
@@ -196,22 +216,42 @@ const StatsCard = memo(function StatsCard({ icon: Icon, label, value, subValue, 
   );
 });
 
-/* ---------------- STATUS BADGE ---------------- */
+
+/* ---------------- STATUS BADGE WITH COLORS FOR ALL STATES ---------------- */
 const StatusBadge = ({ status }) => {
   const styles = {
     Overdue: "bg-rose-50 text-rose-700 border-rose-200",
-    active: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    active: "bg-blue-50 text-blue-700 border-blue-200",
     completed: "bg-slate-100 text-slate-600 border-slate-200",
     "Pending Review": "bg-orange-50 text-orange-700 border-orange-200",
+    Approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    Rejected: "bg-rose-50 text-rose-700 border-rose-200",
+    "Info Requested": "bg-blue-50 text-blue-700 border-blue-200",
+  };
+
+  // Icon mapping for each status
+  const getIcon = (status) => {
+    switch (status) {
+      case "Approved":
+        return "✓";
+      case "Rejected":
+        return "✕";
+      case "Info Requested":
+        return "!";
+      default:
+        return null;
+    }
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${styles[status] || styles.active}`}>
+    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${styles[status] || styles.active}`}>
+      {status === "Approved" && <span className="text-lg">✓</span>}
+      {status === "Rejected" && <span className="text-lg">✕</span>}
+      {status === "Info Requested" && <span className="text-lg">!</span>}
       {status}
-    </span>
+    </div>
   );
 };
-
 /* ---------------- PRIORITY BADGE ---------------- */
 const PriorityBadge = ({ priority }) => {
   const styles = {
@@ -954,6 +994,56 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
 
 /* ---------------- VERIFICATION TAB ---------------- */
 const VerificationTab = memo(function VerificationTab() {
+  const [submissions, setSubmissions] = useState(VERIFICATION_SUBMISSIONS);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [showRequestInfo, setShowRequestInfo] = useState(false);
+  const [requestMessage, setRequestMessage] = useState("");
+  const [animatingId, setAnimatingId] = useState(null);
+
+  const handleApprove = (submissionId) => {
+    setAnimatingId(submissionId);
+    setTimeout(() => {
+      setSubmissions((prev) =>
+        prev.map((sub) =>
+          sub.id === submissionId ? { ...sub, status: "Approved" } : sub
+        )
+      );
+      setAnimatingId(null);
+    }, 600);
+  };
+
+  const handleReject = (submissionId) => {
+    setAnimatingId(submissionId);
+    setTimeout(() => {
+      setSubmissions((prev) =>
+        prev.map((sub) =>
+          sub.id === submissionId ? { ...sub, status: "Rejected" } : sub
+        )
+      );
+      setAnimatingId(null);
+    }, 600);
+  };
+
+  const handleRequestInfo = (submissionId) => {
+    setSelectedSubmission(submissionId);
+    setShowRequestInfo(true);
+  };
+
+  const handleSendRequest = () => {
+    if (requestMessage.trim()) {
+      setSubmissions((prev) =>
+        prev.map((sub) =>
+          sub.id === selectedSubmission
+            ? { ...sub, status: "Info Requested", requestMessage: requestMessage }
+            : sub
+        )
+      );
+      setRequestMessage("");
+      setShowRequestInfo(false);
+      setSelectedSubmission(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Header */}
@@ -961,7 +1051,7 @@ const VerificationTab = memo(function VerificationTab() {
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Verification Queue</h2>
-            <p className="text-sm text-slate-500 mt-1">{VERIFICATION_SUBMISSIONS.length} submissions pending review</p>
+            <p className="text-sm text-slate-500 mt-1">{submissions.length} submissions pending review</p>
           </div>
           <div className="flex items-center gap-2">
             <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
@@ -978,12 +1068,21 @@ const VerificationTab = memo(function VerificationTab() {
 
       {/* Submissions List */}
       <div className="divide-y divide-slate-100">
-        {VERIFICATION_SUBMISSIONS.map((submission, index) => (
+        {submissions.map((submission, index) => (
           <motion.div
             key={submission.id}
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            animate={{
+              opacity: animatingId === submission.id ? 0.5 : 1,
+              y: 0,
+              scale: animatingId === submission.id ? 0.98 : 1,
+            }}
+            transition={{
+              duration: animatingId === submission.id ? 0.6 : 0.3,
+              type: "spring",
+              stiffness: 300,
+              damping: 25
+            }}
             className="p-6"
           >
             {/* Header */}
@@ -1002,11 +1101,25 @@ const VerificationTab = memo(function VerificationTab() {
                   </span>
                 </div>
               </div>
-              <StatusBadge status={submission.status} />
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={{
+                  scale: animatingId === submission.id ? [1, 1.1, 0.95] : 1,
+                }}
+                transition={{ duration: 0.6 }}
+              >
+                <StatusBadge status={submission.status} />
+              </motion.div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b border-slate-200">
+            <motion.div
+              animate={{
+                opacity: animatingId === submission.id ? 0.6 : 1,
+              }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 border-b border-slate-200"
+            >
               <div className="text-center">
                 <div className="text-2xl font-bold text-slate-900">{submission.stats.villagesCovered}</div>
                 <div className="text-xs text-slate-600 mt-0.5">Villages Covered</div>
@@ -1023,14 +1136,20 @@ const VerificationTab = memo(function VerificationTab() {
                 <div className="text-2xl font-bold text-slate-900">{submission.stats.trainingSessions}</div>
                 <div className="text-xs text-slate-600 mt-0.5">Training Sessions</div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Activity Report */}
             <div className="mb-4">
               <h4 className="text-sm font-bold text-slate-900 mb-2">Activity Report</h4>
-              <div className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 leading-relaxed">
+              <motion.div
+                animate={{
+                  opacity: animatingId === submission.id ? 0.6 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+                className="bg-slate-50 rounded-lg p-4 text-sm text-slate-700 leading-relaxed"
+              >
                 {submission.activityReport}
-              </div>
+              </motion.div>
             </div>
 
             {/* Evidence Images */}
@@ -1038,37 +1157,233 @@ const VerificationTab = memo(function VerificationTab() {
               <h4 className="text-sm font-bold text-slate-900 mb-3">
                 Evidence Images ({submission.evidenceImages.length})
               </h4>
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <motion.div
+                animate={{
+                  opacity: animatingId === submission.id ? 0.6 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+                className="flex gap-3 overflow-x-auto pb-2"
+              >
                 {submission.evidenceImages.map((img, idx) => (
                   <div key={idx} className="flex-shrink-0">
                     <img
                       src={img}
                       alt={`Evidence ${idx + 1}`}
-                      className="w-32 h-24 object-cover rounded-lg border border-slate-200"
+                      className="w-[300px] h-[200px] object-cover rounded-lg border border-slate-200"
                     />
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
+            <div className="mt-6">
+              <h4 className="text-sm font-bold text-slate-900 mb-3">
+                Attachments ({submission.attachments.length})
+              </h4>
+
+              <div className="space-y-3">
+                {submission.attachments.map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3"
+                  >
+                    {/* Left */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-100">
+                        <FileText size={18} className="text-blue-800" />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-slate-500">{file.size}</p>
+                      </div>
+                    </div>
+
+                    {/* Download */}
+                    <a
+                      href={file.url}
+                      download
+                      className="p-2 rounded-lg hover:bg-slate-200 transition"
+                    >
+                      <Download size={18} className="text-slate-600" />
+                    </a>
                   </div>
                 ))}
               </div>
             </div>
 
+
+            {/* Request Info Message Display */}
+            <AnimatePresence>
+              {submission.requestMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -10, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg overflow-hidden"
+                >
+                  <p className="text-sm font-semibold text-yellow-900 mb-1">Information Requested</p>
+                  <p className="text-sm text-yellow-800">{submission.requestMessage}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
-                <CheckCircle2 className="w-4 h-4" />
-                Approve
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors">
-                <XCircle className="w-4 h-4" />
-                Reject
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+            <div className="flex mt-[10px] items-center gap-2">
+              <motion.button
+                whileHover={{ scale: submission.status === "Approved" ? 1 : 1.05 }}
+                whileTap={{ scale: submission.status === "Approved" ? 1 : 0.95 }}
+                onClick={() => handleApprove(submission.id)}
+                disabled={submission.status === "Approved" || animatingId === submission.id}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all disabled:bg-emerald-300 disabled:cursor-not-allowed"
+              >
+                <motion.div
+                  animate={
+                    submission.status === "Approved"
+                      ? { rotate: 360, scale: [1, 1.2, 1] }
+                      : {}
+                  }
+                  transition={{ duration: 0.6 }}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </motion.div>
+                {submission.status === "Approved" ? "Approved" : "Approve"}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: submission.status === "Rejected" ? 1 : 1.05 }}
+                whileTap={{ scale: submission.status === "Rejected" ? 1 : 0.95 }}
+                onClick={() => handleReject(submission.id)}
+                disabled={submission.status === "Rejected" || animatingId === submission.id}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-all disabled:bg-rose-300 disabled:cursor-not-allowed"
+              >
+                <motion.div
+                  animate={
+                    submission.status === "Rejected"
+                      ? { rotate: 360, scale: [1, 1.2, 1] }
+                      : {}
+                  }
+                  transition={{ duration: 0.6 }}
+                >
+                  <XCircle className="w-4 h-4" />
+                </motion.div>
+                {submission.status === "Rejected" ? "Rejected" : "Reject"}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleRequestInfo(submission.id)}
+                disabled={animatingId === submission.id}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Info className="w-4 h-4" />
                 Request Info
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         ))}
       </div>
+
+      {/* Request Info Modal */}
+      <AnimatePresence>
+        {showRequestInfo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => {
+              setShowRequestInfo(false);
+              setSelectedSubmission(null);
+              setRequestMessage("");
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 25 }}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="flex items-center justify-between mb-4"
+              >
+                <h3 className="text-lg font-bold text-slate-900">Request Additional Information</h3>
+                <motion.button
+                  whileHover={{ rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => {
+                    setShowRequestInfo(false);
+                    setSelectedSubmission(null);
+                    setRequestMessage("");
+                  }}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mb-4"
+              >
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Message to CRP <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={requestMessage}
+                  onChange={(e) => setRequestMessage(e.target.value)}
+                  placeholder="Specify what additional information or clarification is needed..."
+                  rows="4"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+                  autoFocus
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex gap-2 justify-end"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setShowRequestInfo(false);
+                    setSelectedSubmission(null);
+                    setRequestMessage("");
+                  }}
+                  className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: requestMessage.trim() ? 1.05 : 1 }}
+                  whileTap={{ scale: requestMessage.trim() ? 0.95 : 1 }}
+                  onClick={handleSendRequest}
+                  disabled={!requestMessage.trim()}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all disabled:bg-blue-300 disabled:cursor-not-allowed"
+                >
+                  Send Request
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 });
+
