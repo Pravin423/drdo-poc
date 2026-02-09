@@ -146,6 +146,83 @@ const VERIFICATION_SUBMISSIONS = [
     ],
     status: "Pending Review",
   },
+  {
+  id: 2,
+  taskTitle: "MGNREGA Work Site Monitoring",
+  submittedBy: "Rajesh Kumar (CRP002)",
+  submittedDate: "29 Jan 2026, 10:15 am",
+  stats: {
+    sitesVisited: 4,
+    workersVerified: 156,
+    issuesIdentified: 2,
+    reportsGenerated: 4,
+  },
+  activityReport:
+    "Conducted comprehensive monitoring of MGNREGA work sites across South Goa District.\n\nSites Visited:\n- Road construction project in Margao Block...\n\nObservations:\n- Verified worker attendance and wage records\n- Identified minor safety and material issues at select sites",
+  evidenceImages: [
+    "https://picsum.photos/400/250?random=11",
+    "https://picsum.photos/400/250?random=12",
+  ],
+  attachments: [
+    {
+      name: "MGNREGA_Worksite_Inspection_Report.pdf",
+      size: "1.8 MB",
+      url: "/files/MGNREGA_Worksite_Inspection_Report.pdf",
+    },
+    {
+      name: "Worker_Verification_List.xlsx",
+      size: "245 KB",
+      url: "/files/Worker_Verification_List.xlsx",
+    },
+    {
+      name: "Issue_Compliance_Notes.docx",
+      size: "620 KB",
+      url: "/files/Issue_Compliance_Notes.docx",
+    },
+  ],
+  status: "Pending Review",
+}
+,
+ {
+  id: 3,
+  taskTitle: "Health & Nutrition Awareness Campaign",
+  submittedBy: "Anita Fernandes (CRP003)",
+  submittedDate: "29 Jan 2026, 04:45 pm",
+  stats: {
+    villagesCovered: 3,
+    beneficiaries: 89,
+    anemiaDetected: 23,
+    supplementsDistributed: 67,
+  },
+  activityReport:
+    "Organized health and nutrition awareness campaign in Tiswadi Taluka villages.\n\nCampaign Activities:\n- Conducted health check-up camps in 3 villages\n- Identified anemia cases among women and children\n- Distributed iron and nutrition supplements\n- Provided dietary awareness sessions",
+  evidenceImages: [
+    "https://picsum.photos/400/250?random=21",
+    "https://picsum.photos/400/250?random=22",
+    "https://picsum.photos/400/250?random=23",
+  ],
+  attachments: [
+    {
+      name: "Health_Checkup_Report.pdf",
+      size: "2.1 MB",
+      url: "/files/Health_Checkup_Report.pdf",
+    },
+    {
+      name: "Beneficiary_Attendance_Sheet.xlsx",
+      size: "198 KB",
+      url: "/files/Beneficiary_Attendance_Sheet.xlsx",
+    },
+    {
+      name: "Nutrition_Awareness_Material.docx",
+      size: "940 KB",
+      url: "/files/Nutrition_Awareness_Material.docx",
+    },
+  ],
+  status: "Pending Review",
+}
+
+
+
 ];
 
 
