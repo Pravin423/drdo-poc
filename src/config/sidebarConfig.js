@@ -14,7 +14,7 @@ export const SIDEBAR_CONFIG = {
     },
     {
       section: "FINANCIAL MANAGEMENT",
-      items: [{ name: "Honorarium Calculation", path: "" }],
+      items: [{ name: "Honorarium Calculation", path: "/dashboard/honorarium" }],
     },
     {
       section: "PROGRAM MANAGEMENT",
