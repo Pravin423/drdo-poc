@@ -49,17 +49,29 @@ export default function DashboardLayout({ children }) {
               </div>
 
               {/* Sync Status */}
-              <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-slate-400">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                >
-                  <RefreshCw size={12} className="text-slate-300" />
-                </motion.div>
-                <span className="hidden sm:inline">Last sync: 2026-01-30</span>
-                <span className="text-slate-300 hidden sm:inline">|</span>
-                <span>12:15 PM</span>
-              </div>
+             <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-slate-400">
+  <motion.div
+    animate={{ rotate: 360 }}
+    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+  >
+    <RefreshCw size={12} className="text-slate-300" />
+  </motion.div>
+
+  <span className="hidden sm:inline">
+    Last sync:{" "}
+    {new Date().toLocaleDateString("en-CA")}
+  </span>
+
+  <span className="text-slate-300 hidden sm:inline">|</span>
+
+  <span>
+    {new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+  </span>
+</div>
+
             </motion.header>
 
             {/* 2. Main Heading Section */}
