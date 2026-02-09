@@ -35,7 +35,7 @@ import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 
 /* ---------------- MOCK DATA ---------------- */
-const MOCK_TASKS = [
+const INITIAL_MOCK_TASKS = [
   {
     id: "TASK173823377184",
     title: "SHG Formation and Registration Drive",
@@ -129,6 +129,29 @@ const VERIFICATION_SUBMISSIONS = [
     status: "Pending Review",
   },
 ];
+
+/* Helper function to generate unique task ID */
+const generateTaskId = () => {
+  return `TASK${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/* Helper function to format date */
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+/* Helper function to parse assigned CRPs from the select value */
+const parseAssignedCRPs = (crpString) => {
+  if (!crpString) return [];
+  return [crpString.split(" - ")[0]]; // Extract just the name from "Name - Location"
+};
+
+/* Helper function to count CRPs */
+const countCRPs = (assignedTo) => {
+  return assignedTo.length;
+};
 
 /* ---------------- STATS CARD ---------------- */
 const StatsCard = memo(function StatsCard({ icon: Icon, label, value, subValue, delta, isPositive, accent }) {
@@ -231,8 +254,7 @@ const ProgressBar = ({ percentage }) => {
 /* ---------------- MAIN PAGE COMPONENT ---------------- */
 export default function TaskAssignment() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showVerificationQueue, setShowVerificationQueue] = useState(false);
+  const [tasks, setTasks] = useState(INITIAL_MOCK_TASKS);
   const [formData, setFormData] = useState({
     taskTitle: "",
     vertical: "",
@@ -261,20 +283,44 @@ export default function TaskAssignment() {
   };
 
   const handleCreateTask = () => {
-    console.log("Creating task:", formData);
-    setShowCreateForm(false);
-    setFormData({
-      taskTitle: "",
-      vertical: "",
-      taskType: "",
-      priority: "",
-      startDate: "",
-      endDate: "",
-      enableAutoAssignment: false,
-      assignedCRPs: "",
-      description: "",
-      deliverables: "",
-    });
+    // Validate required fields
+    if (!formData.taskTitle || !formData.vertical || !formData.taskType || !formData.priority || !formData.startDate || !formData.endDate || !formData.assignedCRPs) {
+      alert("Please fill in all required fields marked with *");
+      return;
+    }
+
+    // Parse the assigned CRPs
+    const assignedToArray = parseAssignedCRPs(formData.assignedCRPs);
+
+    // Create new task object
+    const newTask = {
+      id: generateTaskId(),
+      title: formData.taskTitle,
+      vertical: formData.vertical,
+      assignedTo: assignedToArray,
+      crpCount: countCRPs(assignedToArray),
+      progress: 0, // New tasks start at 0% progress
+      startDate: formatDateForDisplay(formData.startDate),
+      endDate: formatDateForDisplay(formData.endDate),
+      status: "active", // New tasks are active
+      priority: formData.priority.toUpperCase().split(" ")[0], // Extract "HIGH", "MEDIUM", or "LOW"
+      taskType: formData.taskType.split(" ")[0], // Take first word for brevity
+      description: formData.description,
+      deliverables: formData.deliverables,
+      daysLeft: 1, // You can calculate this properly if needed
+    };
+
+    // Add the new task to the tasks array
+    setTasks((prevTasks) => [newTask, ...prevTasks]);
+
+    // Log for debugging
+    console.log("Creating task:", newTask);
+
+    // Reset form
+    handleClearForm();
+
+    // Switch to overview tab to see the new task
+    setActiveTab("overview");
   };
 
   const handleClearForm = () => {
@@ -292,48 +338,59 @@ export default function TaskAssignment() {
     });
   };
 
-  const stats = useMemo(() => [
-    {
-      label: "Total Tasks",
-      value: "5",
-      delta: "2",
-      isPositive: true,
-      accent: "text-slate-600 bg-slate-50 border-slate-200",
-      icon: ClipboardList,
-    },
-    {
-      label: "Active Tasks",
-      value: "5",
-      delta: "1",
-      isPositive: true,
-      accent: "text-blue-600 bg-blue-50 border-blue-200",
-      icon: Activity,
-    },
-    {
-      label: "Completed",
-      value: "0",
-      delta: null,
-      isPositive: null,
-      accent: "text-emerald-600 bg-emerald-50 border-emerald-200",
-      icon: CheckCircle,
-    },
-    {
-      label: "Overdue",
-      value: "3",
-      delta: "1",
-      isPositive: false,
-      accent: "text-rose-600 bg-rose-50 border-rose-200",
-      icon: AlertCircle,
-    },
-    {
-      label: "Avg Progress",
-      value: "55%",
-      delta: "5%",
-      isPositive: true,
-      accent: "text-orange-600 bg-orange-50 border-orange-200",
-      icon: TrendingUp,
-    },
-  ], []);
+  const handleDeleteTask = (taskId) => {
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  };
+
+  const stats = useMemo(() => {
+    const completed = tasks.filter((t) => t.status === "completed").length;
+    const active = tasks.filter((t) => t.status === "active").length;
+    const overdue = tasks.filter((t) => t.status === "Overdue").length;
+    const avgProgress = tasks.length > 0 ? Math.round(tasks.reduce((sum, t) => sum + t.progress, 0) / tasks.length) : 0;
+
+    return [
+      {
+        label: "Total Tasks",
+        value: tasks.length.toString(),
+        delta: "2",
+        isPositive: true,
+        accent: "text-slate-600 bg-slate-50 border-slate-200",
+        icon: ClipboardList,
+      },
+      {
+        label: "Active Tasks",
+        value: active.toString(),
+        delta: "1",
+        isPositive: true,
+        accent: "text-blue-600 bg-blue-50 border-blue-200",
+        icon: Activity,
+      },
+      {
+        label: "Completed",
+        value: completed.toString(),
+        delta: null,
+        isPositive: null,
+        accent: "text-emerald-600 bg-emerald-50 border-emerald-200",
+        icon: CheckCircle,
+      },
+      {
+        label: "Overdue",
+        value: overdue.toString(),
+        delta: "1",
+        isPositive: false,
+        accent: "text-rose-600 bg-rose-50 border-rose-200",
+        icon: AlertCircle,
+      },
+      {
+        label: "Avg Progress",
+        value: `${avgProgress}%`,
+        delta: "5%",
+        isPositive: true,
+        accent: "text-orange-600 bg-orange-50 border-orange-200",
+        icon: TrendingUp,
+      },
+    ];
+  }, [tasks]);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -414,7 +471,7 @@ export default function TaskAssignment() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                {activeTab === "overview" && <OverviewTab />}
+                {activeTab === "overview" && <OverviewTab tasks={tasks} onDeleteTask={handleDeleteTask} />}
                 {activeTab === "createTask" && (
                   <CreateTaskTab
                     formData={formData}
@@ -434,7 +491,7 @@ export default function TaskAssignment() {
 }
 
 /* ---------------- OVERVIEW TAB ---------------- */
-const OverviewTab = memo(function OverviewTab() {
+const OverviewTab = memo(function OverviewTab({ tasks, onDeleteTask }) {
   const [filters, setFilters] = useState({
     search: "",
     vertical: "all",
@@ -497,9 +554,9 @@ const OverviewTab = memo(function OverviewTab() {
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
             >
               <option value="all">All Status</option>
-              <option>Active</option>
+              <option>active</option>
               <option>Overdue</option>
-              <option>Completed</option>
+              <option>completed</option>
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>
@@ -529,7 +586,7 @@ const OverviewTab = memo(function OverviewTab() {
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
             >
               <option value="all">All Task Types</option>
-              <option>Regular Task</option>
+              <option>Regular</option>
               <option>Monitoring</option>
               <option>Survey</option>
               <option>Training</option>
@@ -565,13 +622,13 @@ const OverviewTab = memo(function OverviewTab() {
       </div>
 
       {/* Active Tasks List */}
-      <ActiveTasksList />
+      <ActiveTasksList tasks={tasks} onDeleteTask={onDeleteTask} />
     </>
   );
 });
 
 /* ---------------- ACTIVE TASKS LIST ---------------- */
-const ActiveTasksList = memo(function ActiveTasksList() {
+const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Header */}
@@ -579,7 +636,7 @@ const ActiveTasksList = memo(function ActiveTasksList() {
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Active Tasks</h2>
-            <p className="text-sm text-slate-500 mt-1">{MOCK_TASKS.length} tasks in progress</p>
+            <p className="text-sm text-slate-500 mt-1">{tasks.length} tasks in progress</p>
           </div>
           <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
             <Download size={16} />
@@ -590,76 +647,85 @@ const ActiveTasksList = memo(function ActiveTasksList() {
 
       {/* Tasks List */}
       <div className="divide-y divide-slate-100">
-        {MOCK_TASKS.map((task, index) => (
-          <motion.div
-            key={task.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="p-6 hover:bg-slate-50/50 transition-colors"
-          >
-            {/* Header Row */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-slate-900">{task.title}</h3>
-                  <PriorityBadge priority={task.priority} />
-                  <StatusBadge status={task.status} />
+        {tasks.length === 0 ? (
+          <div className="p-6 text-center text-slate-500">
+            <p>No tasks yet. Create one to get started!</p>
+          </div>
+        ) : (
+          tasks.map((task, index) => (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="p-6 hover:bg-slate-50/50 transition-colors"
+            >
+              {/* Header Row */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-slate-900">{task.title}</h3>
+                    <PriorityBadge priority={task.priority} />
+                    <StatusBadge status={task.status} />
+                  </div>
+                  <p className="text-sm text-slate-600 flex items-center gap-3">
+                    <span className="flex items-center gap-1">
+                      <FileText className="w-3.5 h-3.5" />
+                      ID: {task.id}
+                    </span>
+                    <span className="text-slate-400">•</span>
+                    <span>{task.taskType}</span>
+                  </p>
                 </div>
-                <p className="text-sm text-slate-600 flex items-center gap-3">
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3.5 h-3.5" />
-                    ID: {task.id}
-                  </span>
-                  <span className="text-slate-400">•</span>
-                  <span>{task.taskType}</span>
-                </p>
               </div>
-            </div>
 
-            {/* Details Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 bg-slate-50 rounded-lg">
-              <div>
-                <p className="text-xs text-slate-500 font-medium mb-1">Vertical</p>
-                <p className="text-sm font-semibold text-slate-900">{task.vertical}</p>
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 bg-slate-50 rounded-lg">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-1">Vertical</p>
+                  <p className="text-sm font-semibold text-slate-900">{task.vertical}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-1">Assigned To</p>
+                  <p className="text-sm font-semibold text-slate-900">{task.crpCount} CRPs</p>
+                  <p className="text-xs text-slate-600">{task.assignedTo.join(", ")}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-1">Timeline</p>
+                  <p className="text-sm font-semibold text-slate-900">{task.startDate} to {task.endDate}</p>
+                  {task.daysOverdue ? (
+                    <p className="text-xs text-rose-600 font-medium">{task.daysOverdue} days overdue</p>
+                  ) : task.daysLeft ? (
+                    <p className="text-xs text-emerald-600 font-medium">{task.daysLeft} days left</p>
+                  ) : null}
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium mb-1">Progress</p>
+                  <ProgressBar percentage={task.progress} />
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium mb-1">Assigned To</p>
-                <p className="text-sm font-semibold text-slate-900">{task.crpCount} CRPs</p>
-                <p className="text-xs text-slate-600">{task.assignedTo.join(", ")}</p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium mb-1">Timeline</p>
-                <p className="text-sm font-semibold text-slate-900">{task.startDate} to {task.endDate}</p>
-                {task.daysOverdue ? (
-                  <p className="text-xs text-rose-600 font-medium">{task.daysOverdue} days overdue</p>
-                ) : task.daysLeft ? (
-                  <p className="text-xs text-emerald-600 font-medium">{task.daysLeft} days left</p>
-                ) : null}
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 font-medium mb-1">Progress</p>
-                <ProgressBar percentage={task.progress} />
-              </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                <Edit className="w-4 h-4" />
-                Edit
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors">
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                <Info className="w-4 h-4" />
-                Details
-              </button>
-            </div>
-          </motion.div>
-        ))}
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => onDeleteTask(task.id)}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+                <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                  <Info className="w-4 h-4" />
+                  Details
+                </button>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -799,7 +865,7 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
             name="enableAutoAssignment"
             checked={formData.enableAutoAssignment}
             onChange={handleInputChange}
-            className="mt-0.5 w-4 h-4 text-blue-600 border-slate-300 mt-[10px] rounded focus:ring-2 focus:ring-blue-500"
+            className="mt-0.5 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
           />
           <div>
             <label className="text-sm font-semibold text-slate-900">Enable Auto-Assignment</label>
@@ -825,9 +891,9 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
               <option>Priya Desai - North Goa District</option>
               <option>Rajesh Kumar - South Goa District</option>
               <option>Anita Fernandes - Tiswadi Taluka</option>
-               <option>Priya Desai - North Goa District</option>
-              <option>Rajesh Kumar - South Goa District</option>
-              <option>Anita Fernandes - Tiswadi Taluka</option>
+              <option>Ganesh Parsekar - Sattari Taluka</option>
+              <option>Maria D'Souza - Ponda Taluka</option>
+              <option>Sunita Rane - Quepem Taluka</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>
