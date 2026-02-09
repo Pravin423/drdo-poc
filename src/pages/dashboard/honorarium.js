@@ -1063,6 +1063,27 @@ const RateMasterTab = memo(function RateMasterTab({
     </div>
   );
 });
+const handleExportSummaryCSV = () => {
+  const rows = [
+    ["Month", selectedMonth],
+    ["District", selectedDistrict],
+    ["Total CRPs", metrics.totalCRPs],
+    ["Total Amount", metrics.totalAmount],
+    ["Average Attendance", metrics.avgAttendance],
+    ["Task Completion (%)", metrics.taskCompletion],
+  ];
+
+  const csvContent =
+    "data:text/csv;charset=utf-8," +
+    rows.map((e) => e.join(",")).join("\n");
+
+  const link = document.createElement("a");
+  link.href = encodeURI(csvContent);
+  link.download = `CRP_Monthly_Summary_${selectedMonth}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 /* ---------------- CALCULATIONS TAB ---------------- */
 const CalculationsTab = memo(function CalculationsTab({
@@ -1098,7 +1119,40 @@ const CalculationsTab = memo(function CalculationsTab({
               Auto-generated honorarium calculations with attendance dependency
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 justify-end">
+            <button
+              onClick={() => {
+                const headers = [
+                  "CRP Name",
+                  "CRP ID",
+                  "District",
+                  "Block",
+                  "Attendance",
+                  "Tasks",
+                  "Base Amount",
+                  "Bonus",
+                  "Deductions",
+                  "Net Amount",
+                  "Status",
+                  "Calculated On"
+                ];
+                const rows = data.map(calc => [
+                  calc.name, calc.crpId, calc.district, calc.block, calc.attendance, 
+                  calc.tasks, calc.baseAmount, calc.bonus, calc.deductions, 
+                  calc.netAmount, calc.status, calc.calculatedOn
+                ]);
+                const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+                const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `CRP_Calculations_${selectedMonth.replace(/\s+/g, '_')}.csv`;
+                link.click();
+              }}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+            >
+              <Download size={16} /> Export All Calculations
+            </button>
             <div className="relative">
               <select
                 value={selectedMonth}
@@ -1255,6 +1309,7 @@ const CalculationsTab = memo(function CalculationsTab({
                 </div>
               </div>
             </div>
+            
 
             {/* Expanded Breakdown */}
             <AnimatePresence>
@@ -1307,6 +1362,7 @@ const CalculationsTab = memo(function CalculationsTab({
                 </motion.div>
               )}
             </AnimatePresence>
+            
           </motion.div>
         ))}
       </div>
