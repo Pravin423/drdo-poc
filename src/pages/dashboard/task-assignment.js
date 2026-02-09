@@ -865,7 +865,7 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
             name="enableAutoAssignment"
             checked={formData.enableAutoAssignment}
             onChange={handleInputChange}
-            className="mt-0.5 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+            className="mt-0.5 w-4 h-4 text-blue-600 mt-[10px] border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
           />
           <div>
             <label className="text-sm font-semibold text-slate-900">Enable Auto-Assignment</label>
