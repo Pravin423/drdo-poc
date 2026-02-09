@@ -71,9 +71,18 @@ export default function AttendanceManagement() {
                     <Calendar className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div className="pr-4 hidden md:block">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Status Date</p>
-                    <p className="text-sm font-bold text-slate-700">Feb 06, 2026</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                      Status Date
+                    </p>
+                    <p className="text-sm font-bold text-slate-700">
+                      {new Date().toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                      })}
+                    </p>
                   </div>
+
                 </div>
               </div>
             </motion.div>
@@ -121,11 +130,11 @@ export default function AttendanceManagement() {
           </div>
         </div>
       </DashboardLayout>
-      
+
       {/* Modals rendered outside layout */}
-      <QuickActionsModals 
-        activeModal={activeModal} 
-        onClose={() => setActiveModal(null)} 
+      <QuickActionsModals
+        activeModal={activeModal}
+        onClose={() => setActiveModal(null)}
       />
     </ProtectedRoute>
   );
@@ -210,7 +219,7 @@ const OverviewGrid = memo(function OverviewGrid() {
               <div className={`p-2 rounded-lg ${card.accent} border`}>
                 <card.icon size={18} strokeWidth={2} />
               </div>
-              
+
               {card.isPositive !== null && (
                 <div className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-md 
                   ${card.isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'}`}>
@@ -252,7 +261,7 @@ const OverviewGrid = memo(function OverviewGrid() {
       {/* Daily Muster Roll and Regularization Requests Section */}
       <DailyMusterRollAndRegularization />
     </>
-      
+
   );
 });
 
@@ -296,14 +305,14 @@ const DistrictCard = memo(function DistrictCard({ district, index }) {
       ref={cardRef}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ 
-        delay: 0.1 + index * 0.1, 
+      transition={{
+        delay: 0.1 + index * 0.1,
         duration: 0.4
       }}
       className="group relative bg-gradient-to-br from-white to-slate-50/30 rounded-2xl p-7 border border-slate-200/80 hover:border-blue-300 hover:shadow-lg transition-all duration-200 overflow-hidden"
     >
       {/* Simplified gradient overlay on hover */}
-      <div 
+      <div
         className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-purple-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
       />
 
@@ -320,7 +329,7 @@ const DistrictCard = memo(function DistrictCard({ district, index }) {
             <AnimatedCounter value={totalCRPs} delay={0.2 + index * 0.1} /> Total CRPs
           </p>
         </div>
-        
+
         <div className="text-right">
           <div className="text-4xl font-black bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent tracking-tight">
             <AnimatedCounter value={attendance} decimals={1} delay={0.3 + index * 0.1} />%
@@ -336,21 +345,21 @@ const DistrictCard = memo(function DistrictCard({ district, index }) {
       </div>
 
       <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex shadow-inner relative">
-        <motion.div 
-          initial={{ width: 0 }} 
-          animate={isInView ? { width: `${presentPercent}%` } : {}} 
+        <motion.div
+          initial={{ width: 0 }}
+          animate={isInView ? { width: `${presentPercent}%` } : {}}
           transition={{ delay: 0.4 + index * 0.1, duration: 0.5 }}
           className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400"
         />
-        <motion.div 
-          initial={{ width: 0 }} 
-          animate={isInView ? { width: `${absentPercent}%` } : {}} 
+        <motion.div
+          initial={{ width: 0 }}
+          animate={isInView ? { width: `${absentPercent}%` } : {}}
           transition={{ delay: 0.45 + index * 0.1, duration: 0.5 }}
           className="h-full bg-gradient-to-r from-rose-500 to-rose-400"
         />
-        <motion.div 
-          initial={{ width: 0 }} 
-          animate={isInView ? { width: `${exceptionsPercent}%` } : {}} 
+        <motion.div
+          initial={{ width: 0 }}
+          animate={isInView ? { width: `${exceptionsPercent}%` } : {}}
           transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
           className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
         />
@@ -378,11 +387,11 @@ const AnimatedCounter = memo(function AnimatedCounter({ value, decimals = 0, del
         if (!startTime) startTime = currentTime;
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        
+
         // Easing function for smooth animation
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
         const current = startValue + (endValue - startValue) * easeOutQuart;
-        
+
         setCount(current);
 
         if (progress < 1) {
@@ -393,7 +402,7 @@ const AnimatedCounter = memo(function AnimatedCounter({ value, decimals = 0, del
       };
 
       animationFrame = requestAnimationFrame(animate);
-      
+
       return () => {
         if (animationFrame) cancelAnimationFrame(animationFrame);
       };
@@ -581,7 +590,7 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
   ]);
 
   const toggleWorkDetails = useCallback((id) => {
-    setShowWorkDetails(prev => ({...prev, [id]: !prev[id]}));
+    setShowWorkDetails(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
   // Filter attendance entries with memoization
@@ -599,7 +608,7 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
   }), [attendanceEntries, filters.district, filters.block, filters.exceptionType]);
 
   // Get pending entries with memoization
-  const pendingEntries = useMemo(() => 
+  const pendingEntries = useMemo(() =>
     filteredAttendanceEntries.filter(entry => !entry.approved),
     [filteredAttendanceEntries]
   );
@@ -624,9 +633,9 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
 
   // Handle approve entry with useCallback
   const handleApproveEntry = useCallback((id) => {
-    setAttendanceEntries(prev => prev.map(entry => 
-      entry.id === id 
-        ? {...entry, approved: true, approvedStatus: "Approved"} 
+    setAttendanceEntries(prev => prev.map(entry =>
+      entry.id === id
+        ? { ...entry, approved: true, approvedStatus: "Approved" }
         : entry
     ));
     setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
@@ -634,9 +643,9 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
 
   // Handle bulk approve with useCallback
   const handleBulkApprove = useCallback(() => {
-    setAttendanceEntries(prev => prev.map(entry => 
+    setAttendanceEntries(prev => prev.map(entry =>
       selectedEntries.includes(entry.id)
-        ? {...entry, approved: true, approvedStatus: "Approved"} 
+        ? { ...entry, approved: true, approvedStatus: "Approved" }
         : entry
     ));
     setSelectedEntries([]);
@@ -644,9 +653,9 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
 
   // Handle reject entry with useCallback
   const handleRejectEntry = useCallback((id) => {
-    setAttendanceEntries(prev => prev.map(entry => 
-      entry.id === id 
-        ? {...entry, approved: true, approvedStatus: "Rejected"} 
+    setAttendanceEntries(prev => prev.map(entry =>
+      entry.id === id
+        ? { ...entry, approved: true, approvedStatus: "Rejected" }
         : entry
     ));
     setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
@@ -664,18 +673,18 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
 
   // Handle approve regularization request with useCallback
   const handleApproveRequest = useCallback((id) => {
-    setRegularizationRequests(prev => prev.map(req => 
-      req.id === id 
-        ? {...req, status: "Approved"} 
+    setRegularizationRequests(prev => prev.map(req =>
+      req.id === id
+        ? { ...req, status: "Approved" }
         : req
     ));
   }, []);
 
   // Handle reject regularization request with useCallback
   const handleRejectRequest = useCallback((id) => {
-    setRegularizationRequests(prev => prev.map(req => 
-      req.id === id 
-        ? {...req, status: "Rejected"} 
+    setRegularizationRequests(prev => prev.map(req =>
+      req.id === id
+        ? { ...req, status: "Rejected" }
         : req
     ));
   }, []);
@@ -709,7 +718,7 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
               <div className="relative">
                 <select
                   value={filters.district}
-                  onChange={(e) => setFilters({...filters, district: e.target.value})}
+                  onChange={(e) => setFilters({ ...filters, district: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
                 >
                   <option value="all">All Districts</option>
@@ -725,7 +734,7 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
               <div className="relative">
                 <select
                   value={filters.block}
-                  onChange={(e) => setFilters({...filters, block: e.target.value})}
+                  onChange={(e) => setFilters({ ...filters, block: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
                 >
                   <option value="all">All Blocks</option>
@@ -741,7 +750,7 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
               <input
                 type="date"
                 value={filters.date}
-                onChange={(e) => setFilters({...filters, date: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, date: e.target.value })}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
               />
             </div>
@@ -751,14 +760,14 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
               <div className="relative">
                 <select
                   value={filters.exceptionType}
-                  onChange={(e) => setFilters({...filters, exceptionType: e.target.value})}
+                  onChange={(e) => setFilters({ ...filters, exceptionType: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
                 >
                   <option value="all">All Types</option>
                   <option value="late">Late Punch-in</option>
                   <option value="early">Low GPS Accuracy</option>
                   <option value="geo">Geo-location Mismatch</option>
-                   <option value="geo">Missed Punch</option>
+                  <option value="geo">Missed Punch</option>
                 </select>
                 <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
@@ -787,7 +796,7 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
               )}
             </div>
 
-            <button 
+            <button
               onClick={handleExportPDF}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
             >
@@ -806,124 +815,122 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
             </div>
           ) : (
             filteredAttendanceEntries.map((entry, index) => (
-            <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="p-6 border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
-            >
-              {/* Header Row */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3 flex-1">
-                  {!entry.approved && (
-                    <input
-                      type="checkbox"
-                      checked={selectedEntries.includes(entry.id)}
-                      onChange={(e) => handleEntrySelection(entry.id, e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 mt-1"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-slate-900">{entry.name}</h3>
-                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        entry.statusColor === 'emerald' 
-                          ? 'bg-emerald-50 text-emerald-700' 
-                          : 'bg-orange-50 text-orange-700'
-                      }`}>
-                        {entry.status}
-                      </span>
+              <motion.div
+                key={entry.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-6 border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+              >
+                {/* Header Row */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3 flex-1">
+                    {!entry.approved && (
+                      <input
+                        type="checkbox"
+                        checked={selectedEntries.includes(entry.id)}
+                        onChange={(e) => handleEntrySelection(entry.id, e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 mt-1"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-slate-900">{entry.name}</h3>
+                        <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${entry.statusColor === 'emerald'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-orange-50 text-orange-700'
+                          }`}>
+                          {entry.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600 flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          <User className="w-3.5 h-3.5" />
+                          {entry.employeeId}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {entry.location}
+                        </span>
+                      </p>
                     </div>
-                    <p className="text-sm text-slate-600 flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <User className="w-3.5 h-3.5" />
-                        {entry.employeeId}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {entry.location}
-                      </span>
-                    </p>
+                  </div>
+                  {entry.approved && (
+                    <span className={`flex items-center gap-1 text-sm font-semibold ${entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
+                      }`}>
+                      {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                      {entry.approvedStatus}
+                    </span>
+                  )}
+                  {!entry.approved && (
+                    <span className="flex items-center gap-1 text-orange-600 text-sm font-semibold">
+                      <Clock className="w-4 h-4" />
+                      {entry.approvedStatus}
+                    </span>
+                  )}
+                </div>
+
+                {/* Time Details Grid */}
+                <div className="grid grid-cols-4 gap-4 mb-3 p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium mb-0.5">Punch In</p>
+                    <p className="text-sm font-semibold text-slate-900">{entry.punchIn}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium mb-0.5">Punch Out</p>
+                    <p className="text-sm font-semibold text-slate-900">{entry.punchOut}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium mb-0.5">Work Hours</p>
+                    <p className="text-sm font-semibold text-slate-900">{entry.workHours}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium mb-0.5">Supervisor</p>
+                    <p className="text-sm font-semibold text-slate-900">{entry.supervisor}</p>
                   </div>
                 </div>
-                {entry.approved && (
-                  <span className={`flex items-center gap-1 text-sm font-semibold ${
-                    entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
-                  }`}>
-                    {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                    {entry.approvedStatus}
-                  </span>
+
+                {/* Remarks */}
+                <div className="mb-3">
+                  <p className="text-xs font-semibold text-slate-500 mb-1">Remarks</p>
+                  <p className="text-sm text-slate-700">{entry.remarks}</p>
+                </div>
+
+                {/* CRP Justification (if exists) */}
+                {entry.crpJustification && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs font-semibold text-blue-900 mb-1">CRP Justification</p>
+                    <p className="text-sm text-blue-800">{entry.crpJustification}</p>
+                  </div>
                 )}
+
+                {/* Action Buttons */}
                 {!entry.approved && (
-                  <span className="flex items-center gap-1 text-orange-600 text-sm font-semibold">
-                    <Clock className="w-4 h-4" />
-                    {entry.approvedStatus}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleApproveEntry(entry.id)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleRejectEntry(entry.id)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => handleRequestInfo(entry.id)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      <Info className="w-4 h-4" />
+                      Request Info
+                    </button>
+                  </div>
                 )}
-              </div>
-
-              {/* Time Details Grid */}
-              <div className="grid grid-cols-4 gap-4 mb-3 p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-0.5">Punch In</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.punchIn}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-0.5">Punch Out</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.punchOut}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-0.5">Work Hours</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.workHours}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-0.5">Supervisor</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.supervisor}</p>
-                </div>
-              </div>
-
-              {/* Remarks */}
-              <div className="mb-3">
-                <p className="text-xs font-semibold text-slate-500 mb-1">Remarks</p>
-                <p className="text-sm text-slate-700">{entry.remarks}</p>
-              </div>
-
-              {/* CRP Justification (if exists) */}
-              {entry.crpJustification && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-xs font-semibold text-blue-900 mb-1">CRP Justification</p>
-                  <p className="text-sm text-blue-800">{entry.crpJustification}</p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              {!entry.approved && (
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => handleApproveEntry(entry.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Approve
-                  </button>
-                  <button 
-                    onClick={() => handleRejectEntry(entry.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Reject
-                  </button>
-                  <button 
-                    onClick={() => handleRequestInfo(entry.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    <Info className="w-4 h-4" />
-                    Request Info
-                  </button>
-                </div>
-              )}
-            </motion.div>
+              </motion.div>
             ))
           )}
         </div>
@@ -970,21 +977,19 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold text-slate-900">{request.name}</h3>
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                      request.priorityColor === 'rose'
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${request.priorityColor === 'rose'
                         ? 'bg-rose-50 text-rose-700'
                         : 'bg-orange-50 text-orange-700'
-                    }`}>
+                      }`}>
                       {request.priority}
                     </span>
-                    <span className={`flex items-center gap-1 text-xs font-semibold ${
-                      request.status === 'Approved' ? 'text-emerald-600' : 
-                      request.status === 'Rejected' ? 'text-rose-600' : 
-                      'text-orange-600'
-                    }`}>
-                      {request.status === 'Approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : 
-                       request.status === 'Rejected' ? <XCircle className="w-3.5 h-3.5" /> : 
-                       <Clock className="w-3.5 h-3.5" />}
+                    <span className={`flex items-center gap-1 text-xs font-semibold ${request.status === 'Approved' ? 'text-emerald-600' :
+                        request.status === 'Rejected' ? 'text-rose-600' :
+                          'text-orange-600'
+                      }`}>
+                      {request.status === 'Approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> :
+                        request.status === 'Rejected' ? <XCircle className="w-3.5 h-3.5" /> :
+                          <Clock className="w-3.5 h-3.5" />}
                       {request.status}
                     </span>
                   </div>
@@ -1091,21 +1096,21 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
               {/* Action Buttons */}
               {request.status === "Pending Review" && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button 
+                  <button
                     onClick={() => handleApproveRequest(request.id)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     Approve Request
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleRejectRequest(request.id)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
                   >
                     <XCircle className="w-4 h-4" />
                     Reject Request
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleRequestClarification(request.id)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                   >
@@ -1123,37 +1128,37 @@ const DailyMusterRollAndRegularization = memo(function DailyMusterRollAndRegular
 });
 
 const mockRegularizationRequests = [
-    {
-      id: 1,
-      name: "Kavita Parsekar",
-      priority: "Medium",
-      priorityColor: "orange",
-      status: "Pending Review",
-      requestId: "REG2026001",
-      employeeId: "CRP2024008",
-      location: "Balli, Quepem",
-      requestType: "Missed Punch-out",
-      requestDate: "29 Jan 2026",
-      submittedOn: "2026-01-30 08:15 AM",
-      supervisor: "Ramesh Naik",
-      reason: "Mobile phone battery died during field visit to remote SHG location. Unable to mark punch-out at 5:30 PM."
-    },
-    {
-      id: 2,
-      name: "Deepak Velip",
-      priority: "High Priority",
-      priorityColor: "rose",
-      status: "Pending Review",
-      requestId: "REG2026002",
-      employeeId: "CRP2024012",
-      location: "Valpoi, Sattari",
-      requestType: "Late Punch-in",
-      requestDate: "30 Jan 2026",
-      submittedOn: "2026-01-30 09:45 AM",
-      supervisor: "Sunita Desai",
-      reason: "Vehicle breakdown on route to village. Arrived 1 hour late after arranging alternate transport."
-    }
-  ];
+  {
+    id: 1,
+    name: "Kavita Parsekar",
+    priority: "Medium",
+    priorityColor: "orange",
+    status: "Pending Review",
+    requestId: "REG2026001",
+    employeeId: "CRP2024008",
+    location: "Balli, Quepem",
+    requestType: "Missed Punch-out",
+    requestDate: "29 Jan 2026",
+    submittedOn: "2026-01-30 08:15 AM",
+    supervisor: "Ramesh Naik",
+    reason: "Mobile phone battery died during field visit to remote SHG location. Unable to mark punch-out at 5:30 PM."
+  },
+  {
+    id: 2,
+    name: "Deepak Velip",
+    priority: "High Priority",
+    priorityColor: "rose",
+    status: "Pending Review",
+    requestId: "REG2026002",
+    employeeId: "CRP2024012",
+    location: "Valpoi, Sattari",
+    requestType: "Late Punch-in",
+    requestDate: "30 Jan 2026",
+    submittedOn: "2026-01-30 09:45 AM",
+    supervisor: "Sunita Desai",
+    reason: "Vehicle breakdown on route to village. Arrived 1 hour late after arranging alternate transport."
+  }
+];
 
 
 
@@ -1276,7 +1281,7 @@ const MusterRollTab = memo(function MusterRollTab() {
   }), [attendanceEntries, filters.district, filters.block, filters.exceptionType]);
 
   // Get pending entries with memoization
-  const pendingEntries = useMemo(() => 
+  const pendingEntries = useMemo(() =>
     filteredAttendanceEntries.filter(entry => !entry.approved),
     [filteredAttendanceEntries]
   );
@@ -1301,9 +1306,9 @@ const MusterRollTab = memo(function MusterRollTab() {
 
   // Handle approve entry with useCallback
   const handleApproveEntry = useCallback((id) => {
-    setAttendanceEntries(prev => prev.map(entry => 
-      entry.id === id 
-        ? {...entry, approved: true, approvedStatus: "Approved"} 
+    setAttendanceEntries(prev => prev.map(entry =>
+      entry.id === id
+        ? { ...entry, approved: true, approvedStatus: "Approved" }
         : entry
     ));
     setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
@@ -1311,9 +1316,9 @@ const MusterRollTab = memo(function MusterRollTab() {
 
   // Handle reject entry with useCallback
   const handleRejectEntry = useCallback((id) => {
-    setAttendanceEntries(prev => prev.map(entry => 
-      entry.id === id 
-        ? {...entry, approved: true, approvedStatus: "Rejected"} 
+    setAttendanceEntries(prev => prev.map(entry =>
+      entry.id === id
+        ? { ...entry, approved: true, approvedStatus: "Rejected" }
         : entry
     ));
     setSelectedEntries(prev => prev.filter(entryId => entryId !== id));
@@ -1347,7 +1352,7 @@ const MusterRollTab = memo(function MusterRollTab() {
             <div className="relative">
               <select
                 value={filters.district}
-                onChange={(e) => setFilters({...filters, district: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, district: e.target.value })}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
               >
                 <option value="all">All Districts</option>
@@ -1363,7 +1368,7 @@ const MusterRollTab = memo(function MusterRollTab() {
             <div className="relative">
               <select
                 value={filters.block}
-                onChange={(e) => setFilters({...filters, block: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, block: e.target.value })}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
               >
                 <option value="all">All Blocks</option>
@@ -1381,7 +1386,7 @@ const MusterRollTab = memo(function MusterRollTab() {
             <input
               type="date"
               value={filters.date}
-              onChange={(e) => setFilters({...filters, date: e.target.value})}
+              onChange={(e) => setFilters({ ...filters, date: e.target.value })}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
             />
           </div>
@@ -1391,7 +1396,7 @@ const MusterRollTab = memo(function MusterRollTab() {
             <div className="relative">
               <select
                 value={filters.exceptionType}
-                onChange={(e) => setFilters({...filters, exceptionType: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, exceptionType: e.target.value })}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
               >
                 <option value="all">All Types</option>
@@ -1418,7 +1423,7 @@ const MusterRollTab = memo(function MusterRollTab() {
             </label>
           </div>
 
-          <button 
+          <button
             onClick={handleExportPDF}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
           >
@@ -1455,11 +1460,10 @@ const MusterRollTab = memo(function MusterRollTab() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-slate-900">{entry.name}</h3>
-                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        entry.statusColor === 'emerald' 
-                          ? 'bg-emerald-50 text-emerald-700' 
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${entry.statusColor === 'emerald'
+                          ? 'bg-emerald-50 text-emerald-700'
                           : 'bg-orange-50 text-orange-700'
-                      }`}>
+                        }`}>
                         {entry.status}
                       </span>
                     </div>
@@ -1469,9 +1473,8 @@ const MusterRollTab = memo(function MusterRollTab() {
                   </div>
                 </div>
                 {entry.approved && (
-                  <span className={`flex items-center gap-1 text-sm font-semibold ${
-                    entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
-                  }`}>
+                  <span className={`flex items-center gap-1 text-sm font-semibold ${entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
+                    }`}>
                     {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                     {entry.approvedStatus}
                   </span>
@@ -1521,21 +1524,21 @@ const MusterRollTab = memo(function MusterRollTab() {
               {/* Action Buttons */}
               {!entry.approved && (
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={() => handleApproveEntry(entry.id)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     Approve
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleRejectEntry(entry.id)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
                   >
                     <XCircle className="w-4 h-4" />
                     Reject
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleRequestInfo(entry.id)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                   >
@@ -1609,23 +1612,23 @@ const RegularizationTab = memo(function RegularizationTab() {
   ]);
 
   const toggleWorkDetails = useCallback((id) => {
-    setShowWorkDetails(prev => ({...prev, [id]: !prev[id]}));
+    setShowWorkDetails(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
   // Handle approve request with useCallback
   const handleApproveRequest = useCallback((id) => {
-    setRegularizationRequests(prev => prev.map(req => 
-      req.id === id 
-        ? {...req, status: "Approved"} 
+    setRegularizationRequests(prev => prev.map(req =>
+      req.id === id
+        ? { ...req, status: "Approved" }
         : req
     ));
   }, []);
 
   // Handle reject request with useCallback
   const handleRejectRequest = useCallback((id) => {
-    setRegularizationRequests(prev => prev.map(req => 
-      req.id === id 
-        ? {...req, status: "Rejected"} 
+    setRegularizationRequests(prev => prev.map(req =>
+      req.id === id
+        ? { ...req, status: "Rejected" }
         : req
     ));
   }, []);
@@ -1635,7 +1638,7 @@ const RegularizationTab = memo(function RegularizationTab() {
     alert(`Requesting clarification for request ${id}`);
   }, []);
 
-  const pendingCount = useMemo(() => 
+  const pendingCount = useMemo(() =>
     regularizationRequests.filter(req => req.status === "Pending Review").length,
     [regularizationRequests]
   );
@@ -1676,21 +1679,19 @@ const RegularizationTab = memo(function RegularizationTab() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold text-slate-900">{request.name}</h3>
-                  <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                    request.priorityColor === 'rose'
+                  <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${request.priorityColor === 'rose'
                       ? 'bg-rose-50 text-rose-700'
                       : 'bg-orange-50 text-orange-700'
-                  }`}>
+                    }`}>
                     {request.priority}
                   </span>
-                  <span className={`flex items-center gap-1 text-xs font-semibold ${
-                    request.status === 'Approved' ? 'text-emerald-600' : 
-                    request.status === 'Rejected' ? 'text-rose-600' : 
-                    'text-orange-600'
-                  }`}>
-                    {request.status === 'Approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> : 
-                     request.status === 'Rejected' ? <XCircle className="w-3.5 h-3.5" /> : 
-                     <Clock className="w-3.5 h-3.5" />}
+                  <span className={`flex items-center gap-1 text-xs font-semibold ${request.status === 'Approved' ? 'text-emerald-600' :
+                      request.status === 'Rejected' ? 'text-rose-600' :
+                        'text-orange-600'
+                    }`}>
+                    {request.status === 'Approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> :
+                      request.status === 'Rejected' ? <XCircle className="w-3.5 h-3.5" /> :
+                        <Clock className="w-3.5 h-3.5" />}
                     {request.status}
                   </span>
                 </div>
@@ -1789,21 +1790,21 @@ const RegularizationTab = memo(function RegularizationTab() {
             {/* Action Buttons */}
             {request.status === "Pending Review" && (
               <div className="flex items-center gap-2 flex-wrap">
-                <button 
+                <button
                   onClick={() => handleApproveRequest(request.id)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Approve Request
                 </button>
-                <button 
+                <button
                   onClick={() => handleRejectRequest(request.id)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
                 >
                   <XCircle className="w-4 h-4" />
                   Reject Request
                 </button>
-                <button 
+                <button
                   onClick={() => handleRequestClarification(request.id)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                 >
