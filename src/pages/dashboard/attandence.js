@@ -31,6 +31,7 @@ import {
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import QuickActions, { QuickActionsModals } from "../../components/dashboard/QuickActions";
+import GISMapTab from "../../components/dashboard/GISMapTab";
 
 export default function AttendanceManagement() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -114,7 +115,7 @@ export default function AttendanceManagement() {
                 {activeTab === "overview" && <OverviewGrid />}
                 {activeTab === "masterRole" && <MusterRollTab />}
                 {activeTab === "regularization" && <RegularizationTab />}
-                {activeTab === "gisMap" && <PlaceholderSection tabName={activeTab} />}
+                {activeTab === "gisMap" && <GISMapTab />}
               </motion.div>
             </AnimatePresence>
           </div>
