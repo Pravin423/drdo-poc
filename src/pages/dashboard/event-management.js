@@ -247,7 +247,7 @@ export default function EventManagement() {
                 </button>
                 <button
                   onClick={() => setShowCreateEventModal(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#0e5a8a] rounded-xl hover:bg-[#0a4a6e] transition-colors"
+                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white  bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Create Event
@@ -494,14 +494,14 @@ function EventCalendarTab({ events, onCreateEvent }) {
             <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode("month")}
-                className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${viewMode === "month" ? "bg-[#0e5a8a] text-white" : "text-slate-600 hover:bg-slate-200"
+                className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${viewMode === "month" ? " bg-emerald-600 rounded-lg hover:bg-emerald-700  text-white" : "text-slate-600 hover:bg-slate-200"
                   }`}
               >
                 Month
               </button>
               <button
                 onClick={() => setViewMode("week")}
-                className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${viewMode === "week" ? "bg-[#0e5a8a] text-white" : "text-slate-600 hover:bg-slate-200"
+                className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${viewMode === "week" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-200"
                   }`}
               >
                 Week
@@ -509,7 +509,7 @@ function EventCalendarTab({ events, onCreateEvent }) {
             </div>
             <button
               onClick={onCreateEvent}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0e5a8a] rounded-lg hover:bg-[#0a4a6e] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700  transition-colors"
             >
               <Plus className="w-4 h-4" />
               Create Event
@@ -708,7 +708,7 @@ function AttendanceTab({ events, participants }) {
             <p className="text-sm text-slate-500 mt-1">{currentEvent?.title || "SHG Leadership Training"}</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0e5a8a] rounded-lg hover:bg-[#0a4a6e] transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white  bg-emerald-600 rounded-lg hover:bg-emerald-700  rounded-lg  transition-colors">
               <QrCode className="w-4 h-4" />
               QR Scanner
             </button>
