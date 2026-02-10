@@ -18,7 +18,7 @@ export const SIDEBAR_CONFIG = {
     },
     {
       section: "PROGRAM MANAGEMENT",
-      items: [{ name: "Event Management", path: "#" }],
+      items: [{ name: "Event Management", path: "/dashboard/event-management" }],
     },
   ],
 
