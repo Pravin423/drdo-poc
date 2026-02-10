@@ -1372,6 +1372,8 @@ const CalculationsTab = memo(function CalculationsTab({
 
 /* ---------------- APPROVALS TAB ---------------- */
 const ApprovalsTab = memo(function ApprovalsTab({ data }) {
+  const [expandedId, setExpandedId] = useState(null);
+
   return (
     <>
       {/* Header */}
@@ -1397,23 +1399,46 @@ const ApprovalsTab = memo(function ApprovalsTab({ data }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
+            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
             {/* Card Header */}
-            <div className="px-6 py-4 flex justify-between items-start border-b border-slate-100">
+            <div 
+              onClick={() => setExpandedId(expandedId === approval.id ? null : approval.id)}
+              className="px-6 py-4 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-colors"
+            >
               <div>
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3">
                   <h3 className="text-lg font-bold text-slate-900">
                     {approval.crpName}
                   </h3>
+                  <p className="text-sm text-slate-500 font-medium hidden md:block">
+                    {approval.crpId}
+                  </p>
                   <StatusBadge status={approval.status} />
                 </div>
-                <p className="text-sm text-slate-500 font-medium">
-                  {approval.crpId}
-                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-bold text-slate-900">₹{approval.amount.toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold">{approval.month}</p>
+                </div>
+                <motion.div
+                  animate={{ rotate: expandedId === approval.id ? 180 : 0 }}
+                  className="p-2 rounded-full bg-slate-100 text-slate-500"
+                >
+                  <ChevronDown size={18} />
+                </motion.div>
               </div>
             </div>
 
+            <AnimatePresence>
+              {expandedId === approval.id && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="border-t border-slate-100"
+                >
             {/* Card Details */}
             <div className="px-6 py-4 bg-slate-50">
               <div className="grid grid-cols-4 gap-4 text-sm">
@@ -1523,16 +1548,19 @@ const ApprovalsTab = memo(function ApprovalsTab({ data }) {
             </div>
 
             {/* Actions */}
-            <div className="px-6 py-4 flex justify-between">
-              <button className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+            <div className="px-6 py-4 flex justify-end gap-3 bg-slate-50/50">
+              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                <History size={16} />
+                History
+              </button>
+              <button className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
                 <Eye size={16} />
                 Review & Action
               </button>
-              <button className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                <History size={16} />
-                View History
-              </button>
             </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ))}
       </div>
