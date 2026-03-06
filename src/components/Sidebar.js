@@ -73,7 +73,7 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
         onClick={handleToggle}
         title={collapsed ? item.name : undefined}
         className={`group flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${isActive && !hasSubItems
-          ? "bg-white/10 text-blue-50 shadow-[0_16px_45px_rgba(15,23,42,0.95)] border border-blue-400/60"
+          ? "bg-white/10 text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.25)] border border-blue-400/40"
           : "text-slate-200 hover:text-white hover:bg-white/5 border border-transparent"
           } ${depth > 0 ? (collapsed ? "" : "ml-4") : ""}`}
       >
