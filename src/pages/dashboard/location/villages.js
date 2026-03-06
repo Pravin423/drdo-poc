@@ -4,7 +4,6 @@ import {
     Plus,
     Filter,
     Download,
-    MoreVertical,
     Edit2,
     Trash2,
     ChevronLeft,
@@ -12,9 +11,9 @@ import {
     TrendingUp,
     Users,
     Map,
-    Eye,
     X,
-    Save
+    Save,
+    Home
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,18 +21,28 @@ import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import { exportToExcel } from "../../../lib/exportToExcel";
 
-// Mock Data for Goa Districts
-const DISTRICTS_DATA = [
-    {
-        id: "1",
-        name: "North Goa",
-        censusCode: "585",
-    },
-    {
-        id: "2",
-        name: "South Goa",
-        censusCode: "586",
-    }
+// Mock Data for Goa Villages (based on provided screenshot data)
+const VILLAGES_DATA = [
+    { id: "1", name: "Agonda", talukaName: "Canacona", districtName: "South Goa", censusCode: "627023" },
+    { id: "2", name: "Anjadip", talukaName: "Canacona", districtName: "South Goa", censusCode: "627029" },
+    { id: "3", name: "Canacona", talukaName: "Canacona", districtName: "South Goa", censusCode: "627024" },
+    { id: "4", name: "Cola", talukaName: "Canacona", districtName: "South Goa", censusCode: "627022" },
+    { id: "5", name: "Cotigao", talukaName: "Canacona", districtName: "South Goa", censusCode: "627028" },
+    { id: "6", name: "Gaodongrem", talukaName: "Canacona", districtName: "South Goa", censusCode: "627025" },
+    { id: "7", name: "Loliem", talukaName: "Canacona", districtName: "South Goa", censusCode: "627027" },
+    { id: "8", name: "Poinguinim", talukaName: "Canacona", districtName: "South Goa", censusCode: "627026" },
+    { id: "9", name: "Arossim", talukaName: "Mormugao", districtName: "South Goa", censusCode: "626884" },
+    { id: "10", name: "Cansaulim", talukaName: "Mormugao", districtName: "South Goa", censusCode: "626883" },
+    { id: "11", name: "Bambolim", talukaName: "Tiswadi", districtName: "North Goa", censusCode: "626816" },
+    { id: "12", name: "Betim", talukaName: "Bardez", districtName: "North Goa", censusCode: "626733" },
+    { id: "13", name: "Calangute", talukaName: "Bardez", districtName: "North Goa", censusCode: "626741" },
+    { id: "14", name: "Candolim", talukaName: "Bardez", districtName: "North Goa", censusCode: "626740" },
+    { id: "15", name: "Anjuna", talukaName: "Bardez", districtName: "North Goa", censusCode: "626739" },
+    { id: "16", name: "Arpora", talukaName: "Bardez", districtName: "North Goa", censusCode: "626738" },
+    { id: "17", name: "Mapusa", talukaName: "Bardez", districtName: "North Goa", censusCode: "626731" },
+    { id: "18", name: "Siolim", talukaName: "Bardez", districtName: "North Goa", censusCode: "626735" },
+    { id: "19", name: "Aldona", talukaName: "Bardez", districtName: "North Goa", censusCode: "626732" },
+    { id: "20", name: "Assagao", talukaName: "Bardez", districtName: "North Goa", censusCode: "626736" },
 ];
 
 const SUMMARY_CARDS = [
@@ -47,18 +56,18 @@ const SUMMARY_CARDS = [
     },
     {
         label: "Total Talukas",
-        value: "12",
+        value: "10",
         delta: "Across all districts",
         isPositive: true,
         icon: Map,
         accent: "text-emerald-600 bg-emerald-50 border-emerald-100",
     },
     {
-        label: "Geocoded Villages",
-        value: "396",
+        label: "Total Villages",
+        value: "334",
         delta: "100% Mapped",
         isPositive: true,
-        icon: TrendingUp,
+        icon: Home,
         accent: "text-purple-600 bg-purple-50 border-purple-100",
     },
     {
@@ -71,53 +80,57 @@ const SUMMARY_CARDS = [
     },
 ];
 
-export default function DistrictsManagement() {
-    const [districts, setDistricts] = useState(DISTRICTS_DATA);
+export default function VillagesManagement() {
+    const ROWS_PER_PAGE = 10;
+    const [villages, setVillages] = useState(VILLAGES_DATA);
+    const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
 
     // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
-    const [addFormData, setAddFormData] = useState({ name: "", censusCode: "" });
+    const [addFormData, setAddFormData] = useState({ name: "", talukaName: "", districtName: "", censusCode: "" });
 
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "" });
+    const [editFormData, setEditFormData] = useState({ id: "", name: "", talukaName: "", districtName: "", censusCode: "" });
 
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-    const [districtToDelete, setDistrictToDelete] = useState(null);
+    const [villageToDelete, setVillageToDelete] = useState(null);
 
     const handleAddClick = () => {
-        setAddFormData({ name: "", censusCode: "" });
+        setAddFormData({ name: "", talukaName: "", districtName: "", censusCode: "" });
         setAddModalOpen(true);
     };
 
     const confirmAdd = () => {
-        if (!addFormData.name || !addFormData.censusCode) return;
-        const newDistrict = {
-            id: (districts.length + 1).toString(),
+        if (!addFormData.name || !addFormData.talukaName || !addFormData.districtName || !addFormData.censusCode) return;
+        const newVillage = {
+            id: (villages.length + 1).toString(),
             name: addFormData.name,
-            censusCode: addFormData.censusCode
+            talukaName: addFormData.talukaName,
+            districtName: addFormData.districtName,
+            censusCode: addFormData.censusCode,
         };
-        setDistricts([...districts, newDistrict]);
+        setVillages([...villages, newVillage]);
         setAddModalOpen(false);
     };
 
     const handleDeleteClick = (id) => {
-        setDistrictToDelete(id);
+        setVillageToDelete(id);
         setDeleteConfirmOpen(true);
     };
 
     const confirmDelete = () => {
-        if (districtToDelete) {
-            setDistricts(districts.filter(d => d.id !== districtToDelete));
+        if (villageToDelete) {
+            setVillages(villages.filter(v => v.id !== villageToDelete));
             setDeleteConfirmOpen(false);
-            setDistrictToDelete(null);
+            setVillageToDelete(null);
         }
     };
 
-    const handleEditClick = (district) => {
-        setEditFormData({ id: district.id, name: district.name, censusCode: district.censusCode });
+    const handleEditClick = (village) => {
+        setEditFormData({ id: village.id, name: village.name, talukaName: village.talukaName, districtName: village.districtName, censusCode: village.censusCode });
         setEditModalOpen(true);
     };
 
@@ -126,8 +139,10 @@ export default function DistrictsManagement() {
     };
 
     const confirmSave = () => {
-        setDistricts(districts.map(d =>
-            d.id === editFormData.id ? { ...d, name: editFormData.name, censusCode: editFormData.censusCode } : d
+        setVillages(villages.map(v =>
+            v.id === editFormData.id
+                ? { ...v, name: editFormData.name, talukaName: editFormData.talukaName, districtName: editFormData.districtName, censusCode: editFormData.censusCode }
+                : v
         ));
         setSaveConfirmOpen(false);
         setEditModalOpen(false);
@@ -140,24 +155,36 @@ export default function DistrictsManagement() {
         } else {
             document.body.style.overflow = 'unset';
         }
-
-        // Cleanup function for when component unmounts
         return () => {
             document.body.style.overflow = 'unset';
         };
     }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen]);
 
-    const filteredDistricts = districts.filter((district) =>
-        district.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        district.censusCode.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredVillages = villages.filter((village) =>
+        village.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        village.talukaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        village.districtName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        village.censusCode.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const totalPages = Math.ceil(filteredVillages.length / ROWS_PER_PAGE);
+    const paginatedVillages = filteredVillages.slice(
+        (currentPage - 1) * ROWS_PER_PAGE,
+        currentPage * ROWS_PER_PAGE
+    );
+
+    // Reset to page 1 whenever search changes
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
+    };
 
     const handleExport = () => {
         exportToExcel({
-            title: "Goa Districts — Detailed Report",
-            headers: ["ID", "District Name", "Census Code"],
-            rows: filteredDistricts.map(d => [d.id, d.name, d.censusCode]),
-            filename: "goa_districts_report",
+            title: "Goa Villages — Detailed Report",
+            headers: ["ID", "Village Name", "Taluka Name", "District Name", "Census Code"],
+            rows: filteredVillages.map(v => [v.id, v.name, v.talukaName, v.districtName, v.censusCode]),
+            filename: "goa_villages_report",
         });
     };
 
@@ -176,11 +203,11 @@ export default function DistrictsManagement() {
                         >
                             <div className="space-y-1">
                                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-                                    District <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
+                                    Village <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
                                         Management</span>
                                 </h1>
                                 <p className="text-slate-500 font-medium">
-                                    Manage and monitor administrative districts across Goa.
+                                    Manage and monitor villages across all Goa talukas.
                                 </p>
                             </div>
 
@@ -189,7 +216,7 @@ export default function DistrictsManagement() {
                                     <Download size={16} /> Export
                                 </button>
                                 <button onClick={handleAddClick} className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95">
-                                    <Plus size={16} /> Add District
+                                    <Plus size={16} /> Add Village
                                 </button>
                             </div>
                         </motion.header>
@@ -233,9 +260,9 @@ export default function DistrictsManagement() {
                                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <input
                                         type="text"
-                                        placeholder="Search districts by name or census code..."
+                                        placeholder="Search villages by name, taluka, district, or code..."
                                         value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onChange={handleSearchChange}
                                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 transition-all font-medium"
                                     />
                                 </div>
@@ -252,37 +279,43 @@ export default function DistrictsManagement() {
                                     <thead>
                                         <tr className="bg-slate-50/80 border-b border-slate-100">
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">ID</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">Village Name</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">Taluka Name</th>
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">District Name</th>
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">Census Code</th>
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right bg-transparent">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
-                                        {filteredDistricts.length > 0 ? (
-                                            filteredDistricts.map((district, idx) => (
+                                        {paginatedVillages.length > 0 ? (
+                                            paginatedVillages.map((village) => (
                                                 <tr
-                                                    key={district.id}
+                                                    key={village.id}
                                                     className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                                                 >
                                                     <td className="px-6 py-4">
                                                         <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                                                            {district.id}
+                                                            {village.id}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <p className="text-sm font-semibold text-slate-800">
-                                                            {district.name}
-                                                        </p>
+                                                        <p className="text-sm font-semibold text-slate-800">{village.name}</p>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="text-sm text-slate-600">{district.censusCode}</span>
+                                                        <span className="text-sm text-slate-600">{village.talukaName}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-sm text-slate-600">{village.districtName}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-sm font-mono text-slate-600">{village.censusCode}</span>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            <button onClick={() => handleEditClick(district)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit District">
+                                                            <button onClick={() => handleEditClick(village)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Village">
                                                                 <Edit2 size={16} />
                                                             </button>
-                                                            <button onClick={() => handleDeleteClick(district.id)} className="p-1.5 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete District">
+                                                            <button onClick={() => handleDeleteClick(village.id)} className="p-1.5 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Village">
                                                                 <Trash2 size={16} />
                                                             </button>
                                                         </div>
@@ -291,10 +324,10 @@ export default function DistrictsManagement() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="4" className="px-6 py-12 text-center">
+                                                <td colSpan="6" className="px-6 py-12 text-center">
                                                     <div className="flex flex-col items-center justify-center text-slate-400">
-                                                        <Map size={32} className="mb-3 opacity-50" />
-                                                        <p className="text-sm font-semibold">No districts found matching your search.</p>
+                                                        <Home size={32} className="mb-3 opacity-50" />
+                                                        <p className="text-sm font-semibold">No villages found matching your search.</p>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -303,16 +336,53 @@ export default function DistrictsManagement() {
                                 </table>
                             </div>
 
-                            {/* Table Footer */}
-                            <div className="px-6 py-4 bg-slate-50 mt-auto border-t border-slate-100 flex items-center justify-between">
+                            {/* Table Footer / Pagination */}
+                            <div className="px-6 py-4 bg-slate-50 mt-auto border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
                                 <p className="text-xs font-semibold text-slate-500">
-                                    Showing all <span className="text-slate-900">{filteredDistricts.length}</span> records
+                                    Showing{" "}
+                                    <span className="text-slate-900">{Math.min((currentPage - 1) * ROWS_PER_PAGE + 1, filteredVillages.length)}</span>
+                                    {" "}–{" "}
+                                    <span className="text-slate-900">{Math.min(currentPage * ROWS_PER_PAGE, filteredVillages.length)}</span>
+                                    {" "}of{" "}
+                                    <span className="text-slate-900">{filteredVillages.length}</span> records
                                 </p>
-                                <div className="flex gap-2">
-                                    <button disabled className="p-1.5 text-slate-300 rounded-lg border border-slate-200 bg-white cursor-not-allowed">
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-1.5 text-slate-500 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors"
+                                    >
                                         <ChevronLeft size={16} />
                                     </button>
-                                    <button disabled className="p-1.5 text-slate-300 rounded-lg border border-slate-200 bg-white cursor-not-allowed">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                        .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                                        .reduce((acc, p, idx, arr) => {
+                                            if (idx > 0 && p - arr[idx - 1] > 1) acc.push('...');
+                                            acc.push(p);
+                                            return acc;
+                                        }, [])
+                                        .map((item, idx) =>
+                                            item === '...' ? (
+                                                <span key={`ellipsis-${idx}`} className="px-2 text-xs text-slate-400 font-bold">…</span>
+                                            ) : (
+                                                <button
+                                                    key={item}
+                                                    onClick={() => setCurrentPage(item)}
+                                                    className={`min-w-[32px] h-8 px-2 text-xs font-bold rounded-lg border transition-colors ${currentPage === item
+                                                            ? 'bg-tech-blue-600 text-white border-tech-blue-600 shadow-sm'
+                                                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                                        }`}
+                                                >
+                                                    {item}
+                                                </button>
+                                            )
+                                        )
+                                    }
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages || totalPages === 0}
+                                        className="p-1.5 text-slate-500 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed transition-colors"
+                                    >
                                         <ChevronRight size={16} />
                                     </button>
                                 </div>
@@ -322,7 +392,7 @@ export default function DistrictsManagement() {
                     </div>
                 </DashboardLayout>
 
-                {/* Add Modal */}
+                {/* ─────────── ADD MODAL ─────────── */}
                 <AnimatePresence>
                     {addModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -341,20 +411,59 @@ export default function DistrictsManagement() {
                                 className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden relative z-10"
                             >
                                 <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
-                                    <h3 className="text-xl font-medium text-slate-800">Add District</h3>
+                                    <h3 className="text-xl font-medium text-slate-800">Add Village</h3>
                                     <button onClick={() => setAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                                         <X size={20} className="stroke-2" />
                                     </button>
                                 </div>
-                                <div className="p-6 space-y-6 flex flex-col items-center w-full">
+                                <div className="p-6 space-y-5 flex flex-col items-center w-full">
                                     <div className="w-full">
-                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">Village Name</label>
                                         <input
                                             type="text"
                                             value={addFormData.name}
                                             onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
                                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            placeholder="e.g. Calangute"
                                         />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">Taluka Name</label>
+                                        <select
+                                            value={addFormData.talukaName}
+                                            onChange={(e) => setAddFormData({ ...addFormData, talukaName: e.target.value })}
+                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700 bg-white"
+                                        >
+                                            <option value="">Select Taluka</option>
+                                            <optgroup label="North Goa">
+                                                <option>Bardez</option>
+                                                <option>Bicholim</option>
+                                                <option>Pernem</option>
+                                                <option>Ponda</option>
+                                                <option>Satari</option>
+                                                <option>Tiswadi</option>
+                                            </optgroup>
+                                            <optgroup label="South Goa">
+                                                <option>Canacona</option>
+                                                <option>Dharbandora</option>
+                                                <option>Mormugao</option>
+                                                <option>Quepem</option>
+                                                <option>Salcete</option>
+                                                <option>Sanguem</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
+                                        <select
+                                            value={addFormData.districtName}
+                                            onChange={(e) => setAddFormData({ ...addFormData, districtName: e.target.value })}
+                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700 bg-white"
+                                        >
+                                            <option value="">Select District</option>
+                                            <option value="North Goa">North Goa</option>
+                                            <option value="South Goa">South Goa</option>
+                                        </select>
                                     </div>
                                     <div className="w-full">
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
@@ -363,6 +472,7 @@ export default function DistrictsManagement() {
                                             value={addFormData.censusCode}
                                             onChange={(e) => setAddFormData({ ...addFormData, censusCode: e.target.value })}
                                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            placeholder="e.g. 627023"
                                         />
                                     </div>
                                 </div>
@@ -379,7 +489,7 @@ export default function DistrictsManagement() {
                     )}
                 </AnimatePresence>
 
-                {/* Edit Modal */}
+                {/* ─────────── EDIT MODAL ─────────── */}
                 <AnimatePresence>
                     {editModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -398,20 +508,56 @@ export default function DistrictsManagement() {
                                 className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative z-10"
                             >
                                 <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-                                    <h3 className="text-lg font-bold text-slate-800">Edit District</h3>
+                                    <h3 className="text-lg font-bold text-slate-800">Edit Village</h3>
                                     <button onClick={() => setEditModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors">
                                         <X size={16} className="stroke-2" />
                                     </button>
                                 </div>
                                 <div className="p-6 space-y-5 flex flex-col items-center w-full">
                                     <div className="w-full">
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Village Name</label>
                                         <input
                                             type="text"
                                             value={editFormData.name}
                                             onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                                             className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
                                         />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Taluka Name</label>
+                                        <select
+                                            value={editFormData.talukaName}
+                                            onChange={(e) => setEditFormData({ ...editFormData, talukaName: e.target.value })}
+                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium bg-white"
+                                        >
+                                            <optgroup label="North Goa">
+                                                <option>Bardez</option>
+                                                <option>Bicholim</option>
+                                                <option>Pernem</option>
+                                                <option>Ponda</option>
+                                                <option>Satari</option>
+                                                <option>Tiswadi</option>
+                                            </optgroup>
+                                            <optgroup label="South Goa">
+                                                <option>Canacona</option>
+                                                <option>Dharbandora</option>
+                                                <option>Mormugao</option>
+                                                <option>Quepem</option>
+                                                <option>Salcete</option>
+                                                <option>Sanguem</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
+                                        <select
+                                            value={editFormData.districtName}
+                                            onChange={(e) => setEditFormData({ ...editFormData, districtName: e.target.value })}
+                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium bg-white"
+                                        >
+                                            <option value="North Goa">North Goa</option>
+                                            <option value="South Goa">South Goa</option>
+                                        </select>
                                     </div>
                                     <div className="w-full">
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
@@ -436,7 +582,7 @@ export default function DistrictsManagement() {
                     )}
                 </AnimatePresence>
 
-                {/* Save Confirmation Modal */}
+                {/* ─────────── SAVE CONFIRMATION MODAL ─────────── */}
                 <AnimatePresence>
                     {saveConfirmOpen && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -459,7 +605,7 @@ export default function DistrictsManagement() {
                                         <Save size={32} />
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Confirm Save</h3>
-                                    <p className="text-sm font-medium text-slate-500 mb-8 px-2">Are you sure you want to save these changes to the district form?</p>
+                                    <p className="text-sm font-medium text-slate-500 mb-8 px-2">Are you sure you want to save these changes to the village record?</p>
                                     <div className="flex gap-3 justify-center w-full">
                                         <button onClick={() => setSaveConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
                                             Cancel
@@ -474,7 +620,7 @@ export default function DistrictsManagement() {
                     )}
                 </AnimatePresence>
 
-                {/* Delete Confirmation Modal */}
+                {/* ─────────── DELETE CONFIRMATION MODAL ─────────── */}
                 <AnimatePresence>
                     {deleteConfirmOpen && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -496,8 +642,8 @@ export default function DistrictsManagement() {
                                     <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-5 -rotate-3">
                                         <Trash2 size={32} />
                                     </div>
-                                    <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete District?</h3>
-                                    <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this district?</p>
+                                    <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete Village?</h3>
+                                    <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this village record?</p>
                                     <div className="flex gap-3 justify-center w-full">
                                         <button onClick={() => setDeleteConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
                                             Keep It

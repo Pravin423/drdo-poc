@@ -14,13 +14,14 @@ import {
   RefreshCw,
   UploadCloud,
   ChevronDown,
-  UserPlus, Upload,Activity ,FileText,Shield ,ShieldCheck ,Zap
+  UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap
 } from "lucide-react";
 import { useState, useEffect } from "react";
 // Update your framer-motion import to include AnimatePresence
 import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
+import { exportToExcel } from "../../lib/exportToExcel";
 
 /* ---------------- MOCK DATA ---------------- */
 const CRP_DATA = [
@@ -240,51 +241,16 @@ export default function CrpManagement() {
   ];
   const exportToCSV = () => {
     if (!filteredCRPs.length) return;
-
-    const headers = [
-      "Name",
-      "Aadhaar",
-      "Mobile",
-      "Email",
-      "District",
-      "Taluka",
-      "Block",
-      "Villages",
-      "Status",
-      "Last Activity",
-      "Time",
-    ];
-
-    const rows = filteredCRPs.map(crp => [
-      crp.name,
-      crp.aadhaar,
-      crp.mobile,
-      crp.email,
-      crp.district,
-      crp.taluka,
-      crp.block,
-      crp.villages,
-      crp.status,
-      crp.lastActivity,
-      crp.time,
-    ]);
-
-    const csvContent =
-      [headers, ...rows]
-        .map(row => row.map(val => `"${val ?? ""}"`).join(","))
-        .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `CRP_Records_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    exportToExcel({
+      title: "Goa CRP Management — Records Report",
+      headers: ["Name", "Aadhaar", "Mobile", "Email", "District", "Taluka", "Block", "Villages", "Status", "Last Activity", "Timestamp"],
+      rows: filteredCRPs.map(crp => [
+        crp.name, crp.aadhaar, crp.mobile, crp.email,
+        crp.district, crp.taluka, crp.block, crp.villages,
+        crp.status, crp.lastActivity, crp.time,
+      ]),
+      filename: "goa_crp_records_report",
+    });
   };
   const openModal = (crp) => {
     setSelectedCRP(crp);
@@ -705,99 +671,98 @@ export default function CrpManagement() {
           </div>
 
           {/* ---------- TABLE ---------- */}
-         <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-  {/* Make table horizontally scrollable on small screens */}
-  <div className="overflow-x-auto">
-    <table className="w-full min-w-[600px]">
-      <thead className="bg-slate-50/60">
-        <tr>
-          {[
-            "Image",
-            "CRP Details",
-            "Contact",
-            "Assignment",
-            "Status",
-            "Last Activity",
-            "Actions",
-          ].map((h) => (
-            <th
-              key={h}
-              className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${
-                h === "Actions" ? "text-right" : "text-left"
-              }`}
-            >
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+            {/* Make table horizontally scrollable on small screens */}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead className="bg-slate-50/60">
+                  <tr>
+                    {[
+                      "Image",
+                      "CRP Details",
+                      "Contact",
+                      "Assignment",
+                      "Status",
+                      "Last Activity",
+                      "Actions",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Actions" ? "text-right" : "text-left"
+                          }`}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
 
-      <tbody className="divide-y divide-slate-100">
-        {filteredCRPs.map((crp, idx) => (
-          <motion.tr
-            key={crp.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            className="hover:bg-slate-50/70"
-          >
-            <td className="px-4 py-3">
-              <img
-                src={crp.image}
-                alt={crp.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            </td>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredCRPs.map((crp, idx) => (
+                    <motion.tr
+                      key={crp.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="hover:bg-slate-50/70"
+                    >
+                      <td className="px-4 py-3">
+                        <img
+                          src={crp.image}
+                          alt={crp.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      </td>
 
-            <td className="px-4 py-3">
-              <p className="font-semibold text-slate-900">{crp.name}</p>
-              <p className="text-xs text-slate-500">Aadhaar: {crp.aadhaar}</p>
-            </td>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-slate-900">{crp.name}</p>
+                        <p className="text-xs text-slate-500">Aadhaar: {crp.aadhaar}</p>
+                      </td>
 
-            <td className="px-4 py-3 text-sm">
-              <p>{crp.mobile}</p>
-              <p className="text-xs text-slate-500">{crp.email}</p>
-            </td>
+                      <td className="px-4 py-3 text-sm">
+                        <p>{crp.mobile}</p>
+                        <p className="text-xs text-slate-500">{crp.email}</p>
+                      </td>
 
-            <td className="px-4 py-3 text-sm">
-              <p className="font-medium">{crp.district}</p>
-              <p className="text-xs text-slate-500">
-                {crp.taluka} – {crp.block} • {crp.villages} villages
-              </p>
-            </td>
+                      <td className="px-4 py-3 text-sm">
+                        <p className="font-medium">{crp.district}</p>
+                        <p className="text-xs text-slate-500">
+                          {crp.taluka} – {crp.block} • {crp.villages} villages
+                        </p>
+                      </td>
 
-            <td className="px-4 py-3">
-              <StatusBadge status={crp.status} />
-            </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={crp.status} />
+                      </td>
 
-            <td className="px-4 py-3 text-sm">
-              <p>{crp.lastActivity}</p>
-              <p className="text-xs text-slate-500">{crp.time}</p>
-            </td>
+                      <td className="px-4 py-3 text-sm">
+                        <p>{crp.lastActivity}</p>
+                        <p className="text-xs text-slate-500">{crp.time}</p>
+                      </td>
 
-            <td className="px-4 py-3 text-right">
-              <div className="inline-flex gap-2 text-slate-500">
-                <Eye
-                  size={18}
-                  onClick={() => openModal(crp)}
-                  className="cursor-pointer hover:text-blue-600"
-                />
-                <Edit
-                  size={18}
-                  className="cursor-pointer hover:text-emerald-600"
-                />
-                <MoreHorizontal
-                  size={18}
-                  className="cursor-pointer hover:text-slate-700"
-                />
-              </div>
-            </td>
-          </motion.tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
+                      <td className="px-4 py-3 text-right">
+                        <div className="inline-flex gap-2 text-slate-500">
+                          <Eye
+                            size={18}
+                            onClick={() => openModal(crp)}
+                            className="cursor-pointer hover:text-blue-600"
+                          />
+                          <Edit
+                            size={18}
+                            className="cursor-pointer hover:text-emerald-600"
+                          />
+                          <MoreHorizontal
+                            size={18}
+                            className="cursor-pointer hover:text-slate-700"
+                          />
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
 
 
@@ -1276,7 +1241,7 @@ export default function CrpManagement() {
                 >
                   Close
                 </button>
-                
+
               </div>
             </div>
           </motion.div>

@@ -31,8 +31,18 @@ import {
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+const handleExportActivities = () => {
+  exportToExcel({
+    title: "Goa Super Admin — System Activities Log",
+    headers: ["ID", "Activity", "Description", "Status", "Priority", "Timestamp"],
+    rows: activities.map(a => [a.id, a.title, a.desc, a.status, a.priority, a.time]),
+    filename: "goa_admin_activity_log",
+  });
+};
+
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
+import { exportToExcel } from "../../lib/exportToExcel";
 import {
   BarChart,
   Bar,
@@ -462,7 +472,7 @@ export default function SuperAdmin() {
                 <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
                   <Filter size={16} /> Filter
                 </button>
-                <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all shadow-md shadow-slate-200">
+                <button onClick={handleExportActivities} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all shadow-md shadow-slate-200">
                   <Download size={16} /> Export
                 </button>
               </div>

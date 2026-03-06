@@ -20,6 +20,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 // Mock Data for Goa Talukas
 const TALUKAS_DATA = [
@@ -153,6 +154,15 @@ export default function TalukasManagement() {
         taluka.districtName.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const handleExport = () => {
+        exportToExcel({
+            title: "Goa Talukas — Detailed Report",
+            headers: ["ID", "Taluka Name", "Census Code", "District Name"],
+            rows: filteredTalukas.map(t => [t.id, t.name, t.censusCode, t.districtName]),
+            filename: "goa_talukas_report",
+        });
+    };
+
     return (
         <ProtectedRoute allowedRole="super-admin">
             <>
@@ -177,7 +187,7 @@ export default function TalukasManagement() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
+                                <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
                                     <Download size={16} /> Export
                                 </button>
                                 <button onClick={handleAddClick} className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95">

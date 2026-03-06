@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
+import { exportToExcel } from "../../lib/exportToExcel";
 
 /* ---------------- MOCK DATA ---------------- */
 
@@ -334,11 +335,10 @@ const StatsCard = memo(function StatsCard({
         {isPositive !== null && (
           <div
             className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-md 
-            ${
-              isPositive
+            ${isPositive
                 ? "text-emerald-700 bg-emerald-50"
                 : "text-rose-700 bg-rose-50"
-            }`}
+              }`}
           >
             {isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
             {delta}
@@ -387,9 +387,8 @@ const StatusBadge = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
-        styles[status] || "bg-slate-100 text-slate-600 border-slate-200"
-      }`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${styles[status] || "bg-slate-100 text-slate-600 border-slate-200"
+        }`}
     >
       {status === "Completed" && <span className="text-lg">✓</span>}
       {status}
@@ -446,40 +445,15 @@ export default function HonorariumCalculation() {
 
   // Export Rates to CSV
   const exportRatesToCSV = () => {
-    const headers = [
-      "Task Type",
-      "Vertical",
-      "Base Rate",
-      "Bonus Rate",
-      "Effective From",
-      "Status",
-      "Version",
-    ];
-
-    const rows = rates.map((rate) => [
-      rate.taskType,
-      rate.vertical,
-      rate.baseRate,
-      rate.bonusRate,
-      rate.effectiveFrom,
-      rate.status,
-      rate.version,
-    ]);
-
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((val) => `"${val ?? ""}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Honorarium_Rates_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    exportToExcel({
+      title: "Goa Honorarium — Rate Master Report",
+      headers: ["Task Type", "Vertical", "Base Rate (₹)", "Bonus Rate (₹)", "Effective From", "Status", "Version"],
+      rows: rates.map(rate => [
+        rate.taskType, rate.vertical, rate.baseRate,
+        rate.bonusRate, rate.effectiveFrom, rate.status, rate.version,
+      ]),
+      filename: "goa_honorarium_rates_report",
+    });
   };
 
   // Handle Add Rate Submit
@@ -793,11 +767,10 @@ export default function HonorariumCalculation() {
                     setRateFile(null);
                     setIsImportRatesOpen(false);
                   }}
-                  className={`px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition ${
-                    !rateFile
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition ${!rateFile
                       ? "bg-slate-300 text-white cursor-not-allowed"
                       : "bg-emerald-600 text-white hover:bg-emerald-700"
-                  }`}
+                    }`}
                 >
                   <Upload size={16} />
                   Import Rates
@@ -818,7 +791,7 @@ export default function HonorariumCalculation() {
               className="flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
               <div className="space-y-1">
-               
+
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                   Honorarium Calculation{" "}
                   <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
@@ -867,10 +840,9 @@ export default function HonorariumCalculation() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300
-                      ${
-                        activeTab === tab.id
-                          ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200"
-                          : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
+                      ${activeTab === tab.id
+                        ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200"
+                        : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
                       }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -892,7 +864,7 @@ export default function HonorariumCalculation() {
               >
                 {activeTab === "rateMaster" && (
                   <RateMasterTab
-                  rates={rates}
+                    rates={rates}
                     onAddRate={() => setIsAddRateOpen(true)}
                     onImportRates={() => setIsImportRatesOpen(true)}
                     onExportRates={exportRatesToCSV}
@@ -1063,26 +1035,20 @@ const RateMasterTab = memo(function RateMasterTab({
     </div>
   );
 });
-const handleExportSummaryCSV = () => {
-  const rows = [
-    ["Month", selectedMonth],
-    ["District", selectedDistrict],
-    ["Total CRPs", metrics.totalCRPs],
-    ["Total Amount", metrics.totalAmount],
-    ["Average Attendance", metrics.avgAttendance],
-    ["Task Completion (%)", metrics.taskCompletion],
-  ];
-
-  const csvContent =
-    "data:text/csv;charset=utf-8," +
-    rows.map((e) => e.join(",")).join("\n");
-
-  const link = document.createElement("a");
-  link.href = encodeURI(csvContent);
-  link.download = `CRP_Monthly_Summary_${selectedMonth}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+const handleExportSummaryCSV = (selectedMonth, selectedDistrict, metrics) => {
+  exportToExcel({
+    title: `Goa CRP Monthly Summary — ${selectedMonth}`,
+    headers: ["Field", "Value"],
+    rows: [
+      ["Month", selectedMonth],
+      ["District", selectedDistrict],
+      ["Total CRPs", metrics.totalCRPs],
+      ["Total Amount (₹)", metrics.totalAmount],
+      ["Average Attendance (days)", metrics.avgAttendance],
+      ["Task Completion (%)", metrics.taskCompletion],
+    ],
+    filename: `goa_crp_summary_${selectedMonth.replace(/\s+/g, '_')}`,
+  });
 };
 
 /* ---------------- CALCULATIONS TAB ---------------- */
@@ -1137,8 +1103,8 @@ const CalculationsTab = memo(function CalculationsTab({
                   "Calculated On"
                 ];
                 const rows = data.map(calc => [
-                  calc.name, calc.crpId, calc.district, calc.block, calc.attendance, 
-                  calc.tasks, calc.baseAmount, calc.bonus, calc.deductions, 
+                  calc.name, calc.crpId, calc.district, calc.block, calc.attendance,
+                  calc.tasks, calc.baseAmount, calc.bonus, calc.deductions,
                   calc.netAmount, calc.status, calc.calculatedOn
                 ]);
                 const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -1309,7 +1275,7 @@ const CalculationsTab = memo(function CalculationsTab({
                 </div>
               </div>
             </div>
-            
+
 
             {/* Expanded Breakdown */}
             <AnimatePresence>
@@ -1362,7 +1328,7 @@ const CalculationsTab = memo(function CalculationsTab({
                 </motion.div>
               )}
             </AnimatePresence>
-            
+
           </motion.div>
         ))}
       </div>
@@ -1402,7 +1368,7 @@ const ApprovalsTab = memo(function ApprovalsTab({ data }) {
             className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
           >
             {/* Card Header */}
-            <div 
+            <div
               onClick={() => setExpandedId(expandedId === approval.id ? null : approval.id)}
               className="px-6 py-4 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-colors"
             >
@@ -1439,125 +1405,124 @@ const ApprovalsTab = memo(function ApprovalsTab({ data }) {
                   exit={{ height: 0, opacity: 0 }}
                   className="border-t border-slate-100"
                 >
-            {/* Card Details */}
-            <div className="px-6 py-4 bg-slate-50">
-              <div className="grid grid-cols-4 gap-4 text-sm">
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Month
-                  </p>
-                  <p className="font-medium text-slate-900">{approval.month}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Amount
-                  </p>
-                  <p className="font-bold text-slate-900">
-                    ₹{approval.amount.toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Submitted By
-                  </p>
-                  <p className="font-medium text-slate-900">
-                    {approval.submittedBy}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Pending With
-                  </p>
-                  <p className="font-medium text-slate-900">
-                    {approval.pendingWith}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Approval Chain Progress */}
-            <div className="px-6 py-5">
-              <h4 className="text-sm font-bold text-slate-900 mb-4">
-                Approval Chain Progress
-              </h4>
-              <div className="space-y-3">
-                {approval.approvalChain.map((step, stepIndex) => (
-                  <div key={stepIndex} className="flex items-start gap-3 relative">
-                    {/* Icon */}
-                    <div
-                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                        step.status === "Completed"
-                          ? "bg-emerald-100 text-emerald-600"
-                          : "bg-slate-100 text-slate-400"
-                      }`}
-                    >
-                      {step.status === "Completed" ? (
-                        <CheckCircle2 size={16} />
-                      ) : (
-                        <Clock size={16} />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">
-                            {step.stage}
-                          </p>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {step.approver}
-                          </p>
-                          {step.timestamp && (
-                            <p className="text-xs text-slate-400 mt-0.5">
-                              {step.timestamp}
-                            </p>
-                          )}
-                        </div>
-                        <StatusBadge status={step.status} />
+                  {/* Card Details */}
+                  <div className="px-6 py-4 bg-slate-50">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                          Month
+                        </p>
+                        <p className="font-medium text-slate-900">{approval.month}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                          Amount
+                        </p>
+                        <p className="font-bold text-slate-900">
+                          ₹{approval.amount.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                          Submitted By
+                        </p>
+                        <p className="font-medium text-slate-900">
+                          {approval.submittedBy}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                          Pending With
+                        </p>
+                        <p className="font-medium text-slate-900">
+                          {approval.pendingWith}
+                        </p>
                       </div>
                     </div>
-
-                    {/* Connector Line */}
-                    {stepIndex < approval.approvalChain.length - 1 && (
-                      <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200 -mb-3" />
-                    )}
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Attached Documents */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
-              <h4 className="text-sm font-bold text-slate-900 mb-3">
-                Attached Documents
-              </h4>
-              <div className="flex flex-wrap gap-3">
-                {approval.documents.map((doc, docIndex) => (
-                  <a
-                    key={docIndex}
-                    href={doc.url}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
-                  >
-                    <FileText size={16} className="text-blue-500" />
-                    {doc.name}
-                    <Download size={14} className="text-slate-400" />
-                  </a>
-                ))}
-              </div>
-            </div>
+                  {/* Approval Chain Progress */}
+                  <div className="px-6 py-5">
+                    <h4 className="text-sm font-bold text-slate-900 mb-4">
+                      Approval Chain Progress
+                    </h4>
+                    <div className="space-y-3">
+                      {approval.approvalChain.map((step, stepIndex) => (
+                        <div key={stepIndex} className="flex items-start gap-3 relative">
+                          {/* Icon */}
+                          <div
+                            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${step.status === "Completed"
+                                ? "bg-emerald-100 text-emerald-600"
+                                : "bg-slate-100 text-slate-400"
+                              }`}
+                          >
+                            {step.status === "Completed" ? (
+                              <CheckCircle2 size={16} />
+                            ) : (
+                              <Clock size={16} />
+                            )}
+                          </div>
 
-            {/* Actions */}
-            <div className="px-6 py-4 flex justify-end gap-3 bg-slate-50/50">
-              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                <History size={16} />
-                History
-              </button>
-              <button className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
-                <Eye size={16} />
-                Review & Action
-              </button>
-            </div>
+                          {/* Content */}
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">
+                                  {step.stage}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  {step.approver}
+                                </p>
+                                {step.timestamp && (
+                                  <p className="text-xs text-slate-400 mt-0.5">
+                                    {step.timestamp}
+                                  </p>
+                                )}
+                              </div>
+                              <StatusBadge status={step.status} />
+                            </div>
+                          </div>
+
+                          {/* Connector Line */}
+                          {stepIndex < approval.approvalChain.length - 1 && (
+                            <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200 -mb-3" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Attached Documents */}
+                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
+                    <h4 className="text-sm font-bold text-slate-900 mb-3">
+                      Attached Documents
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {approval.documents.map((doc, docIndex) => (
+                        <a
+                          key={docIndex}
+                          href={doc.url}
+                          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                        >
+                          <FileText size={16} className="text-blue-500" />
+                          {doc.name}
+                          <Download size={14} className="text-slate-400" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="px-6 py-4 flex justify-end gap-3 bg-slate-50/50">
+                    <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                      <History size={16} />
+                      History
+                    </button>
+                    <button className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                      <Eye size={16} />
+                      Review & Action
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1751,7 +1716,7 @@ const PaymentsTab = memo(function PaymentsTab({
                   View Details
                 </button>
                 {payment.status === "Processed" && (
-                  <button 
+                  <button
                     onClick={() => handleDownloadReceipt(payment)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
                   >

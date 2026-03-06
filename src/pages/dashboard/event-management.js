@@ -34,39 +34,7 @@ import {
 
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
-
-/* ---------------- UTILITY FUNCTIONS ---------------- */
-// CSV Export utility
-const exportToCSV = (data, filename) => {
-  if (!data || data.length === 0) {
-    alert("No data to export");
-    return;
-  }
-
-  const headers = Object.keys(data[0]);
-  const csvContent = [
-    headers.join(","),
-    ...data.map(row => 
-      headers.map(header => {
-        const value = row[header]?.toString() || "";
-        // Escape commas and quotes
-        return value.includes(",") || value.includes('"') 
-          ? `"${value.replace(/"/g, '""')}"` 
-          : value;
-      }).join(",")
-    )
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+import { exportToExcel } from "../../lib/exportToExcel";
 
 /* ---------------- MAIN PAGE COMPONENT ---------------- */
 export default function EventManagement() {
@@ -170,8 +138,8 @@ export default function EventManagement() {
   }, []);
 
   const handleAddParticipant = useCallback((newParticipant) => {
-    setParticipants(prev => [...prev, { 
-      ...newParticipant, 
+    setParticipants(prev => [...prev, {
+      ...newParticipant,
       id: Date.now(),
       events: 0,
       avatar: `https://i.pravatar.cc/150?u=${newParticipant.email}`,
@@ -180,19 +148,16 @@ export default function EventManagement() {
   }, []);
 
   const handleExportReports = useCallback(() => {
-    const reportData = events.map(event => ({
-      Title: event.title,
-      Type: event.type,
-      Date: event.date,
-      "Start Time": event.startTime,
-      "End Time": event.endTime,
-      Venue: event.venue,
-      District: event.district,
-      Block: event.block || "N/A",
-      Facilitator: event.facilitator,
-      Capacity: event.capacity,
-    }));
-    exportToCSV(reportData, "event_reports");
+    exportToExcel({
+      title: "Goa Event Management — Events Report",
+      headers: ["Title", "Type", "Date", "Start Time", "End Time", "Venue", "District", "Block", "Facilitator", "Capacity"],
+      rows: events.map(event => [
+        event.title, event.type, event.date, event.startTime,
+        event.endTime, event.venue, event.district,
+        event.block || "N/A", event.facilitator, event.capacity,
+      ]),
+      filename: "goa_event_reports",
+    });
   }, [events]);
 
   const tabs = [
@@ -206,7 +171,7 @@ export default function EventManagement() {
   const stats = useMemo(() => {
     const now = new Date();
     const futureEvents = events.filter(e => new Date(e.date) > now);
-    
+
     return {
       totalEvents: events.length,
       totalParticipants: participants.length,
@@ -220,7 +185,7 @@ export default function EventManagement() {
       <DashboardLayout>
         <div className="min-h-screen p-2 lg:p-3 xl:p-4">
           <div className="max-w-[1600px] mx-auto space-y-8">
-           
+
 
             {/* Page Header */}
             <motion.div
@@ -238,7 +203,7 @@ export default function EventManagement() {
               </div>
 
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={handleExportReports}
                   className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
                 >
@@ -290,16 +255,16 @@ export default function EventManagement() {
                 className="space-y-6"
               >
                 {activeTab === "calendar" && (
-                  <EventCalendarTab 
-                    events={events} 
-                    onCreateEvent={() => setShowCreateEventModal(true)} 
+                  <EventCalendarTab
+                    events={events}
+                    onCreateEvent={() => setShowCreateEventModal(true)}
                   />
                 )}
                 {activeTab === "attendance" && <AttendanceTab events={events} participants={participants} />}
                 {activeTab === "participants" && (
-                  <ParticipantsTab 
-                    participants={participants} 
-                    onAddParticipant={() => setShowAddParticipantModal(true)} 
+                  <ParticipantsTab
+                    participants={participants}
+                    onAddParticipant={() => setShowAddParticipantModal(true)}
                   />
                 )}
                 {activeTab === "analytics" && <AnalyticsTab events={events} participants={participants} />}
@@ -310,14 +275,14 @@ export default function EventManagement() {
       </DashboardLayout>
 
       {/* Modals */}
-      <CreateEventModal 
-        isOpen={showCreateEventModal} 
-        onClose={() => setShowCreateEventModal(false)} 
+      <CreateEventModal
+        isOpen={showCreateEventModal}
+        onClose={() => setShowCreateEventModal(false)}
         onSave={handleAddEvent}
       />
-      <AddParticipantModal 
-        isOpen={showAddParticipantModal} 
-        onClose={() => setShowAddParticipantModal(false)} 
+      <AddParticipantModal
+        isOpen={showAddParticipantModal}
+        onClose={() => setShowAddParticipantModal(false)}
         onSave={handleAddParticipant}
       />
     </ProtectedRoute>
@@ -385,11 +350,10 @@ function OverviewStats({ stats }) {
             <div className={`p-2.5 rounded-xl ${colorMap[card.color]} border transition-transform duration-300 group-hover:scale-110`}>
               <card.icon size={20} />
             </div>
-            
+
             {card.delta && (
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold ${
-                card.isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
-              }`}>
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold ${card.isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                }`}>
                 {card.isPositive && <TrendingUp size={12} />}
                 {card.delta}
               </div>
@@ -416,7 +380,7 @@ function OverviewStats({ stats }) {
           <div className="absolute -right-4 -bottom-4 opacity-[0.03] text-slate-900 pointer-events-none transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-12">
             <card.icon size={120} strokeWidth={1.5} />
           </div>
-      
+
         </motion.section>
       ))}
     </div>
@@ -550,19 +514,18 @@ function EventCalendarTab({ events, onCreateEvent }) {
         <div className="grid grid-cols-7 gap-2">
           {days.map((day, index) => {
             const today = new Date();
-            const isToday = day && 
+            const isToday = day &&
               currentDate.getFullYear() === today.getFullYear() &&
               currentDate.getMonth() === today.getMonth() &&
               day === today.getDate();
-            
+
             const dayEvents = day ? eventsByDay[day] || [] : [];
 
             return (
               <div
                 key={index}
-                className={`min-h-[100px] border border-slate-200 rounded-lg p-2 ${
-                  isToday ? "ring-2 ring-[#0e5a8a]" : ""
-                } ${!day ? "bg-slate-50" : "bg-white hover:bg-slate-50 cursor-pointer transition-colors"}`}
+                className={`min-h-[100px] border border-slate-200 rounded-lg p-2 ${isToday ? "ring-2 ring-[#0e5a8a]" : ""
+                  } ${!day ? "bg-slate-50" : "bg-white hover:bg-slate-50 cursor-pointer transition-colors"}`}
               >
                 {day && (
                   <>
@@ -679,21 +642,21 @@ function AttendanceTab({ events, participants }) {
     ];
   }, [mockAttendance]);
 
-  const filteredAttendance = useMemo(() => 
+  const filteredAttendance = useMemo(() =>
     mockAttendance.filter((item) =>
       statusFilter === "all" ? true : item.status === statusFilter
     ), [mockAttendance, statusFilter]
   );
 
   const handleExport = useCallback(() => {
-    const exportData = mockAttendance.map(item => ({
-      Name: item.name,
-      "CRP ID": item.crpId,
-      District: item.district,
-      Status: item.status,
-      Time: item.time,
-    }));
-    exportToCSV(exportData, "attendance");
+    exportToExcel({
+      title: "Goa Event Management — Attendance Report",
+      headers: ["Name", "CRP ID", "District", "Status", "Time"],
+      rows: mockAttendance.map(item => [
+        item.name, item.crpId, item.district, item.status, item.time,
+      ]),
+      filename: "goa_event_attendance_report",
+    });
   }, [mockAttendance]);
 
   const currentEvent = events.find(e => e.id === selectedEvent);
@@ -712,7 +675,7 @@ function AttendanceTab({ events, participants }) {
               <QrCode className="w-4 h-4" />
               QR Scanner
             </button>
-            <button 
+            <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
             >
@@ -755,8 +718,8 @@ function AttendanceTab({ events, participants }) {
               key={filter}
               onClick={() => setStatusFilter(filter)}
               className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${statusFilter === filter
-                  ? "bg-[#0e5a8a] text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                ? "bg-[#0e5a8a] text-white"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
                 }`}
             >
               {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -782,12 +745,12 @@ function AttendanceTab({ events, participants }) {
               <div className="flex items-center gap-4">
                 <span
                   className={`px-3 py-1.5 text-sm font-semibold rounded-full flex items-center gap-1.5 ${item.status === "present"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : item.status === "late"
-                        ? "bg-amber-50 text-amber-700"
-                        : item.status === "absent"
-                          ? "bg-rose-50 text-rose-700"
-                          : "bg-slate-50 text-slate-700"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : item.status === "late"
+                      ? "bg-amber-50 text-amber-700"
+                      : item.status === "absent"
+                        ? "bg-rose-50 text-rose-700"
+                        : "bg-slate-50 text-slate-700"
                     }`}
                 >
                   {item.status === "present" && <CheckCircle2 className="w-4 h-4" />}
@@ -816,7 +779,7 @@ function ParticipantsTab({ participants, onAddParticipant }) {
   const filteredParticipants = useMemo(() => {
     return participants.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           p.email.toLowerCase().includes(searchTerm.toLowerCase());
+        p.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDistrict = districtFilter === "all" || p.district === districtFilter;
       const matchesType = typeFilter === "all" || p.type === typeFilter;
       return matchesSearch && matchesDistrict && matchesType;
@@ -842,16 +805,15 @@ function ParticipantsTab({ participants, onAddParticipant }) {
   }, []);
 
   const handleExport = useCallback(() => {
-    const exportData = filteredParticipants.map(p => ({
-      Name: p.name,
-      Email: p.email,
-      Phone: p.phone,
-      Type: p.type,
-      District: p.district,
-      Organization: p.organization || "N/A",
-      "Events Attended": p.events,
-    }));
-    exportToCSV(exportData, "participants");
+    exportToExcel({
+      title: "Goa Event Management — Participants Report",
+      headers: ["Name", "Email", "Phone", "Type", "District", "Organization", "Events Attended"],
+      rows: filteredParticipants.map(p => [
+        p.name, p.email, p.phone, p.type,
+        p.district, p.organization || "N/A", p.events,
+      ]),
+      filename: "goa_event_participants_report",
+    });
   }, [filteredParticipants]);
 
   const handleSendNotification = useCallback(() => {
@@ -879,7 +841,7 @@ function ParticipantsTab({ participants, onAddParticipant }) {
               <Plus className="w-4 h-4" />
               Add Participant
             </button>
-            <button 
+            <button
               onClick={handleSendNotification}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
             >
@@ -904,7 +866,7 @@ function ParticipantsTab({ participants, onAddParticipant }) {
             />
           </div>
           <div className="relative">
-            <select 
+            <select
               value={districtFilter}
               onChange={(e) => setDistrictFilter(e.target.value)}
               className="pl-4 pr-10 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
@@ -916,7 +878,7 @@ function ParticipantsTab({ participants, onAddParticipant }) {
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>
           <div className="relative">
-            <select 
+            <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="pl-4 pr-10 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
@@ -1062,14 +1024,14 @@ function AnalyticsTab({ events, participants }) {
             <p className="text-sm text-slate-500 mt-1">{selectedEvent?.title || "Health & Nutrition Training"}</p>
           </div>
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={handleExportReport}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
             >
               <Download className="w-4 h-4" />
               Export Report
             </button>
-            <button 
+            <button
               onClick={handleGenerateCertificates}
               className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white  bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
             >
@@ -1116,10 +1078,10 @@ function AnalyticsTab({ events, participants }) {
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${performer.rank === 1
-                        ? "bg-amber-100 text-amber-700"
-                        : performer.rank === 2
-                          ? "bg-slate-100 text-slate-700"
-                          : "bg-orange-100 text-orange-700"
+                      ? "bg-amber-100 text-amber-700"
+                      : performer.rank === 2
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-orange-100 text-orange-700"
                       }`}
                   >
                     {performer.rank}
@@ -1176,7 +1138,7 @@ function AnalyticsTab({ events, participants }) {
               <p className="text-sm text-blue-700">32 participants received completion certificates</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleDownloadAll}
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#0e5a8a] rounded-lg hover:bg-[#0a4a6e] transition-colors"
           >
@@ -1215,9 +1177,9 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
 
   const handleSubmit = () => {
     // Validate required fields
-    if (!formData.title || !formData.type || !formData.date || !formData.startTime || 
-        !formData.endTime || !formData.venue || !formData.district || !formData.facilitator || 
-        !formData.capacity) {
+    if (!formData.title || !formData.type || !formData.date || !formData.startTime ||
+      !formData.endTime || !formData.venue || !formData.district || !formData.facilitator ||
+      !formData.capacity) {
       alert("Please fill in all required fields");
       return;
     }
@@ -1226,7 +1188,7 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
 
     setTimeout(() => {
       onSave(formData);
-      
+
       // Reset form
       setFormData({
         title: "",
@@ -1305,7 +1267,7 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Event Type *</p>
                 <div className="relative">
-                  <select 
+                  <select
                     value={formData.type}
                     onChange={(e) => handleChange("type", e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none appearance-none focus:bg-white focus:border-blue-500 transition-all"
@@ -1383,7 +1345,7 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">District *</p>
                 <div className="relative">
-                  <select 
+                  <select
                     value={formData.district}
                     onChange={(e) => handleChange("district", e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none appearance-none focus:bg-white focus:border-blue-500 transition-all"
@@ -1398,7 +1360,7 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Block</p>
                 <div className="relative">
-                  <select 
+                  <select
                     value={formData.block}
                     onChange={(e) => handleChange("block", e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none appearance-none focus:bg-white focus:border-blue-500 transition-all"
@@ -1427,7 +1389,7 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Facilitator *</p>
                 <div className="relative">
-                  <select 
+                  <select
                     value={formData.facilitator}
                     onChange={(e) => handleChange("facilitator", e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none appearance-none focus:bg-white focus:border-blue-500 transition-all"
@@ -1512,11 +1474,10 @@ function CreateEventModal({ isOpen, onClose, onSave }) {
           <button
             disabled={!confirmChecked || isSubmitting}
             onClick={handleSubmit}
-            className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${
-              confirmChecked && !isSubmitting
-                ? "bg-slate-900 text-white hover:bg-slate-800 active:scale-95"
-                : "bg-slate-300 text-white cursor-not-allowed"
-            }`}
+            className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${confirmChecked && !isSubmitting
+              ? "bg-slate-900 text-white hover:bg-slate-800 active:scale-95"
+              : "bg-slate-300 text-white cursor-not-allowed"
+              }`}
           >
             {isSubmitting ? "Creating..." : "Create Event"}
           </button>
@@ -1554,7 +1515,7 @@ function AddParticipantModal({ isOpen, onClose, onSave }) {
 
     setTimeout(() => {
       onSave(formData);
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -1646,7 +1607,7 @@ function AddParticipantModal({ isOpen, onClose, onSave }) {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Participant Type *</p>
                 <div className="relative">
-                  <select 
+                  <select
                     value={formData.type}
                     onChange={(e) => handleChange("type", e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none appearance-none focus:bg-white focus:border-blue-500 transition-all"
@@ -1674,7 +1635,7 @@ function AddParticipantModal({ isOpen, onClose, onSave }) {
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">District *</p>
                 <div className="relative">
-                  <select 
+                  <select
                     value={formData.district}
                     onChange={(e) => handleChange("district", e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none appearance-none focus:bg-white focus:border-blue-500 transition-all"
@@ -1726,11 +1687,10 @@ function AddParticipantModal({ isOpen, onClose, onSave }) {
           <button
             disabled={!confirmChecked || isSubmitting}
             onClick={handleSubmit}
-            className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${
-              confirmChecked && !isSubmitting
-                ? "bg-slate-900 text-white hover:bg-slate-800 active:scale-95"
-                : "bg-slate-300 text-white cursor-not-allowed"
-            }`}
+            className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${confirmChecked && !isSubmitting
+              ? "bg-slate-900 text-white hover:bg-slate-800 active:scale-95"
+              : "bg-slate-300 text-white cursor-not-allowed"
+              }`}
           >
             {isSubmitting ? "Adding..." : "Add Participant"}
           </button>
