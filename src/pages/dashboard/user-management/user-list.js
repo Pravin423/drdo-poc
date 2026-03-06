@@ -25,6 +25,7 @@ import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 const ROLES_LIST = [
   "super-admin",
@@ -175,6 +176,27 @@ export default function UserList() {
     if (importFileRef.current) importFileRef.current.value = "";
   };
 
+  // ── Export Excel (shared utility) ──────────────────────────────────
+  const exportCSV = () => {
+    exportToExcel({
+      title:    "User Management Report",
+      filename: `users_export_${new Date().toISOString().split("T")[0]}`,
+      headers:  ["#", "Full Name", "Email", "Mobile", "Gender", "Date of Birth", "Role", "Status", "Signature Status", "Joined"],
+      rows: users.map((u, i) => [
+        i + 1,
+        u.fullname        || "",
+        u.email           || "",
+        u.mobile          || "",
+        u.gender          || "",
+        u.date_of_birth   || "",
+        u.role_name       || "",
+        u.status          || "",
+        u.signature_status || "Pending",
+        u.joined          || "",
+      ]),
+    });
+  };
+
   // ── Load from localStorage on mount ──────────────────────────────────────
   useEffect(() => {
     setUsers(loadUsers());
@@ -238,6 +260,12 @@ export default function UserList() {
                 <p className="text-slate-500 font-medium">Browse and manage all registered users in the system.</p>
               </div>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={exportCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-500/20 active:scale-95"
+                >
+                  <Download size={16} /> Export CSV
+                </button>
                 <button
                   onClick={() => { setImportOpen(true); setImportError(""); setImportSuccess(""); }}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
