@@ -262,9 +262,9 @@ function SidebarContent({ onNavigate, onToggle }) {
         >
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold uppercase text-slate-100"
-            title={collapsed ? user.email : undefined}
+            title={collapsed ? user.name : undefined}
           >
-            {user.email?.slice(0, 2) || "CR"}
+            {user.name?.slice(0, 2) || "CR"}
           </div>
 
           <AnimatePresence initial={false}>
@@ -277,7 +277,7 @@ function SidebarContent({ onNavigate, onToggle }) {
                 className="flex items-center justify-between gap-2 flex-1 overflow-hidden"
               >
                 <div className="leading-tight min-w-0">
-                  <p className="text-xs font-medium text-slate-100 truncate">{user.email}</p>
+                  <p className="text-xs font-medium text-slate-100 truncate">{user.name}</p>
                   <p className="text-[11px] text-slate-400 capitalize">{user.role} role</p>
                 </div>
                 <button
