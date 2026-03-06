@@ -33,7 +33,18 @@ export const SIDEBAR_CONFIG = {
       section: "PROGRAM MANAGEMENT",
       items: [{ name: "Event Management", path: "/dashboard/event-management" }],
     },
-    
+    {
+      section: "USER MANAGEMENT",
+      items: [
+        {
+          name: "User Management",
+          subItems: [
+            { name: "Add User",   path: "/dashboard/user-management/add-user" },
+            { name: "User List",  path: "/dashboard/user-management/user-list" },
+          ],
+        },
+      ],
+    },
   ],
 
   "state-admin": [
