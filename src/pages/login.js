@@ -59,7 +59,7 @@ export default function Login() {
     // Simulate a slight delay for better UX
     await new Promise((resolve) => setTimeout(resolve, 600));
 
-    const result = login(phone, password);
+    const result = await login(phone, password);
 
     if (!result.success) {
       setError(result.message);
@@ -67,9 +67,9 @@ export default function Login() {
       return;
     }
 
-    // Success animation before redirect
+    // Success animation before redirect — always super-admin dashboard
     setTimeout(() => {
-      router.push(`/dashboard/${result.role}`);
+      router.push(`/dashboard/super-admin`);
     }, 400);
   };
 

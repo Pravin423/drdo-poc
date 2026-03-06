@@ -3,87 +3,102 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext();
 
-const INITIAL_USERS = [
-  { phone: "9999999999", password: "123456", role: "super-admin" },
-  { phone: "8888888888", password: "123456", role: "state-admin" },
-  { phone: "7777777777", password: "123456", role: "district-admin" },
-  { phone: "6666666666", password: "123456", role: "supervisor" },
-  { phone: "5555555555", password: "123456", role: "finance" },
-  { phone: "4444444444", password: "123456", role: "crp" },
-];
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [users, setUsers] = useState(INITIAL_USERS);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // 🔄 Restore session and users on refresh
+  // 🔄 Restore session from localStorage on refresh
   useEffect(() => {
-    // Load stored users (for persistent passwords)
-    const storedUsers = localStorage.getItem("users");
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
-
-    // Load active logged-in user session
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const storedToken = localStorage.getItem("authToken");
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
     }
     setAuthLoading(false);
   }, []);
 
-  const login = (phone, password) => {
-    const foundUser = users.find(
-      (u) => u.phone === phone && u.password === password
-    );
+  // 🔐 Real API Login — Super Admin only
+  const login = async (phone, password) => {
+    try {
+      // Call the local Next.js proxy to avoid CORS errors
+      const response = await fetch(`/api/auth?action=login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobile: phone, password }),
+      });
 
-    if (!foundUser) {
-      return { success: false, message: "Invalid phone number or password" };
+      const data = await response.json();
+
+      // API returns status:true on success (not HTTP status codes in some cases)
+      if (!data?.status) {
+        return {
+          success: false,
+          message: data?.message || "Login failed. Please try again.",
+        };
+      }
+
+      // ✅ Role is at data.data.role_name = "Super Admin"
+      const roleName = (data?.data?.role_name || "").trim();
+
+      if (roleName !== "Super Admin") {
+        return {
+          success: false,
+          message: "Access denied. Only Super Admins can log in here.",
+        };
+      }
+
+      // ✅ Token is at data.token
+      const token = data?.token || "";
+
+      const userData = {
+        id: data?.data?.id,
+        phone: data?.data?.mobile,
+        name: data?.data?.fullname || "Super Admin",
+        email: data?.data?.email,
+        role: "super-admin",
+        role_name: roleName,
+        profile: data?.data?.profile || "",
+      };
+
+      // 💾 Persist to localStorage so session survives page refresh
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      setUser(userData);
+
+      return { success: true, role: "super-admin" };
+    } catch (err) {
+      console.error("Login error:", err);
+      return {
+        success: false,
+        message: "Network error. Please check your connection and try again.",
+      };
     }
-
-    setUser(foundUser);
-    localStorage.setItem("user", JSON.stringify(foundUser));
-
-    return { success: true, role: foundUser.role };
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
   };
 
+  // These methods remain for forgot-password / OTP flow (can be wired to real API later)
   const verifyPhone = (phone) => {
-    const foundUser = users.find((u) => u.phone === phone);
-    if (!foundUser) {
-      return { success: false, message: "Phone number not registered" };
-    }
+    // TODO: Hook to real OTP API
     return { success: true };
   };
 
   const updatePassword = (phone, newPassword) => {
-    const updatedUsers = users.map((u) => {
-      if (u.phone === phone) {
-        return { ...u, password: newPassword };
-      }
-      return u;
-    });
-
-    setUsers(updatedUsers);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    // Update local storage if the user is currently logged in
-    if (user && user.phone === phone) {
-      const updatedUser = { ...user, password: newPassword };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    }
-
+    // TODO: Hook to real password-reset API
     return { success: true };
   };
 
   return (
-    <AuthContext.Provider value={{ user, authLoading, login, logout, verifyPhone, updatePassword }}>
+    <AuthContext.Provider
+      value={{ user, authLoading, login, logout, verifyPhone, updatePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );
