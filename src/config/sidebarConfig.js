@@ -5,6 +5,19 @@ export const SIDEBAR_CONFIG = {
       items: [{ name: "System Overview", path: "/dashboard/super-admin" }],
     },
     {
+      section: "LOCATION MANAGEMENT",
+      items: [
+        {
+          name: "Goa Location",
+          subItems: [
+            { name: "Districts", path: "/dashboard/location/districts" },
+            { name: "Talukas", path: "/dashboard/location/talukas" },
+            { name: "Villages", path: "/dashboard/location/villages" },
+          ],
+        },
+      ],
+    },
+    {
       section: "CRP OPERATIONS",
       items: [
         { name: "CRP Management", path: "/dashboard/crp-management" },
@@ -20,6 +33,7 @@ export const SIDEBAR_CONFIG = {
       section: "PROGRAM MANAGEMENT",
       items: [{ name: "Event Management", path: "/dashboard/event-management" }],
     },
+    
   ],
 
   "state-admin": [
@@ -55,5 +69,5 @@ export const SIDEBAR_CONFIG = {
       section: "CRP DASHBOARD",
       items: [{ name: "My Dashboard", path: "/dashboard/crp" }],
     },
-  ],  
+  ],
 };

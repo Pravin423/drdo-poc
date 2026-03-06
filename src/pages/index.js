@@ -23,45 +23,45 @@ export default function Home() {
     <div className="min-h-screen bg-white relative">
       {/* Professional Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
-  <div className="max-w-7xl mx-auto px-6 py-4 lg:px-8">
-    <div className="flex items-center justify-between">
-      
-      {/* Left: Logo + Title */}
-      <div className="flex items-center gap-4">
-        <div className="h-16 w-16">
-          <Image
-            src="/Seal_of_Goa.webp"
-            alt="Government of Goa Seal"
-            width={64}
-            height={64}
-            priority
-            className="object-contain"
-          />
+        <div className="max-w-7xl mx-auto px-6 py-4 lg:px-8">
+          <div className="flex items-center justify-between">
+
+            {/* Left: Logo + Title */}
+            <div className="flex items-center gap-4">
+              <div className="h-16 w-16">
+                <Image
+                  src="/Seal_of_Goa.webp"
+                  alt="Government of Goa Seal"
+                  width={64}
+                  height={64}
+                  priority
+                  className="object-contain"
+                />
+              </div>
+
+              <div className="leading-tight">
+                <h1 className="text-lg font-bold text-slate-900">
+                  District Rural Development Agency
+                </h1>
+                <p className="text-sm text-slate-600 font-medium">
+                  Government of Goa
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Login */}
+            <Link
+              href="/login"
+              aria-label="Login to CRP Portal"
+              className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-6 rounded-xl bg-tech-blue-500 text-white font-semibold text-sm hover:bg-tech-blue-600 transition-colors shadow-lg shadow-tech-blue-500/30"
+            >
+              <Lock size={16} />
+              <span className="hidden sm:inline">Login</span>
+            </Link>
+
+          </div>
         </div>
-
-        <div className="leading-tight">
-          <h1 className="text-lg font-bold text-slate-900">
-            District Rural Development Agency
-          </h1>
-          <p className="text-sm text-slate-600 font-medium">
-            Government of Goa
-          </p>
-        </div>
-      </div>
-
-      {/* Right: Login */}
-      <Link
-        href="/login"
-        aria-label="Login to CRP Portal"
-        className="inline-flex items-center gap-2 px-4 py-2.5 sm:px-6 rounded-xl bg-tech-blue-500 text-white font-semibold text-sm hover:bg-tech-blue-600 transition-colors shadow-lg shadow-tech-blue-500/30"
-      >
-        <Lock size={16} />
-        <span className="hidden sm:inline">Login</span>
-      </Link>
-
-    </div>
-  </div>
-</header>
+      </header>
 
 
       {/* Hero Section - Professional & Institutional */}

@@ -1,9 +1,80 @@
 import Link from "next/link";
 import Image from "next/image";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, ChevronDown, ChevronRight, MapPin } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 import { SIDEBAR_CONFIG } from "../config/sidebarConfig";
+
+function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const hasSubItems = item.subItems && item.subItems.length > 0;
+
+  // Check if any subitem is active to keep the menu open
+  const isSubItemActive = hasSubItems && item.subItems.some(sub => router.pathname === sub.path);
+
+  // Initialize open state based on active route
+  useState(() => {
+    if (isSubItemActive) setIsOpen(true);
+  }, [isSubItemActive]);
+
+  const handleToggle = (e) => {
+    if (hasSubItems) {
+      e.preventDefault();
+      setIsOpen(!isOpen);
+    } else {
+      onNavigate?.();
+    }
+  };
+
+  return (
+    <li className="list-none">
+      <Link
+        href={hasSubItems ? "#" : item.path}
+        onClick={handleToggle}
+        className={`group flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${isActive && !hasSubItems
+            ? "bg-white/10 text-blue-50 shadow-[0_16px_45px_rgba(15,23,42,0.95)] border border-blue-400/60"
+            : "text-slate-200 hover:text-white hover:bg-white/5 border border-transparent"
+          } ${depth > 0 ? 'ml-4' : ''}`}
+      >
+        <div className="flex items-center gap-2.5">
+          {item.name === "Goa Location" ? (
+            <MapPin size={16} className={`shrink-0 ${isActive || isSubItemActive ? "text-tech-blue-400" : "text-blue-200 group-hover:text-blue-100"}`} />
+          ) : depth === 0 ? (
+            <LayoutDashboard size={16} className={`shrink-0 ${isActive && !hasSubItems ? "text-tech-blue-400" : "text-blue-200 group-hover:text-blue-100"}`} />
+          ) : (
+            <ChevronRight size={12} className={`shrink-0 ${isActive ? "text-tech-blue-400" : "text-slate-500 group-hover:text-slate-300"}`} />
+          )}
+          <span className={`truncate ${isActive || isSubItemActive ? "font-semibold text-white" : ""}`}>{item.name}</span>
+        </div>
+
+        {hasSubItems && (
+          <ChevronDown
+            size={14}
+            className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""} text-slate-400 group-hover:text-white`}
+          />
+        )}
+      </Link>
+
+      {/* Sub menu rendering */}
+      {hasSubItems && isOpen && (
+        <ul className="mt-1 mb-2 space-y-1">
+          {item.subItems.map((subItem, i) => (
+            <SidebarItem
+              key={i}
+              item={subItem}
+              isActive={router.pathname === subItem.path}
+              onNavigate={onNavigate}
+              depth={depth + 1}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
 
 function SidebarContent({ onNavigate }) {
   const { user, logout } = useAuth();
@@ -42,7 +113,7 @@ function SidebarContent({ onNavigate }) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 px-3 py-5 overflow-y-auto space-y-6">
+      <div className="flex-1 px-3 py-5 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {menus.map((group, idx) => (
           <nav key={idx} className="space-y-2">
             <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400/80">
@@ -50,29 +121,14 @@ function SidebarContent({ onNavigate }) {
             </p>
 
             <ul className="space-y-1.5">
-              {group.items.map((item, i) => {
-                const isActive = router.pathname === item.path;
-
-                return (
-                  <li key={i}>
-                    <Link
-                      href={item.path}
-                      onClick={onNavigate}
-                      className={`group flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${
-                        isActive
-                          ? "bg-white/10 text-blue-50 shadow-[0_16px_45px_rgba(15,23,42,0.95)] border border-blue-400/60"
-                          : "text-slate-200 hover:text-white hover:bg-white/5 border border-transparent"
-                      }`}
-                    >
-                      <LayoutDashboard
-                        size={16}
-                        className="shrink-0 text-blue-200 group-hover:text-blue-100"
-                      />
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  </li>
-                );
-              })}
+              {group.items.map((item, i) => (
+                <SidebarItem
+                  key={i}
+                  item={item}
+                  isActive={router.pathname === item.path}
+                  onNavigate={onNavigate}
+                />
+              ))}
             </ul>
           </nav>
         ))}
@@ -95,10 +151,10 @@ function SidebarContent({ onNavigate }) {
             </div>
           </div>
           <button
-             onClick={() => {
-    logout();
-    router.push("/login");
-  }}
+            onClick={() => {
+              logout();
+              router.push("/login");
+            }}
             className="text-[11px] font-medium text-slate-300 hover:text-rose-300 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 transition hover:border-rose-500/80 hover:bg-rose-500/10"
           >
             Logout
