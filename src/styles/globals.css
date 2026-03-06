@@ -61,6 +61,10 @@
   ::selection {
     @apply bg-tech-blue-200/40 text-slate-900;
   }
+
+  button {
+    cursor: pointer;
+  }
 }
 
 @layer components {
