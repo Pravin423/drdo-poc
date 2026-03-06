@@ -19,6 +19,7 @@ import {
   Fingerprint,
   ArrowLeft,
   KeyRound,
+  Home,
 } from "lucide-react";
 
 export default function Login() {
@@ -163,6 +164,17 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 relative overflow-hidden">
+      {/* Back to Home Button */}
+      <motion.button
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+        onClick={() => router.push("/")}
+        className="absolute top-6 left-6 lg:left-8 lg:top-8 z-50 flex items-center justify-center w-10 h-10 bg-white/80 hover:bg-white backdrop-blur-md border border-slate-200/50 rounded-full text-slate-700 shadow-sm hover:shadow-md transition-all duration-300 group cursor-pointer"
+      >
+        <ArrowLeft size={20} className="text-slate-600 group-hover:-translate-x-0.5 group-hover:text-tech-blue-600 transition-all" />
+      </motion.button>
+
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-30">
         <div
@@ -570,9 +582,9 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => { setView("forgot"); setError(""); setSuccessMessage(""); }}
-                  className="group flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-tech-blue-600 transition-colors"
+                  className="group flex items-center gap-1.5 cursor-pointer text-sm font-semibold text-slate-600 hover:text-tech-blue-600 transition-colors"
                 >
-                  <KeyRound size={15} className="text-slate-400 group-hover:text-tech-blue-500 transition-colors" />
+                  <KeyRound size={15} className="text-slate-400 cursor- group-hover:text-tech-blue-500 transition-colors" />
                   Forgot Password?
                 </button>
               </motion.div>
