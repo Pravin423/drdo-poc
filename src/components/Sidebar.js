@@ -281,8 +281,8 @@ function SidebarContent({ onNavigate, onToggle }) {
                   <p className="text-[11px] text-slate-400 capitalize">{user.role} role</p>
                 </div>
                 <button
-                  onClick={() => {
-                    logout();
+                  onClick={async () => {
+                    await logout();
                     router.push("/login");
                   }}
                   className="shrink-0 text-[11px] font-medium text-slate-300 hover:text-rose-300 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 transition hover:border-rose-500/80 hover:bg-rose-500/10 whitespace-nowrap"

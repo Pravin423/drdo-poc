@@ -78,10 +78,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        // Call the real logout API via server-side proxy (avoids CORS)
+        await fetch(`/api/auth?action=logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Logout API error (session cleared locally anyway):", err);
+    } finally {
+      // Always clear local session — even if the API call fails
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("authToken");
+    }
   };
 
   // These methods remain for forgot-password / OTP flow (can be wired to real API later)

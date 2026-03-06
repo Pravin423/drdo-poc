@@ -1,6 +1,6 @@
 /**
- * Server-side proxy for the DRDA admin login API.
- * Avoids CORS issues by making the request server-to-server.
+ * Server-side proxy for the DRDA admin API.
+ * Avoids CORS issues by making requests server-to-server.
  */
 
 const API_BASE = "https://goadrda.runtime-solutions.net/admin/api";
@@ -12,6 +12,7 @@ export default async function handler(req, res) {
 
   const { action } = req.query; // e.g. /api/auth?action=login
 
+  // ─── LOGIN ────────────────────────────────────────────────────────────────
   if (action === "login") {
     try {
       const { mobile, password } = req.body;
@@ -23,14 +24,35 @@ export default async function handler(req, res) {
       });
 
       const data = await apiRes.json();
-
-      // Forward the exact status code and body from the upstream API
       return res.status(apiRes.status).json(data);
     } catch (err) {
       console.error("[proxy/login] error:", err);
       return res
         .status(502)
         .json({ message: "Could not reach the authentication server." });
+    }
+  }
+
+  // ─── LOGOUT ───────────────────────────────────────────────────────────────
+  if (action === "logout") {
+    try {
+      const token = (req.headers["authorization"] || "").replace("Bearer ", "");
+
+      const apiRes = await fetch(`${API_BASE}/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Treat any response (even errors) as a successful local logout
+      const data = await apiRes.json().catch(() => ({}));
+      return res.status(200).json({ status: true, ...data });
+    } catch (err) {
+      console.error("[proxy/logout] error:", err);
+      // Even if the API call fails, we still allow local logout
+      return res.status(200).json({ status: true, message: "Logged out locally." });
     }
   }
 
