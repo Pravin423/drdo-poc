@@ -21,18 +21,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
-// Mock Data for Goa Districts
-const DISTRICTS_DATA = [
-    {
-        id: "1",
-        name: "North Goa",
-        censusCode: "585",
-    },
-    {
-        id: "2",
-        name: "South Goa",
-        censusCode: "586",
-    }
+// Mock Data for Goa Talukas
+const TALUKAS_DATA = [
+    { id: "1", name: "Canacona", censusCode: "5619", districtName: "South Goa" },
+    { id: "2", name: "Mormugao", censusCode: "5615", districtName: "South Goa" },
+    { id: "3", name: "Quepem", censusCode: "5617", districtName: "South Goa" },
+    { id: "4", name: "Salcete", censusCode: "5616", districtName: "South Goa" },
+    { id: "5", name: "Sanguem", censusCode: "5618", districtName: "South Goa" },
+    { id: "6", name: "Bardez", censusCode: "5610", districtName: "North Goa" },
+    { id: "7", name: "Bicholim", censusCode: "5612", districtName: "North Goa" },
+    { id: "8", name: "Pernem", censusCode: "5609", districtName: "North Goa" },
+    { id: "9", name: "Ponda", censusCode: "5614", districtName: "North Goa" },
+    { id: "10", name: "Satari", censusCode: "5613", districtName: "North Goa" },
 ];
 
 const SUMMARY_CARDS = [
@@ -46,7 +46,7 @@ const SUMMARY_CARDS = [
     },
     {
         label: "Total Talukas",
-        value: "12",
+        value: "10",
         delta: "Across all districts",
         isPositive: true,
         icon: Map,
@@ -70,53 +70,54 @@ const SUMMARY_CARDS = [
     },
 ];
 
-export default function DistrictsManagement() {
-    const [districts, setDistricts] = useState(DISTRICTS_DATA);
+export default function TalukasManagement() {
+    const [talukas, setTalukas] = useState(TALUKAS_DATA);
     const [searchQuery, setSearchQuery] = useState("");
 
     // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
-    const [addFormData, setAddFormData] = useState({ name: "", censusCode: "" });
+    const [addFormData, setAddFormData] = useState({ name: "", censusCode: "", districtName: "" });
 
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "" });
+    const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "", districtName: "" });
 
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-    const [districtToDelete, setDistrictToDelete] = useState(null);
+    const [talukaToDelete, setTalukaToDelete] = useState(null);
 
     const handleAddClick = () => {
-        setAddFormData({ name: "", censusCode: "" });
+        setAddFormData({ name: "", censusCode: "", districtName: "" });
         setAddModalOpen(true);
     };
 
     const confirmAdd = () => {
-        if (!addFormData.name || !addFormData.censusCode) return;
-        const newDistrict = {
-            id: (districts.length + 1).toString(),
+        if (!addFormData.name || !addFormData.censusCode || !addFormData.districtName) return;
+        const newTaluka = {
+            id: (talukas.length + 1).toString(),
             name: addFormData.name,
-            censusCode: addFormData.censusCode
+            censusCode: addFormData.censusCode,
+            districtName: addFormData.districtName
         };
-        setDistricts([...districts, newDistrict]);
+        setTalukas([...talukas, newTaluka]);
         setAddModalOpen(false);
     };
 
     const handleDeleteClick = (id) => {
-        setDistrictToDelete(id);
+        setTalukaToDelete(id);
         setDeleteConfirmOpen(true);
     };
 
     const confirmDelete = () => {
-        if (districtToDelete) {
-            setDistricts(districts.filter(d => d.id !== districtToDelete));
+        if (talukaToDelete) {
+            setTalukas(talukas.filter(t => t.id !== talukaToDelete));
             setDeleteConfirmOpen(false);
-            setDistrictToDelete(null);
+            setTalukaToDelete(null);
         }
     };
 
-    const handleEditClick = (district) => {
-        setEditFormData({ id: district.id, name: district.name, censusCode: district.censusCode });
+    const handleEditClick = (taluka) => {
+        setEditFormData({ id: taluka.id, name: taluka.name, censusCode: taluka.censusCode, districtName: taluka.districtName });
         setEditModalOpen(true);
     };
 
@@ -125,8 +126,8 @@ export default function DistrictsManagement() {
     };
 
     const confirmSave = () => {
-        setDistricts(districts.map(d =>
-            d.id === editFormData.id ? { ...d, name: editFormData.name, censusCode: editFormData.censusCode } : d
+        setTalukas(talukas.map(t =>
+            t.id === editFormData.id ? { ...t, name: editFormData.name, censusCode: editFormData.censusCode, districtName: editFormData.districtName } : t
         ));
         setSaveConfirmOpen(false);
         setEditModalOpen(false);
@@ -146,9 +147,10 @@ export default function DistrictsManagement() {
         };
     }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen]);
 
-    const filteredDistricts = districts.filter((district) =>
-        district.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        district.censusCode.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredTalukas = talukas.filter((taluka) =>
+        taluka.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        taluka.censusCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        taluka.districtName.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -166,11 +168,11 @@ export default function DistrictsManagement() {
                         >
                             <div className="space-y-1">
                                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
-                                    District <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
+                                    Taluka <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
                                         Management</span>
                                 </h1>
                                 <p className="text-slate-500 font-medium">
-                                    Manage and monitor administrative districts across Goa.
+                                    Manage and monitor talukas across Goa districts.
                                 </p>
                             </div>
 
@@ -179,7 +181,7 @@ export default function DistrictsManagement() {
                                     <Download size={16} /> Export
                                 </button>
                                 <button onClick={handleAddClick} className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95">
-                                    <Plus size={16} /> Add District
+                                    <Plus size={16} /> Add Taluka
                                 </button>
                             </div>
                         </motion.header>
@@ -223,7 +225,7 @@ export default function DistrictsManagement() {
                                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <input
                                         type="text"
-                                        placeholder="Search districts by name or census code..."
+                                        placeholder="Search talukas by name, code, or district..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 transition-all font-medium"
@@ -242,37 +244,41 @@ export default function DistrictsManagement() {
                                     <thead>
                                         <tr className="bg-slate-50/80 border-b border-slate-100">
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">ID</th>
-                                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">District Name</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">Name</th>
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">Census Code</th>
+                                            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-transparent">District Name</th>
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right bg-transparent">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
-                                        {filteredDistricts.length > 0 ? (
-                                            filteredDistricts.map((district, idx) => (
+                                        {filteredTalukas.length > 0 ? (
+                                            filteredTalukas.map((taluka) => (
                                                 <tr
-                                                    key={district.id}
+                                                    key={taluka.id}
                                                     className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                                                 >
                                                     <td className="px-6 py-4">
                                                         <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                                                            {district.id}
+                                                            {taluka.id}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <p className="text-sm font-semibold text-slate-800">
-                                                            {district.name}
+                                                            {taluka.name}
                                                         </p>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="text-sm text-slate-600">{district.censusCode}</span>
+                                                        <span className="text-sm text-slate-600">{taluka.censusCode}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-sm text-slate-600">{taluka.districtName}</span>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            <button onClick={() => handleEditClick(district)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit District">
+                                                            <button onClick={() => handleEditClick(taluka)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Taluka">
                                                                 <Edit2 size={16} />
                                                             </button>
-                                                            <button onClick={() => handleDeleteClick(district.id)} className="p-1.5 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete District">
+                                                            <button onClick={() => handleDeleteClick(taluka.id)} className="p-1.5 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Taluka">
                                                                 <Trash2 size={16} />
                                                             </button>
                                                         </div>
@@ -281,10 +287,10 @@ export default function DistrictsManagement() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="4" className="px-6 py-12 text-center">
+                                                <td colSpan="5" className="px-6 py-12 text-center">
                                                     <div className="flex flex-col items-center justify-center text-slate-400">
                                                         <Map size={32} className="mb-3 opacity-50" />
-                                                        <p className="text-sm font-semibold">No districts found matching your search.</p>
+                                                        <p className="text-sm font-semibold">No talukas found matching your search.</p>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -296,7 +302,7 @@ export default function DistrictsManagement() {
                             {/* Table Footer */}
                             <div className="px-6 py-4 bg-slate-50 mt-auto border-t border-slate-100 flex items-center justify-between">
                                 <p className="text-xs font-semibold text-slate-500">
-                                    Showing all <span className="text-slate-900">{filteredDistricts.length}</span> records
+                                    Showing all <span className="text-slate-900">{filteredTalukas.length}</span> records
                                 </p>
                                 <div className="flex gap-2">
                                     <button disabled className="p-1.5 text-slate-300 rounded-lg border border-slate-200 bg-white cursor-not-allowed">
@@ -331,14 +337,14 @@ export default function DistrictsManagement() {
                                 className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden relative z-10"
                             >
                                 <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
-                                    <h3 className="text-xl font-medium text-slate-800">Add District</h3>
+                                    <h3 className="text-xl font-medium text-slate-800">Add Taluka</h3>
                                     <button onClick={() => setAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                                         <X size={20} className="stroke-2" />
                                     </button>
                                 </div>
                                 <div className="p-6 space-y-6 flex flex-col items-center w-full">
                                     <div className="w-full">
-                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">Taluka Name</label>
                                         <input
                                             type="text"
                                             value={addFormData.name}
@@ -354,6 +360,18 @@ export default function DistrictsManagement() {
                                             onChange={(e) => setAddFormData({ ...addFormData, censusCode: e.target.value })}
                                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
                                         />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
+                                        <select
+                                            value={addFormData.districtName}
+                                            onChange={(e) => setAddFormData({ ...addFormData, districtName: e.target.value })}
+                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700 bg-white"
+                                        >
+                                            <option value="">Select District</option>
+                                            <option value="North Goa">North Goa</option>
+                                            <option value="South Goa">South Goa</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="px-6 py-5 border-t border-slate-200 flex justify-end gap-3">
@@ -388,14 +406,14 @@ export default function DistrictsManagement() {
                                 className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative z-10"
                             >
                                 <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-                                    <h3 className="text-lg font-bold text-slate-800">Edit District</h3>
+                                    <h3 className="text-lg font-bold text-slate-800">Edit Taluka</h3>
                                     <button onClick={() => setEditModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors">
                                         <X size={16} className="stroke-2" />
                                     </button>
                                 </div>
                                 <div className="p-6 space-y-5 flex flex-col items-center w-full">
                                     <div className="w-full">
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Taluka Name</label>
                                         <input
                                             type="text"
                                             value={editFormData.name}
@@ -411,6 +429,17 @@ export default function DistrictsManagement() {
                                             onChange={(e) => setEditFormData({ ...editFormData, censusCode: e.target.value })}
                                             className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
                                         />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
+                                        <select
+                                            value={editFormData.districtName}
+                                            onChange={(e) => setEditFormData({ ...editFormData, districtName: e.target.value })}
+                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium bg-white"
+                                        >
+                                            <option value="North Goa">North Goa</option>
+                                            <option value="South Goa">South Goa</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
@@ -449,7 +478,7 @@ export default function DistrictsManagement() {
                                         <Save size={32} />
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Confirm Save</h3>
-                                    <p className="text-sm font-medium text-slate-500 mb-8 px-2">Are you sure you want to save these changes to the district form?</p>
+                                    <p className="text-sm font-medium text-slate-500 mb-8 px-2">Are you sure you want to save these changes to the taluka form?</p>
                                     <div className="flex gap-3 justify-center w-full">
                                         <button onClick={() => setSaveConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
                                             Cancel
@@ -486,8 +515,8 @@ export default function DistrictsManagement() {
                                     <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-5 -rotate-3">
                                         <Trash2 size={32} />
                                     </div>
-                                    <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete District?</h3>
-                                    <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this district?</p>
+                                    <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete Taluka?</h3>
+                                    <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this taluka?</p>
                                     <div className="flex gap-3 justify-center w-full">
                                         <button onClick={() => setDeleteConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
                                             Keep It
