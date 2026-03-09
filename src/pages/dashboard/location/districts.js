@@ -306,7 +306,7 @@ export default function DistrictsManagement() {
                                                 >
                                                     <td className="px-6 py-4">
                                                         <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                                                            {district.id}
+                                                            {idx + 1}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
