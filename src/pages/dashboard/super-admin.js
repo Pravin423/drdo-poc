@@ -210,6 +210,44 @@ const PriorityBadge = ({ priority }) => {
   );
 };
 
+function AnimatedCounter({ to }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = to;
+    if (start === end) {
+      setCount(end);
+      return;
+    }
+    let duration = 1500;
+    let startTime = null;
+    let animationFrame;
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // easeOutExpo function for smooth deceleration
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(easeProgress * (end - start) + start));
+      
+      if (progress < 1) {
+        animationFrame = window.requestAnimationFrame(step);
+      } else {
+        setCount(end);
+      }
+    };
+    
+    animationFrame = window.requestAnimationFrame(step);
+    
+    return () => {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+    };
+  }, [to]);
+
+  return <>{count.toLocaleString()}</>;
+}
+
 export default function SuperAdmin() {
   const ITEMS_PER_PAGE = 5;
   const [currentPage, setCurrentPage] = useState(1);
@@ -252,7 +290,7 @@ export default function SuperAdmin() {
   const SUMMARY_CARDS = [
     {
       label: "Total CRPs",
-      value: dashboardLoading ? "..." : (dashboardData?.totalCrps ?? 0).toLocaleString(),
+      rawValue: dashboardData?.totalCrps ?? 0,
       delta: null,
       isPositive: null,
       icon: Users,
@@ -260,7 +298,7 @@ export default function SuperAdmin() {
     },
     {
       label: "Total Attendance",
-      value: dashboardLoading ? "..." : (dashboardData?.totalAttendance ?? 0).toLocaleString(),
+      rawValue: dashboardData?.totalAttendance ?? 0,
       delta: null,
       isPositive: null,
       icon: Activity,
@@ -268,7 +306,7 @@ export default function SuperAdmin() {
     },
     {
       label: "Regular Tasks",
-      value: dashboardLoading ? "..." : (dashboardData?.regularTaskCount ?? 0).toLocaleString(),
+      rawValue: dashboardData?.regularTaskCount ?? 0,
       delta: null,
       isPositive: null,
       icon: CreditCard,
@@ -276,7 +314,7 @@ export default function SuperAdmin() {
     },
     {
       label: "Total Users",
-      value: dashboardLoading ? "..." : (dashboardData?.totalUsers ?? 0).toLocaleString(),
+      rawValue: dashboardData?.totalUsers ?? 0,
       delta: null,
       isPositive: null,
       icon: ShieldCheck,
@@ -284,7 +322,7 @@ export default function SuperAdmin() {
     },
     {
       label: "Special Tasks",
-      value: dashboardLoading ? "..." : (dashboardData?.specialTaskCount ?? 0).toLocaleString(),
+      rawValue: dashboardData?.specialTaskCount ?? 0,
       delta: null,
       isPositive: null,
       icon: Zap,
@@ -339,7 +377,9 @@ export default function SuperAdmin() {
                   {dashboardLoading ? (
                     <div className="h-8 w-24 rounded-lg bg-slate-100 animate-pulse" />
                   ) : (
-                    <p className="text-2xl font-bold text-slate-900 tracking-tight">{card.value}</p>
+                    <p className="text-2xl font-bold text-slate-900 tracking-tight">
+                      <AnimatedCounter to={card.rawValue} />
+                    </p>
                   )}
                   <p className="text-sm font-medium text-slate-500">{card.label}</p>
                 </div>
