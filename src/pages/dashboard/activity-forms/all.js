@@ -72,7 +72,8 @@ export default function AllForms() {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden"
           >
-            <table className="w-full text-left">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[800px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">#</th>
@@ -137,6 +138,7 @@ export default function AllForms() {
                 )}
               </tbody>
             </table>
+            </div>
             <div className="px-6 py-3 bg-slate-50 border-t border-slate-100">
               <p className="text-xs font-semibold text-slate-500">
                 Showing <span className="text-slate-900">{filtered.length}</span> of <span className="text-slate-900">{MOCK_FORMS.length}</span> forms

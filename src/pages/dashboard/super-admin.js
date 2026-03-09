@@ -571,7 +571,7 @@ export default function SuperAdmin() {
             </div>
 
             {/* Footer / Pagination */}
-            <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+            <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between flex-wrap gap-4">
               <p className="text-xs font-medium text-slate-500">
                 Showing{" "}
                 <span className="text-slate-900 font-bold">

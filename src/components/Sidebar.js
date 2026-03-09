@@ -330,13 +330,15 @@ export function MobileSidebar({ open, onClose }) {
   return (
     <SidebarContext.Provider value={{ collapsed: false }}>
       <div className="fixed inset-0 z-40 flex lg:hidden">
+        {/* Overlay matches absolute inset-0 to cover screen */}
         <button
           type="button"
           aria-label="Close menu"
-          className="flex-1 bg-black/30 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm w-full h-full"
           onClick={onClose}
         />
-        <aside className="w-72 max-w-[80%] min-h-full flex flex-col border-r border-slate-800 bg-gradient-to-b from-blue-950 via-blue-900 to-slate-950 text-slate-50 shadow-2xl">
+        {/* Aside stays stacked above due to relative positioning */}
+        <aside className="w-72 max-w-[80%] min-h-full flex flex-col border-r border-slate-800 bg-gradient-to-b from-blue-950 via-blue-900 to-slate-950 text-slate-50 shadow-2xl relative z-10">
           <SidebarContent onNavigate={onClose} />
         </aside>
       </div>

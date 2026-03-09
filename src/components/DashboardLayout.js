@@ -23,12 +23,10 @@ export default function DashboardLayout({ children }) {
       {/* Mobile Sidebar */}
       <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-      {/* Main content — offset matches sidebar width, animated */}
-      <motion.main
-        animate={{ marginLeft: sidebarW }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="flex-1 bg-gray-100 flex flex-col min-w-0 overflow-y-auto lg:ml-0"
-        style={{ marginLeft: sidebarW }} // SSR fallback
+      {/* Main content — offset matches sidebar width, animated on desktop only */}
+      <main
+        className="flex-1 bg-gray-100 flex flex-col min-w-0 overflow-y-auto transition-all duration-300 ml-0 lg:ml-[var(--sidebar-w)]"
+        style={{ "--sidebar-w": `${sidebarW}px` }}
       >
         <div className="px-4 py-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto space-y-6">
@@ -130,7 +128,7 @@ export default function DashboardLayout({ children }) {
 
           </div>
         </div>
-      </motion.main>
+      </main>
     </div>
   );
 }

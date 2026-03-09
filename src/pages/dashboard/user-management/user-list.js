@@ -325,8 +325,8 @@ export default function UserList() {
               </div>
 
               {/* Table */}
-              <div className="flex-1 w-full">
-                <table className="w-full text-left border-collapse table-fixed">
+              <div className="flex-1 w-full overflow-x-auto">
+                <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
                   <colgroup>
                     <col style={{ width: "4%" }} />
                     <col style={{ width: "13%" }} />
