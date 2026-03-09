@@ -228,7 +228,7 @@ export default function Login() {
     setSuccessMessage("Password status updated. Logging you in...");
 
     // Auto log in after reset
-    const loginResult = login(phone, newPassword);
+    const loginResult = await login(phone, newPassword);
 
     if (loginResult.success) {
       setTimeout(() => {
@@ -598,7 +598,6 @@ export default function Login() {
                         value={password}
                         onChange={(e) => handlePasswordChange(e.target.value)}
                         onBlur={handlePasswordBlur}
-                        onPaste={(e) => e.preventDefault()}
                         className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
                           passwordError
                             ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
@@ -865,7 +864,7 @@ export default function Login() {
                   onClick={() => { setView("forgot"); setError(""); setSuccessMessage(""); }}
                   className="group flex items-center gap-1.5 cursor-pointer text-sm font-semibold text-slate-600 hover:text-tech-blue-600 transition-colors"
                 >
-                  <KeyRound size={15} className="text-slate-400 cursor- group-hover:text-tech-blue-500 transition-colors" />
+                  <KeyRound size={15} className="text-slate-400 cursor-pointer group-hover:text-tech-blue-500 transition-colors" />
                   Forgot Password?
                 </button>
               </motion.div>
