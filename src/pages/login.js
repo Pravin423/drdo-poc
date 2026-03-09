@@ -598,6 +598,7 @@ export default function Login() {
                         value={password}
                         onChange={(e) => handlePasswordChange(e.target.value)}
                         onBlur={handlePasswordBlur}
+                        onPaste={(e) => e.preventDefault()}
                         className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
                           passwordError
                             ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
@@ -730,6 +731,7 @@ export default function Login() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter new password (min. 6 characters)"
                         value={newPassword}
+                        onPaste={(e) => e.preventDefault()}
                         onChange={(e) => {
                           setNewPassword(e.target.value);
                           setError("");
@@ -790,6 +792,7 @@ export default function Login() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Re-enter new password"
                         value={confirmPassword}
+                        onPaste={(e) => e.preventDefault()}
                         onChange={(e) => {
                           setConfirmPassword(e.target.value);
                           setError("");
