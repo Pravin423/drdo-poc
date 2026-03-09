@@ -38,6 +38,14 @@ export default function Login() {
   const [phoneValid, setPhoneValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Field-level validation errors
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [newPasswordError, setNewPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
   // Phone validation
   const handlePhoneChange = (value) => {
     // Only allow numbers
@@ -47,13 +55,92 @@ export default function Login() {
       setError("");
       const isValid = /^\d{10}$/.test(numbersOnly);
       setPhoneValid(isValid);
+      if (phoneTouched) {
+        if (!numbersOnly) {
+          setPhoneError("Phone number is required");
+        } else if (!isValid) {
+          setPhoneError("Please enter a valid 10-digit phone number");
+        } else {
+          setPhoneError("");
+        }
+      }
     }
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    if (!phone) {
+      setPhoneError("Phone number is required");
+    } else if (!phoneValid) {
+      setPhoneError("Please enter a valid 10-digit phone number");
+    } else {
+      setPhoneError("");
+    }
+  };
+
+  const handlePasswordChange = (value) => {
+    setPassword(value);
+    setError("");
+    setSuccessMessage("");
+    if (passwordTouched) {
+      if (!value) {
+        setPasswordError("Password is required");
+      } else if (value.length < 6) {
+        setPasswordError("Password must be at least 6 characters");
+      } else {
+        setPasswordError("");
+      }
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    if (!password) {
+      setPasswordError("Password is required");
+    } else if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+    } else {
+      setPasswordError("");
+    }
+  };
+
+  // Password strength helper
+  const getPasswordStrength = (pwd) => {
+    if (!pwd) return { level: 0, label: "", color: "" };
+    let score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 10) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (score <= 1) return { level: score, label: "Weak", color: "#ef4444" };
+    if (score <= 3) return { level: score, label: "Fair", color: "#f59e0b" };
+    return { level: score, label: "Strong", color: "#10b981" };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
+
+    // Run full validation before submitting
+    setPhoneTouched(true);
+    setPasswordTouched(true);
+
+    let hasError = false;
+    if (!phone || !phoneValid) {
+      setPhoneError(phone ? "Please enter a valid 10-digit phone number" : "Phone number is required");
+      hasError = true;
+    }
+    if (!password) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      hasError = true;
+    }
+    if (hasError) return;
+
     setIsLoading(true);
 
     // Simulate a slight delay for better UX
@@ -447,59 +534,163 @@ export default function Login() {
             {/* View Switching Logic */}
             <AnimatePresence mode="wait">
               {view === "login" && (
-                <motion.form key="login" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
+                <motion.form key="login" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSubmit} className="space-y-5" noValidate>
+                  {/* Phone Field */}
+                  <div className="space-y-1.5">
                     <label htmlFor="phone" className="block text-sm font-semibold text-slate-700">Official Phone Number</label>
                     <div className="relative">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Phone size={18} className={`transition-colors ${phoneValid ? "text-emerald-500" : "text-slate-400"}`} />
+                        <Phone size={18} className={`transition-colors ${phoneError ? "text-rose-400" : phoneValid ? "text-emerald-500" : "text-slate-400"}`} />
                       </div>
-                      <input id="phone" type="tel" placeholder="Enter 10-digit mobile number" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} required className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:border-tech-blue-500 focus:ring-4 focus:ring-tech-blue-500/10" />
-                      {phoneValid && (
+                      <input
+                        id="phone"
+                        type="tel"
+                        placeholder="Enter 10-digit mobile number"
+                        value={phone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        onBlur={handlePhoneBlur}
+                        className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
+                          phoneError
+                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
+                            : phoneValid
+                            ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                            : "border-slate-200 focus:border-tech-blue-500 focus:ring-tech-blue-500/10"
+                        }`}
+                      />
+                      {phoneValid && !phoneError && (
                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-4 top-1/2 -translate-y-1/2">
                           <CheckCircle2 size={18} className="text-emerald-500" />
                         </motion.div>
                       )}
+                      {phoneError && (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <AlertCircle size={18} className="text-rose-500" />
+                        </motion.div>
+                      )}
                     </div>
+                    <AnimatePresence>
+                      {phoneError && (
+                        <motion.p
+                          key="phone-err"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="text-xs text-rose-600 flex items-center gap-1 mt-1"
+                        >
+                          <AlertCircle size={12} />
+                          {phoneError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <div className="space-y-2">
+
+                  {/* Password Field */}
+                  <div className="space-y-1.5">
                     <label htmlFor="password" className="block text-sm font-semibold text-slate-700">Password</label>
                     <div className="relative">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Lock size={18} className="text-slate-400" />
+                        <Lock size={18} className={`transition-colors ${passwordError ? "text-rose-400" : password && password.length >= 6 ? "text-emerald-500" : "text-slate-400"}`} />
                       </div>
-                      <input id="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" value={password} onChange={(e) => { setPassword(e.target.value); setError(""); setSuccessMessage(""); }} required className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:border-tech-blue-500 focus:ring-4 focus:ring-tech-blue-500/10" />
+                      <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password (min. 6 characters)"
+                        value={password}
+                        onChange={(e) => handlePasswordChange(e.target.value)}
+                        onBlur={handlePasswordBlur}
+                        className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
+                          passwordError
+                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
+                            : password && password.length >= 6
+                            ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                            : "border-slate-200 focus:border-tech-blue-500 focus:ring-tech-blue-500/10"
+                        }`}
+                      />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
+                    <AnimatePresence>
+                      {passwordError && (
+                        <motion.p
+                          key="pass-err"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="text-xs text-rose-600 flex items-center gap-1 mt-1"
+                        >
+                          <AlertCircle size={12} />
+                          {passwordError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.01, y: -2 }} whileTap={{ scale: 0.98 }} className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-tech-blue-600 to-tech-blue-500 text-white font-bold text-sm shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+
+                  <motion.button
+                    type="submit"
+                    disabled={isLoading}
+                    whileHover={{ scale: 1.01, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-tech-blue-600 to-tech-blue-500 text-white font-bold text-sm shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     {isLoading ? (<><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}><Activity size={18} /></motion.div><span>Authenticating...</span></>) : (<><span>Access Dashboard</span><ArrowRight size={18} /></>)}
                   </motion.button>
                 </motion.form>
               )}
 
               {view === "forgot" && (
-                <motion.form key="forgot" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleForgotSubmit} className="space-y-5">
-                  <div className="space-y-2">
+                <motion.form key="forgot" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleForgotSubmit} className="space-y-5" noValidate>
+                  <div className="space-y-1.5">
                     <label htmlFor="forgot-phone" className="block text-sm font-semibold text-slate-700">Registered Phone Number</label>
                     <div className="relative">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Phone size={18} className={`transition-colors ${phoneValid ? "text-emerald-500" : "text-slate-400"}`} />
+                        <Phone size={18} className={`transition-colors ${phoneError ? "text-rose-400" : phoneValid ? "text-emerald-500" : "text-slate-400"}`} />
                       </div>
-                      <input id="forgot-phone" type="tel" placeholder="Enter 10-digit mobile number" value={phone} onChange={(e) => handlePhoneChange(e.target.value)} required className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:border-tech-blue-500 focus:ring-4 focus:ring-tech-blue-500/10" />
-                      {phoneValid && (
+                      <input
+                        id="forgot-phone"
+                        type="tel"
+                        placeholder="Enter 10-digit mobile number"
+                        value={phone}
+                        onChange={(e) => handlePhoneChange(e.target.value)}
+                        onBlur={handlePhoneBlur}
+                        className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
+                          phoneError
+                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
+                            : phoneValid
+                            ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                            : "border-slate-200 focus:border-tech-blue-500 focus:ring-tech-blue-500/10"
+                        }`}
+                      />
+                      {phoneValid && !phoneError && (
                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-4 top-1/2 -translate-y-1/2">
                           <CheckCircle2 size={18} className="text-emerald-500" />
                         </motion.div>
                       )}
+                      {phoneError && (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <AlertCircle size={18} className="text-rose-500" />
+                        </motion.div>
+                      )}
                     </div>
+                    <AnimatePresence>
+                      {phoneError && (
+                        <motion.p
+                          key="forgot-phone-err"
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="text-xs text-rose-600 flex items-center gap-1 mt-1"
+                        >
+                          <AlertCircle size={12} />
+                          {phoneError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
                   <motion.button type="submit" disabled={isLoading || !phoneValid} whileHover={{ scale: 1.01, y: -2 }} whileTap={{ scale: 0.98 }} className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-tech-blue-600 to-tech-blue-500 text-white font-bold text-sm shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                     {isLoading ? (<><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}><Activity size={18} /></motion.div><span>Sending OTP...</span></>) : (<><span>Send OTP</span><ArrowRight size={18} /></>)}
                   </motion.button>
-                  <button type="button" onClick={() => { setView("login"); setError(""); setSuccessMessage(""); }} className="w-full py-3 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium">
+                  <button type="button" onClick={() => { setView("login"); setError(""); setPhoneError(""); setPhoneTouched(false); setSuccessMessage(""); }} className="w-full py-3 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium">
                     <ArrowLeft size={16} /> Back to Login
                   </button>
                 </motion.form>
@@ -526,29 +717,116 @@ export default function Login() {
               )}
 
               {view === "reset" && (
-                <motion.form key="reset" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleResetSubmit} className="space-y-5">
-                  <div className="space-y-2">
+                <motion.form key="reset" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleResetSubmit} className="space-y-5" noValidate>
+                  {/* New Password */}
+                  <div className="space-y-1.5">
                     <label htmlFor="new-password" className="block text-sm font-semibold text-slate-700">New Password</label>
                     <div className="relative">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Lock size={18} className="text-slate-400" />
+                        <Lock size={18} className={`transition-colors ${newPasswordError ? "text-rose-400" : newPassword && newPassword.length >= 6 ? "text-emerald-500" : "text-slate-400"}`} />
                       </div>
-                      <input id="new-password" type={showPassword ? "text" : "password"} placeholder="Enter new password" value={newPassword} onChange={(e) => { setNewPassword(e.target.value); setError(""); }} required className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:border-tech-blue-500 focus:ring-4 focus:ring-tech-blue-500/10" />
+                      <input
+                        id="new-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter new password (min. 6 characters)"
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value);
+                          setError("");
+                          if (!e.target.value) setNewPasswordError("New password is required");
+                          else if (e.target.value.length < 6) setNewPasswordError("Password must be at least 6 characters");
+                          else setNewPasswordError("");
+                          if (confirmPassword && e.target.value !== confirmPassword) setConfirmPasswordError("Passwords do not match");
+                          else if (confirmPassword) setConfirmPasswordError("");
+                        }}
+                        className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
+                          newPasswordError
+                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
+                            : newPassword && newPassword.length >= 6
+                            ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                            : "border-slate-200 focus:border-tech-blue-500 focus:ring-tech-blue-500/10"
+                        }`}
+                      />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
+                    {/* Password Strength Bar */}
+                    {newPassword && (() => {
+                      const strength = getPasswordStrength(newPassword);
+                      return (
+                        <div className="space-y-1">
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <div
+                                key={i}
+                                className="h-1 flex-1 rounded-full transition-all duration-300"
+                                style={{ backgroundColor: i <= strength.level ? strength.color : "#e2e8f0" }}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs font-medium" style={{ color: strength.color }}>{strength.label} password</p>
+                        </div>
+                      );
+                    })()}
+                    <AnimatePresence>
+                      {newPasswordError && (
+                        <motion.p key="new-pass-err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="text-xs text-rose-600 flex items-center gap-1">
+                          <AlertCircle size={12} />{newPasswordError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <div className="space-y-2">
+
+                  {/* Confirm Password */}
+                  <div className="space-y-1.5">
                     <label htmlFor="confirm-password" className="block text-sm font-semibold text-slate-700">Confirm Password</label>
                     <div className="relative">
                       <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Lock size={18} className="text-slate-400" />
+                        <Lock size={18} className={`transition-colors ${confirmPasswordError ? "text-rose-400" : confirmPassword && confirmPassword === newPassword ? "text-emerald-500" : "text-slate-400"}`} />
                       </div>
-                      <input id="confirm-password" type={showPassword ? "text" : "password"} placeholder="Confirm new password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }} required className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:border-tech-blue-500 focus:ring-4 focus:ring-tech-blue-500/10" />
+                      <input
+                        id="confirm-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Re-enter new password"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setError("");
+                          if (!e.target.value) setConfirmPasswordError("Please confirm your password");
+                          else if (e.target.value !== newPassword) setConfirmPasswordError("Passwords do not match");
+                          else setConfirmPasswordError("");
+                        }}
+                        className={`w-full pl-12 pr-12 py-3.5 rounded-xl border-2 bg-white text-slate-900 placeholder:text-slate-400 text-sm transition-all duration-200 outline-none focus:ring-4 ${
+                          confirmPasswordError
+                            ? "border-rose-400 focus:border-rose-500 focus:ring-rose-500/10"
+                            : confirmPassword && confirmPassword === newPassword
+                            ? "border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/10"
+                            : "border-slate-200 focus:border-tech-blue-500 focus:ring-tech-blue-500/10"
+                        }`}
+                      />
+                      {confirmPassword && confirmPassword === newPassword && (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <CheckCircle2 size={18} className="text-emerald-500" />
+                        </motion.div>
+                      )}
                     </div>
+                    <AnimatePresence>
+                      {confirmPasswordError && (
+                        <motion.p key="confirm-pass-err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="text-xs text-rose-600 flex items-center gap-1">
+                          <AlertCircle size={12} />{confirmPasswordError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.01, y: -2 }} whileTap={{ scale: 0.98 }} className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-tech-blue-600 to-tech-blue-500 text-white font-bold text-sm shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+
+                  <motion.button
+                    type="submit"
+                    disabled={isLoading || !!newPasswordError || !!confirmPasswordError || !newPassword || !confirmPassword}
+                    whileHover={{ scale: 1.01, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-tech-blue-600 to-tech-blue-500 text-white font-bold text-sm shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                     {isLoading ? (<><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}><Activity size={18} /></motion.div><span>Resetting...</span></>) : (<><span>Reset Password & Login</span><ArrowRight size={18} /></>)}
                   </motion.button>
                 </motion.form>
