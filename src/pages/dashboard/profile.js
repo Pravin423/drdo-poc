@@ -66,9 +66,11 @@ export default function ProfilePage() {
     setError("");
     try {
       const token = localStorage.getItem("authToken");
+      console.log("%c[API] 👤 GET /api/profile", "color: #3b82f6; font-weight: bold");
       const res   = await fetch("/api/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("%c[API] ✅ Profile response status:", "color: #22c55e; font-weight: bold", res.status);
       const data = await res.json();
       if (data?.status && data?.data) setProfile(data.data);
       else if (data && !data.message)  setProfile(data);

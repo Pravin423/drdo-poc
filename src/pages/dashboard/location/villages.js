@@ -456,8 +456,8 @@ export default function VillagesManagement() {
                                                     key={item}
                                                     onClick={() => setCurrentPage(item)}
                                                     className={`min-w-[32px] h-8 px-2 text-xs font-bold rounded-lg border transition-colors ${currentPage === item
-                                                            ? 'bg-tech-blue-600 text-white border-tech-blue-600 shadow-sm'
-                                                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                                        ? 'bg-tech-blue-600 text-white border-tech-blue-600 shadow-sm'
+                                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                                                         }`}
                                                 >
                                                     {item}
@@ -811,13 +811,12 @@ export default function VillagesManagement() {
                                             const file = e.dataTransfer.files[0];
                                             if (file && file.name.endsWith(".csv")) setImportFile(file);
                                         }}
-                                        className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-                                            importDragOver
+                                        className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${importDragOver
                                                 ? "border-tech-blue-400 bg-tech-blue-50"
                                                 : importFile
-                                                ? "border-emerald-400 bg-emerald-50"
-                                                : "border-slate-200 bg-slate-50 hover:border-tech-blue-300 hover:bg-tech-blue-50/30"
-                                        }`}
+                                                    ? "border-emerald-400 bg-emerald-50"
+                                                    : "border-slate-200 bg-slate-50 hover:border-tech-blue-300 hover:bg-tech-blue-50/30"
+                                            }`}
                                         onClick={() => document.getElementById("village-csv-input").click()}
                                     >
                                         <input

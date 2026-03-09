@@ -54,6 +54,7 @@ export default async function handler(req, res) {
         });
       }
 
+      console.log("[Server/API] 👥 Calling real API: POST", `${API_BASE}/user/store`);
       const apiRes = await fetch(`${API_BASE}/user/store`, {
         method: "POST",
         headers: {

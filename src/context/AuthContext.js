@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (phone, password) => {
     try {
       // Call the local Next.js proxy to avoid CORS errors
+      console.log("%c[API] 🔐 POST /api/auth?action=login", "color: #3b82f6; font-weight: bold", { mobile: phone });
       const response = await fetch(`/api/auth?action=login`, {
         method: "POST",
         headers: {
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ mobile: phone, password }),
       });
+      console.log("%c[API] ✅ Login response status:", "color: #22c55e; font-weight: bold", response.status);
 
       const data = await response.json();
 
@@ -83,6 +85,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem("authToken");
       if (token) {
         // Call the real logout API via server-side proxy (avoids CORS)
+        console.log("%c[API] 🚪 POST /api/auth?action=logout", "color: #f59e0b; font-weight: bold");
         await fetch(`/api/auth?action=logout`, {
           method: "POST",
           headers: {
@@ -90,6 +93,7 @@ export const AuthProvider = ({ children }) => {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("%c[API] ✅ Logout API called successfully", "color: #22c55e; font-weight: bold");
       }
     } catch (err) {
       console.error("Logout API error (session cleared locally anyway):", err);

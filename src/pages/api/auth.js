@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   if (action === "login") {
     try {
       const { mobile, password } = req.body;
-
+      console.log("[Server/API] 🔐 Calling real API: POST", `${API_BASE}/login`, "| mobile:", mobile);
       const apiRes = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
   if (action === "logout") {
     try {
       const token = (req.headers["authorization"] || "").replace("Bearer ", "");
-
+      console.log("[Server/API] 🚪 Calling real API: POST", `${API_BASE}/logout`);
       const apiRes = await fetch(`${API_BASE}/logout`, {
         method: "POST",
         headers: {

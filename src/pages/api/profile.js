@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
   try {
     const token = (req.headers["authorization"] || "").replace("Bearer ", "");
-
+    console.log("[Server/API] 👤 Calling real API: GET", `${API_BASE}/profile`);
     const apiRes = await fetch(`${API_BASE}/profile`, {
       method: "GET",
       headers: {
