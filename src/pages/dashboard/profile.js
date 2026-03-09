@@ -45,6 +45,17 @@ function maskAadhar(val) {
   return "XXXX-XXXX-" + clean.slice(-4);
 }
 
+/**
+ * The backend stores images referencing its own localhost.
+ * Replace it with the real public-facing domain so the browser can load it.
+ */
+const BACKEND_PUBLIC = "https://goadrda.runtime-solutions.net";
+function resolveImageUrl(url) {
+  if (!url) return null;
+  // Replace any http://localhost/... or https://localhost/... with the real domain
+  return url.replace(/https?:\/\/localhost/i, BACKEND_PUBLIC);
+}
+
 /* ─────────────────────────────────────────────────────────────────
    Profile Page — works for ALL roles, data from API
 ───────────────────────────────────────────────────────────────── */
@@ -85,10 +96,12 @@ export default function ProfilePage() {
   const phone   = p.mobile      || p.phone       || user?.phone;
   const email   = p.email       || user?.email;
   const role    = p.role_name   || user?.role_name || user?.role  || "User";
-  const active  = (p.status ?? 0) === 0;
-  const gender  = p.gender;
-  const aadhar  = p.aadhar_number || p.aadhar || p.aadhaar_number || p.aadhaar;
-  const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  const active   = (p.status ?? 0) === 0;
+  const gender   = p.gender;
+  const aadhar   = p.aadhar_number || p.aadhar || p.aadhaar_number || p.aadhaar;
+  const initials  = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  // Resolve the profile photo URL (backend returns localhost path — fix it)
+  const avatarUrl = resolveImageUrl(p.profile || user?.profile || "");
 
   return (
     // No allowedRole → any logged-in user can access
@@ -169,8 +182,25 @@ export default function ProfilePage() {
                 <div className="px-7 pb-6">
                   <div className="flex items-end gap-5 -mt-10 mb-5">
                     <div className="relative shrink-0">
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#3b52ab] to-[#1a2e7a] flex items-center justify-center text-white text-2xl font-extrabold ring-4 ring-white shadow-lg">
-                        {initials}
+                      <div className="w-20 h-20 rounded-2xl ring-4 ring-white shadow-lg overflow-hidden bg-gradient-to-br from-[#3b52ab] to-[#1a2e7a] flex items-center justify-center">
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // If image still fails, fall back to initials
+                              e.currentTarget.style.display = "none";
+                              e.currentTarget.nextSibling.style.display = "flex";
+                            }}
+                          />
+                        ) : null}
+                        <span
+                          className="text-white text-2xl font-extrabold w-full h-full items-center justify-center"
+                          style={{ display: avatarUrl ? "none" : "flex" }}
+                        >
+                          {initials}
+                        </span>
                       </div>
                       {active && (
                         <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full ring-2 ring-white flex items-center justify-center">

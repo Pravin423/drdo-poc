@@ -34,7 +34,7 @@ export const SIDEBAR_CONFIG = {
       items: [{ name: "Event Management", path: "/dashboard/event-management" }],
     },
     {
-      section: "USER MANAGEMENT",
+      section: "USERS & ROLES",
       items: [
         {
           name: "User Management",
@@ -46,7 +46,7 @@ export const SIDEBAR_CONFIG = {
       ],
     },
     {
-      section: "ACTIVITY FORMS",
+      section: "FORMS & SUBMISSIONS",
       items: [
         {
           name: "Activity Forms",
