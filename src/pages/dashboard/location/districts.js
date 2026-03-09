@@ -107,6 +107,10 @@ export default function DistrictsManagement() {
     const [addFormData, setAddFormData] = useState({ name: "", censusCode: "" });
     const [addFormError, setAddFormError] = useState("");
 
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [viewDistrictData, setViewDistrictData] = useState(null);
+    const [isViewLoading, setIsViewLoading] = useState(false);
+
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "" });
 
@@ -173,6 +177,39 @@ export default function DistrictsManagement() {
         } catch (error) {
             console.error("Error adding district:", error);
             alert("Failed to add district. Please try again.");
+        }
+    };
+
+    const handleViewClick = async (district) => {
+        setViewModalOpen(true);
+        setIsViewLoading(true);
+        setViewDistrictData(null);
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch(`/api/district-details?id=${district.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const result = await response.json();
+            
+            // Expected nested structures depending on API variance
+            if (result.status === 1 || result.data) {
+                // Map the dynamic structure since sometimes its "census_code" vs "censusCode"
+                const data = result.data || {};
+                setViewDistrictData({
+                    id: data.id || district.id,
+                    name: data.name || data.districtName || district.name,
+                    censusCode: data.census_code || data.censusCode || district.censusCode,
+                });
+            } else {
+                setViewDistrictData({ error: 'Details not found' });
+            }
+        } catch (error) {
+            console.error("Error fetching district details:", error);
+            setViewDistrictData({ error: 'Failed to fetch details' });
+        } finally {
+            setIsViewLoading(false);
         }
     };
 
@@ -363,6 +400,9 @@ export default function DistrictsManagement() {
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-2">
+                                                            <button onClick={() => handleViewClick(district)} className="p-1.5 text-slate-400 cursor-pointer hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors" title="View Details">
+                                                                <Eye size={16} />
+                                                            </button>
                                                             <button onClick={() => handleEditClick(district)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit District">
                                                                 <Edit2 size={16} />
                                                             </button>
@@ -472,6 +512,70 @@ export default function DistrictsManagement() {
                                         Submit
                                     </button>
                                     <button onClick={() => setAddModalOpen(false)} className="px-5 py-2 text-[15px] font-medium text-white bg-[#6c757d] hover:bg-slate-600 rounded-lg text-center transition-colors">
+                                        Close
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* View Details Modal */}
+                <AnimatePresence>
+                    {viewModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+                                onClick={() => setViewModalOpen(false)}
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+                                className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative z-10"
+                            >
+                                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <Eye className="text-emerald-500" size={18} /> District Details
+                                    </h3>
+                                    <button onClick={() => setViewModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 rounded-full border border-slate-200 transition-colors shadow-sm">
+                                        <X size={16} className="stroke-2" />
+                                    </button>
+                                </div>
+                                
+                                <div className="p-6">
+                                    {isViewLoading ? (
+                                        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mb-3"></div>
+                                            <p className="text-sm font-semibold">Loading details...</p>
+                                        </div>
+                                    ) : viewDistrictData?.error ? (
+                                        <div className="text-center py-6">
+                                            <p className="text-red-500 font-medium text-sm">{viewDistrictData.error}</p>
+                                        </div>
+                                    ) : viewDistrictData && (
+                                        <div className="space-y-4">
+                                            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">District ID</p>
+                                                <p className="text-base font-semibold text-slate-900">{viewDistrictData.id}</p>
+                                            </div>
+                                            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">District Name</p>
+                                                <p className="text-base font-semibold text-slate-900">{viewDistrictData.name}</p>
+                                            </div>
+                                            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Census Code</p>
+                                                <p className="text-base font-semibold text-slate-900">{viewDistrictData.censusCode}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                                    <button onClick={() => setViewModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors">
                                         Close
                                     </button>
                                 </div>
