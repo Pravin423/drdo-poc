@@ -2,7 +2,7 @@ import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import { motion } from "framer-motion";
 import { FilePlus2, Type, ToggleLeft, List, Hash, AlignLeft, ArrowLeft, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 const FIELD_TYPES = [
@@ -18,6 +18,19 @@ export default function CreateForm() {
   const [formName, setFormName] = useState("");
   const [description, setDescription] = useState("");
   const [fields, setFields] = useState([]);
+  const isEditing = Boolean(router.query.id);
+
+  useEffect(() => {
+    if (router.query.id) {
+      const saved = JSON.parse(localStorage.getItem("activity_forms") || "[]");
+      const toEdit = saved.find((f) => f.id === router.query.id);
+      if (toEdit) {
+        setFormName(toEdit.title);
+        setDescription(toEdit.description || "");
+        setFields(toEdit.customFields || []);
+      }
+    }
+  }, [router.query.id]);
 
   const addField = (type) => {
     setFields((prev) => [
@@ -38,8 +51,32 @@ export default function CreateForm() {
 
   const handleSubmit = () => {
     if (!formName.trim()) return;
-    console.log("[Activity Forms] Create Form submitted:", { formName, description, fields });
-    // TODO: wire to real API
+    
+    const saved = JSON.parse(localStorage.getItem("activity_forms") || "[]");
+    
+    if (isEditing) {
+      const updated = saved.map(f => {
+        if (f.id === router.query.id) {
+          return { ...f, title: formName, description, customFields: fields, fields: fields.length };
+        }
+        return f;
+      });
+      localStorage.setItem("activity_forms", JSON.stringify(updated));
+    } else {
+      const newForm = {
+        id: Date.now().toString(),
+        title: formName,
+        description,
+        customFields: fields,
+        fields: fields.length,
+        submissions: 0,
+        createdAt: new Date().toISOString().split("T")[0],
+        status: "Active"
+      };
+      localStorage.setItem("activity_forms", JSON.stringify([newForm, ...saved]));
+    }
+    
+    router.push("/dashboard/activity-forms/all");
   };
 
   return (
@@ -58,8 +95,8 @@ export default function CreateForm() {
               <FilePlus2 size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Create New Activity Form</h1>
-              <p className="text-slate-500 text-sm font-medium">Build a new form for CRP activity reporting</p>
+              <h1 className="text-2xl font-bold text-slate-900">{isEditing ? "Edit Activity Form" : "Create New Activity Form"}</h1>
+              <p className="text-slate-500 text-sm font-medium">{isEditing ? "Modify an existing form for CRP activity reporting" : "Build a new form for CRP activity reporting"}</p>
             </div>
           </motion.header>
 
@@ -72,7 +109,7 @@ export default function CreateForm() {
           >
             {/* Card Header */}
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60">
-              <h2 className="text-base font-bold text-slate-800">Create New Activity Form</h2>
+              <h2 className="text-base font-bold text-slate-800">{isEditing ? "Edit Form Details" : "Create New Activity Form"}</h2>
             </div>
 
             {/* Card Body */}
@@ -121,7 +158,7 @@ export default function CreateForm() {
                 disabled={!formName.trim()}
                 className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
               >
-                <Save size={15} /> Create Form
+                <Save size={15} /> {isEditing ? "Save Changes" : "Create Form"}
               </button>
             </div>
           </motion.div>
