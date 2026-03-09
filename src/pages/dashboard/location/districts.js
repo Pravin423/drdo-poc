@@ -105,6 +105,7 @@ export default function DistrictsManagement() {
     // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [addFormData, setAddFormData] = useState({ name: "", censusCode: "" });
+    const [addFormError, setAddFormError] = useState("");
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "" });
@@ -116,12 +117,29 @@ export default function DistrictsManagement() {
 
     const handleAddClick = () => {
         setAddFormData({ name: "", censusCode: "" });
+        setAddFormError("");
         setAddModalOpen(true);
     };
 
     const confirmAdd = async () => {
-        if (!addFormData.name || !addFormData.censusCode) return;
+        setAddFormError("");
+        if (!addFormData.name || !addFormData.censusCode) {
+            setAddFormError("Both fields are required.");
+            return;
+        }
+
+        // Validate Census Code strictly below 6 digits (max 5 digits length)
+        if (addFormData.censusCode.length >= 6) {
+            setAddFormError("Census Code must be below 6 digits.");
+            return;
+        }
         
+        // Optional: Ensure it's numeric only 
+        if (!/^\d+$/.test(addFormData.censusCode)) {
+             setAddFormError("Census Code must be a valid number.");
+             return;
+        }
+
         try {
             const token = localStorage.getItem("authToken");
             
@@ -426,11 +444,28 @@ export default function DistrictsManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
                                         <input
                                             type="text"
+                                            maxLength={5}
                                             value={addFormData.censusCode}
-                                            onChange={(e) => setAddFormData({ ...addFormData, censusCode: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, ''); // enforce numbers only
+                                                setAddFormData({ ...addFormData, censusCode: val });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Census Code') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
+                                    <AnimatePresence>
+                                        {addFormError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100"
+                                            >
+                                                {addFormError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-5 border-t border-slate-200 flex justify-end gap-3">
                                     <button onClick={confirmAdd} className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors">
