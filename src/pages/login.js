@@ -154,9 +154,9 @@ export default function Login() {
       return;
     }
 
-    // Success animation before redirect — always super-admin dashboard
+    // Redirect to the role-specific dashboard
     setTimeout(() => {
-      router.push(`/dashboard/super-admin`);
+      router.push(result.dashboard);
     }, 400);
   };
 
