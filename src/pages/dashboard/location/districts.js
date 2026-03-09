@@ -127,19 +127,38 @@ export default function DistrictsManagement() {
 
     const confirmAdd = async () => {
         setAddFormError("");
-        if (!addFormData.name || !addFormData.censusCode) {
-            setAddFormError("Both fields are required.");
+
+        const name = addFormData.name.trim();
+        const censusCode = addFormData.censusCode.trim();
+
+        // --- Name validations ---
+        if (!name) {
+            setAddFormError("District Name is required.");
+            return;
+        }
+        if (name.length < 3) {
+            setAddFormError("District Name must be at least 3 characters.");
+            return;
+        }
+        if (name.length > 100) {
+            setAddFormError("District Name must not exceed 100 characters.");
+            return;
+        }
+        if (!/^[a-zA-Z\s\-]+$/.test(name)) {
+            setAddFormError("District Name can only contain letters, spaces, and hyphens.");
             return;
         }
 
-        // Validate Census Code strictly below 6 digits (max 5 digits length)
-        if (addFormData.censusCode.length >= 6) {
+        // --- Census Code validations ---
+        if (!censusCode) {
+            setAddFormError("Census Code is required.");
+            return;
+        }
+        if (censusCode.length >= 6) {
             setAddFormError("Census Code must be below 6 digits.");
             return;
         }
-
-        // Optional: Ensure it's numeric only 
-        if (!/^\d+$/.test(addFormData.censusCode)) {
+        if (!/^\d+$/.test(censusCode)) {
             setAddFormError("Census Code must be a valid number.");
             return;
         }
@@ -149,8 +168,8 @@ export default function DistrictsManagement() {
 
             // Expected payload format based on Postman details: {"distName": "...", "censusCode": "..."}
             const payload = {
-                distName: addFormData.name,
-                censusCode: addFormData.censusCode
+                distName: name,
+                censusCode: censusCode
             };
 
             const response = await fetch("/api/districts", {
@@ -173,10 +192,12 @@ export default function DistrictsManagement() {
                 await fetchDistricts();
                 setAddModalOpen(false);
                 setAddFormData({ name: "", censusCode: "" });
+            } else {
+                setAddFormError(result.message || "Failed to add district.");
             }
         } catch (error) {
             console.error("Error adding district:", error);
-            alert("Failed to add district. Please try again.");
+            setAddFormError("Failed to add district. Please try again.");
         }
     };
 
@@ -256,19 +277,38 @@ export default function DistrictsManagement() {
 
     const handleSaveClick = () => {
         setEditFormError("");
-        if (!editFormData.name || !editFormData.censusCode) {
-            setEditFormError("Both fields are required.");
+
+        const name = editFormData.name.trim();
+        const censusCode = editFormData.censusCode.toString().trim();
+
+        // --- Name validations ---
+        if (!name) {
+            setEditFormError("District Name is required.");
+            return;
+        }
+        if (name.length < 3) {
+            setEditFormError("District Name must be at least 3 characters.");
+            return;
+        }
+        if (name.length > 100) {
+            setEditFormError("District Name must not exceed 100 characters.");
+            return;
+        }
+        if (!/^[a-zA-Z\s\-]+$/.test(name)) {
+            setEditFormError("District Name can only contain letters, spaces, and hyphens.");
             return;
         }
 
-        // Validate Census Code strictly below 6 digits (max 5 digits length)
-        if (editFormData.censusCode.toString().length >= 6) {
+        // --- Census Code validations ---
+        if (!censusCode) {
+            setEditFormError("Census Code is required.");
+            return;
+        }
+        if (censusCode.length >= 6) {
             setEditFormError("Census Code must be below 6 digits.");
             return;
         }
-
-        // Ensure it's numeric only 
-        if (!/^\d+$/.test(editFormData.censusCode)) {
+        if (!/^\d+$/.test(censusCode)) {
             setEditFormError("Census Code must be a valid number.");
             return;
         }
@@ -283,8 +323,8 @@ export default function DistrictsManagement() {
             // Expected payload format based on Postman details: {"district_id": 7, "distName": "...", "censusCode": "..."}
             const payload = {
                 district_id: parseInt(editFormData.id, 10),
-                distName: editFormData.name,
-                censusCode: editFormData.censusCode
+                distName: editFormData.name.trim(),
+                censusCode: editFormData.censusCode.toString().trim()
             };
 
             const response = await fetch("/api/district-update", {
@@ -301,7 +341,7 @@ export default function DistrictsManagement() {
             }
 
             const result = await response.json();
-            if (result.status === 1 || result.success || response.ok) {
+            if (result.status === 1 || result.success) {
                 await fetchDistricts();
                 setSaveConfirmOpen(false);
                 setEditModalOpen(false);
@@ -550,9 +590,15 @@ export default function DistrictsManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
                                         <input
                                             type="text"
+                                            maxLength={100}
                                             value={addFormData.name}
-                                            onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            onChange={(e) => {
+                                                // Allow only letters, spaces, and hyphens
+                                                const val = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                setAddFormData({ ...addFormData, name: val });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('District Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            placeholder="e.g. North Goa"
                                         />
                                     </div>
                                     <div className="w-full">
@@ -688,9 +734,15 @@ export default function DistrictsManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
                                         <input
                                             type="text"
+                                            maxLength={100}
                                             value={editFormData.name}
-                                            onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
+                                            onChange={(e) => {
+                                                // Allow only letters, spaces, and hyphens
+                                                const val = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                setEditFormData({ ...editFormData, name: val });
+                                            }}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('District Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            placeholder="e.g. North Goa"
                                         />
                                     </div>
                                     <div className="w-full">
