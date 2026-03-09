@@ -8,6 +8,7 @@ import {
   MapPin,
   PanelLeftClose,
   PanelLeftOpen,
+  User,
 } from "lucide-react";
 import { useState, createContext, useContext } from "react";
 import { useRouter } from "next/router";
@@ -280,15 +281,24 @@ function SidebarContent({ onNavigate, onToggle }) {
                   <p className="text-xs font-medium text-slate-100 truncate">{user.name}</p>
                   <p className="text-[11px] text-slate-400 capitalize">{user.role} role</p>
                 </div>
-                <button
-                  onClick={async () => {
-                    await logout();
-                    router.push("/login");
-                  }}
-                  className="shrink-0 text-[11px] font-medium text-slate-300 hover:text-rose-300 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 transition hover:border-rose-500/80 hover:bg-rose-500/10 whitespace-nowrap"
-                >
-                  Logout
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Link
+                    href="/dashboard/profile"
+                    title="View Profile"
+                    className="flex items-center justify-center w-7 h-7 rounded-full border border-slate-700/80 bg-slate-900/80 text-slate-300 hover:text-blue-300 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-200"
+                  >
+                    <User size={13} />
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      router.push("/login");
+                    }}
+                    className="shrink-0 text-[11px] font-medium text-slate-300 hover:text-rose-300 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 transition hover:border-rose-500/80 hover:bg-rose-500/10 whitespace-nowrap"
+                  >
+                    Logout
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
