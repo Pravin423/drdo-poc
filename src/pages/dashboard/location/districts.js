@@ -113,6 +113,7 @@ export default function DistrictsManagement() {
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "" });
+    const [editFormError, setEditFormError] = useState("");
 
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
@@ -228,19 +229,70 @@ export default function DistrictsManagement() {
 
     const handleEditClick = (district) => {
         setEditFormData({ id: district.id, name: district.name, censusCode: district.censusCode });
+        setEditFormError("");
         setEditModalOpen(true);
     };
 
     const handleSaveClick = () => {
+        setEditFormError("");
+        if (!editFormData.name || !editFormData.censusCode) {
+            setEditFormError("Both fields are required.");
+            return;
+        }
+
+        // Validate Census Code strictly below 6 digits (max 5 digits length)
+        if (editFormData.censusCode.toString().length >= 6) {
+            setEditFormError("Census Code must be below 6 digits.");
+            return;
+        }
+        
+        // Ensure it's numeric only 
+        if (!/^\d+$/.test(editFormData.censusCode)) {
+             setEditFormError("Census Code must be a valid number.");
+             return;
+        }
+
         setSaveConfirmOpen(true);
     };
 
-    const confirmSave = () => {
-        setDistricts(districts.map(d =>
-            d.id === editFormData.id ? { ...d, name: editFormData.name, censusCode: editFormData.censusCode } : d
-        ));
-        setSaveConfirmOpen(false);
-        setEditModalOpen(false);
+    const confirmSave = async () => {
+        try {
+            const token = localStorage.getItem("authToken");
+            
+            // Expected payload format based on Postman details: {"district_id": 7, "distName": "...", "censusCode": "..."}
+            const payload = {
+                district_id: parseInt(editFormData.id, 10),
+                distName: editFormData.name,
+                censusCode: editFormData.censusCode
+            };
+
+            const response = await fetch("/api/district-update", {
+                method: "POST",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update district");
+            }
+            
+            const result = await response.json();
+            if (result.status === 1 || result.success || response.ok) {
+                 await fetchDistricts();
+                 setSaveConfirmOpen(false);
+                 setEditModalOpen(false);
+            } else {
+                 setEditFormError(result.message || "Failed to edit from server");
+                 setSaveConfirmOpen(false); // Close the confirm but keep the edit modal open with the error flag
+            }
+        } catch (error) {
+            console.error("Error updating district:", error);
+            alert("Failed to update district. Please try again.");
+            setSaveConfirmOpen(false);
+        }
     };
 
     // Disable background scroll when a modal is open
@@ -622,11 +674,28 @@ export default function DistrictsManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
                                         <input
                                             type="text"
+                                            maxLength={5}
                                             value={editFormData.censusCode}
-                                            onChange={(e) => setEditFormData({ ...editFormData, censusCode: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, ''); // enforce numbers only
+                                                setEditFormData({ ...editFormData, censusCode: val });
+                                            }}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Census Code') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
+                                    <AnimatePresence>
+                                        {editFormError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100"
+                                            >
+                                                {editFormError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                                     <button onClick={() => setEditModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors">
