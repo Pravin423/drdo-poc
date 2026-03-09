@@ -45,6 +45,18 @@ export const SIDEBAR_CONFIG = {
         },
       ],
     },
+    {
+      section: "ACTIVITY FORMS",
+      items: [
+        {
+          name: "Activity Forms",
+          subItems: [
+            { name: "Create Form", path: "/dashboard/activity-forms/create" },
+            { name: "All Forms",   path: "/dashboard/activity-forms/all" },
+          ],
+        },
+      ],
+    },
   ],
 
   "state-admin": [
