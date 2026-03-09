@@ -4,7 +4,6 @@ import {
     Plus,
     Filter,
     Download,
-    MoreVertical,
     Edit2,
     Trash2,
     ChevronLeft,
@@ -75,21 +74,21 @@ export default function DistrictsManagement() {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to fetch districts');
             }
-            
+
             const result = await response.json();
-            
+
             const dataArray = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
-            
+
             const fetchedDistricts = dataArray.map((d, index) => ({
                 id: (d.id || d._id || index + 1).toString(),
                 name: d.name || d.district || d.districtName || d.district_name || "",
                 censusCode: (d.censusCode || d.census_code || d.census || "").toString()
             }));
-            
+
             setDistricts(fetchedDistricts);
         } catch (error) {
             console.error("Error fetching districts:", error);
@@ -138,16 +137,16 @@ export default function DistrictsManagement() {
             setAddFormError("Census Code must be below 6 digits.");
             return;
         }
-        
+
         // Optional: Ensure it's numeric only 
         if (!/^\d+$/.test(addFormData.censusCode)) {
-             setAddFormError("Census Code must be a valid number.");
-             return;
+            setAddFormError("Census Code must be a valid number.");
+            return;
         }
 
         try {
             const token = localStorage.getItem("authToken");
-            
+
             // Expected payload format based on Postman details: {"distName": "...", "censusCode": "..."}
             const payload = {
                 distName: addFormData.name,
@@ -166,14 +165,14 @@ export default function DistrictsManagement() {
             if (!response.ok) {
                 throw new Error("Failed to create district");
             }
-            
+
             // Check successfully returned response to conditionally re-fetch
             const result = await response.json();
-            if (result.status === 1 || result.success || response.ok) {
-                 // Re-fetch all districts from server to guarantee sync with Database
-                 await fetchDistricts();
-                 setAddModalOpen(false);   
-                 setAddFormData({ name: "", censusCode: "" });
+            if (result.status === 1 || result.success) {
+                // Re-fetch all districts from server to guarantee sync with Database
+                await fetchDistricts();
+                setAddModalOpen(false);
+                setAddFormData({ name: "", censusCode: "" });
             }
         } catch (error) {
             console.error("Error adding district:", error);
@@ -193,7 +192,7 @@ export default function DistrictsManagement() {
                 }
             });
             const result = await response.json();
-            
+
             // Expected nested structures depending on API variance
             if (result.status === 1 || result.data) {
                 // Map the dynamic structure since sometimes its "census_code" vs "censusCode"
@@ -219,11 +218,33 @@ export default function DistrictsManagement() {
         setDeleteConfirmOpen(true);
     };
 
-    const confirmDelete = () => {
-        if (districtToDelete) {
-            setDistricts(districts.filter(d => d.id !== districtToDelete));
+    const confirmDelete = async () => {
+        if (!districtToDelete) return;
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch(`/api/district-delete?id=${districtToDelete}`, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.status === 1 || result.success || response.ok) {
+                // Re-fetch from server to stay in sync
+                await fetchDistricts();
+                setDeleteConfirmOpen(false);
+                setDistrictToDelete(null);
+            } else {
+                alert(result.message || "Failed to delete district.");
+                setDeleteConfirmOpen(false);
+            }
+        } catch (error) {
+            console.error("Error deleting district:", error);
+            alert("Failed to delete district. Please try again.");
             setDeleteConfirmOpen(false);
-            setDistrictToDelete(null);
         }
     };
 
@@ -245,11 +266,11 @@ export default function DistrictsManagement() {
             setEditFormError("Census Code must be below 6 digits.");
             return;
         }
-        
+
         // Ensure it's numeric only 
         if (!/^\d+$/.test(editFormData.censusCode)) {
-             setEditFormError("Census Code must be a valid number.");
-             return;
+            setEditFormError("Census Code must be a valid number.");
+            return;
         }
 
         setSaveConfirmOpen(true);
@@ -258,7 +279,7 @@ export default function DistrictsManagement() {
     const confirmSave = async () => {
         try {
             const token = localStorage.getItem("authToken");
-            
+
             // Expected payload format based on Postman details: {"district_id": 7, "distName": "...", "censusCode": "..."}
             const payload = {
                 district_id: parseInt(editFormData.id, 10),
@@ -278,15 +299,15 @@ export default function DistrictsManagement() {
             if (!response.ok) {
                 throw new Error("Failed to update district");
             }
-            
+
             const result = await response.json();
             if (result.status === 1 || result.success || response.ok) {
-                 await fetchDistricts();
-                 setSaveConfirmOpen(false);
-                 setEditModalOpen(false);
+                await fetchDistricts();
+                setSaveConfirmOpen(false);
+                setEditModalOpen(false);
             } else {
-                 setEditFormError(result.message || "Failed to edit from server");
-                 setSaveConfirmOpen(false); // Close the confirm but keep the edit modal open with the error flag
+                setEditFormError(result.message || "Failed to edit from server");
+                setSaveConfirmOpen(false); // Close the confirm but keep the edit modal open with the error flag
             }
         } catch (error) {
             console.error("Error updating district:", error);
@@ -297,7 +318,7 @@ export default function DistrictsManagement() {
 
     // Disable background scroll when a modal is open
     useEffect(() => {
-        if (addModalOpen || editModalOpen || saveConfirmOpen || deleteConfirmOpen) {
+        if (addModalOpen || editModalOpen || saveConfirmOpen || deleteConfirmOpen || viewModalOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -307,13 +328,13 @@ export default function DistrictsManagement() {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen]);
+    }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen, viewModalOpen]);
 
     const filteredDistricts = districts.filter((district) => {
         const name = district?.name || "";
         const censusCode = district?.censusCode || "";
         return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-               censusCode.toLowerCase().includes(searchQuery.toLowerCase());
+            censusCode.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
     const handleExport = () => {
@@ -377,7 +398,10 @@ export default function DistrictsManagement() {
                                         </div>
                                     </div>
                                     <div className="mt-6 space-y-1">
-                                        <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{card.value}</p>
+                                        <p className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                                            {/* "Total Districts" card (index 0) uses live count; others use static value */}
+                                            {index === 0 ? districts.length : card.value}
+                                        </p>
                                         <p className="text-sm font-semibold text-slate-500">{card.label}</p>
                                     </div>
                                 </motion.section>
@@ -433,8 +457,7 @@ export default function DistrictsManagement() {
                                             </tr>
                                         ) : filteredDistricts.length > 0 ? (
                                             filteredDistricts.map((district, idx) => (
-                                                <tr
-                                                    key={district.id}
+                                                <tr key={district.id}
                                                     className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
                                                 >
                                                     <td className="px-6 py-4">
@@ -598,7 +621,7 @@ export default function DistrictsManagement() {
                                         <X size={16} className="stroke-2" />
                                     </button>
                                 </div>
-                                
+
                                 <div className="p-6">
                                     {isViewLoading ? (
                                         <div className="flex flex-col items-center justify-center py-8 text-slate-400">
