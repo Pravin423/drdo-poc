@@ -41,9 +41,19 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!data?.status) {
+        // API sometimes returns message as an object e.g. { password: "Invalid credentials" }
+        // instead of a plain string. We must flatten it to safely render in the UI.
+        const rawMessage = data?.message;
+        let errorMessage = "Login failed. Please try again.";
+        if (typeof rawMessage === "string") {
+          errorMessage = rawMessage;
+        } else if (rawMessage && typeof rawMessage === "object") {
+          // Extract the first error value from the object
+          errorMessage = Object.values(rawMessage)[0] || errorMessage;
+        }
         return {
           success: false,
-          message: data?.message || "Login failed. Please try again.",
+          message: errorMessage,
         };
       }
 
