@@ -64,40 +64,41 @@ export default function DistrictsManagement() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
-    useEffect(() => {
-        const fetchDistricts = async () => {
-            try {
-                const token = localStorage.getItem("authToken");
-                const response = await fetch("/api/districts", {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch districts');
+    const fetchDistricts = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/districts", {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-                
-                const result = await response.json();
-                
-                const dataArray = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
-                
-                const fetchedDistricts = dataArray.map((d, index) => ({
-                    id: (d.id || d._id || index + 1).toString(),
-                    name: d.name || d.district || d.districtName || d.district_name || "",
-                    censusCode: (d.censusCode || d.census_code || d.census || "").toString()
-                }));
-                
-                setDistricts(fetchedDistricts);
-            } catch (error) {
-                console.error("Error fetching districts:", error);
-            } finally {
-                setIsLoading(false);
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch districts');
             }
-        };
+            
+            const result = await response.json();
+            
+            const dataArray = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
+            
+            const fetchedDistricts = dataArray.map((d, index) => ({
+                id: (d.id || d._id || index + 1).toString(),
+                name: d.name || d.district || d.districtName || d.district_name || "",
+                censusCode: (d.censusCode || d.census_code || d.census || "").toString()
+            }));
+            
+            setDistricts(fetchedDistricts);
+        } catch (error) {
+            console.error("Error fetching districts:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchDistricts();
     }, []);
 
@@ -118,18 +119,43 @@ export default function DistrictsManagement() {
         setAddModalOpen(true);
     };
 
-    const confirmAdd = () => {
+    const confirmAdd = async () => {
         if (!addFormData.name || !addFormData.censusCode) return;
         
-        // Use a timestamp for unique ID generation locally
-        // Once connected to an actual POST API backend, the DB will manage this.
-        const newDistrict = {
-            id: Date.now().toString(),
-            name: addFormData.name,
-            censusCode: addFormData.censusCode
-        };
-        setDistricts([...districts, newDistrict]);
-        setAddModalOpen(false);
+        try {
+            const token = localStorage.getItem("authToken");
+            
+            // Expected payload format based on Postman details: {"distName": "...", "censusCode": "..."}
+            const payload = {
+                distName: addFormData.name,
+                censusCode: addFormData.censusCode
+            };
+
+            const response = await fetch("/api/districts", {
+                method: "POST",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to create district");
+            }
+            
+            // Check successfully returned response to conditionally re-fetch
+            const result = await response.json();
+            if (result.status === 1 || result.success || response.ok) {
+                 // Re-fetch all districts from server to guarantee sync with Database
+                 await fetchDistricts();
+                 setAddModalOpen(false);   
+                 setAddFormData({ name: "", censusCode: "" });
+            }
+        } catch (error) {
+            console.error("Error adding district:", error);
+            alert("Failed to add district. Please try again.");
+        }
     };
 
     const handleDeleteClick = (id) => {
