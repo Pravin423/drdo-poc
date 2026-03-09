@@ -28,7 +28,7 @@ import {
 
 } from "lucide-react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const handleExportActivities = () => {
@@ -177,40 +177,7 @@ const activities = [
 ];
 
 
-const SUMMARY_CARDS = [
-  {
-    label: "Total CRPs (All States)",
-    value: "12,847",
-    delta: "+8.2%",
-    isPositive: true,
-    icon: Users,
-    accent: "text-emerald-600 bg-emerald-50 border-emerald-100",
-  },
-  {
-    label: "Overall Attendance Rate",
-    value: "87.3%",
-    delta: "+2.1%",
-    isPositive: true,
-    icon: Activity,
-    accent: "text-blue-600 bg-blue-50 border-blue-100",
-  },
-  {
-    label: "Honorarium Processing",
-    value: "₹42.8L",
-    delta: "Pending",
-    isPositive: null,
-    icon: CreditCard,
-    accent: "text-amber-600 bg-amber-50 border-amber-100",
-  },
-  {
-    label: "System Health Score",
-    value: "98.5%",
-    delta: "-0.3%",
-    isPositive: false,
-    icon: ShieldCheck,
-    accent: "text-rose-600 bg-rose-50 border-rose-100",
-  },
-];
+// SUMMARY_CARDS are now built dynamically from API data inside the component
 
 const DATA_30_DAYS = [
   { state: "Goa", active: 1180 },
@@ -259,6 +226,73 @@ export default function SuperAdmin() {
   const [chartData, setChartData] = useState(DATA_30_DAYS);
   const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleString());
 
+  // --- API-driven summary cards ---
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("/api/dashboard", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (json.status && json.data) {
+          setDashboardData(json.data);
+        }
+      } catch (err) {
+        console.error("Dashboard fetch failed:", err);
+      } finally {
+        setDashboardLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  const SUMMARY_CARDS = [
+    {
+      label: "Total CRPs",
+      value: dashboardLoading ? "..." : (dashboardData?.totalCrps ?? 0).toLocaleString(),
+      delta: null,
+      isPositive: null,
+      icon: Users,
+      accent: "text-emerald-600 bg-emerald-50 border-emerald-100",
+    },
+    {
+      label: "Total Attendance",
+      value: dashboardLoading ? "..." : (dashboardData?.totalAttendance ?? 0).toLocaleString(),
+      delta: null,
+      isPositive: null,
+      icon: Activity,
+      accent: "text-blue-600 bg-blue-50 border-blue-100",
+    },
+    {
+      label: "Regular Tasks",
+      value: dashboardLoading ? "..." : (dashboardData?.regularTaskCount ?? 0).toLocaleString(),
+      delta: null,
+      isPositive: null,
+      icon: CreditCard,
+      accent: "text-amber-600 bg-amber-50 border-amber-100",
+    },
+    {
+      label: "Total Users",
+      value: dashboardLoading ? "..." : (dashboardData?.totalUsers ?? 0).toLocaleString(),
+      delta: null,
+      isPositive: null,
+      icon: ShieldCheck,
+      accent: "text-rose-600 bg-rose-50 border-rose-100",
+    },
+    {
+      label: "Special Tasks",
+      value: dashboardLoading ? "..." : (dashboardData?.specialTaskCount ?? 0).toLocaleString(),
+      delta: null,
+      isPositive: null,
+      icon: Zap,
+      accent: "text-purple-600 bg-purple-50 border-purple-100",
+    },
+  ];
+
   return (
     <ProtectedRoute allowedRole="super-admin">
       <DashboardLayout>
@@ -288,7 +322,7 @@ export default function SuperAdmin() {
           </motion.header>
 
           {/* Summary Cards */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             {SUMMARY_CARDS.map((card, index) => (
               <motion.section
                 key={card.label}
@@ -301,15 +335,13 @@ export default function SuperAdmin() {
                   <div className={`p-2.5 rounded-2xl ${card.accent} border`}>
                     <card.icon size={20} />
                   </div>
-                  {card.isPositive !== null && (
-                    <div className={`flex items-center gap-0.5 text-[11px] font-bold px-2 py-1 rounded-full ${card.isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'}`}>
-                      {card.isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                      {card.delta}
-                    </div>
-                  )}
                 </div>
                 <div className="mt-5 space-y-1">
-                  <p className="text-2xl font-bold text-slate-900 tracking-tight">{card.value}</p>
+                  {dashboardLoading ? (
+                    <div className="h-8 w-24 rounded-lg bg-slate-100 animate-pulse" />
+                  ) : (
+                    <p className="text-2xl font-bold text-slate-900 tracking-tight">{card.value}</p>
+                  )}
                   <p className="text-sm font-medium text-slate-500">{card.label}</p>
                 </div>
                 <div className="absolute -right-2 -bottom-2 opacity-5 transition-transform group-hover:scale-110">

@@ -11,7 +11,7 @@ export const SIDEBAR_CONFIG = {
           name: "Goa Location",
           subItems: [
             { name: "Districts", path: "/dashboard/location/districts" },
-            { name: "Talukas", path: "/dashboard/location/talukas" },
+            { name: "Talu+kas", path: "/dashboard/location/talukas" },
             { name: "Villages", path: "/dashboard/location/villages" },
           ],
         },
