@@ -22,19 +22,7 @@ import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import { exportToExcel } from "../../../lib/exportToExcel";
 
-// Mock Data for Goa Districts
-const DISTRICTS_DATA = [
-    {
-        id: "1",
-        name: "North Goa",
-        censusCode: "585",
-    },
-    {
-        id: "2",
-        name: "South Goa",
-        censusCode: "586",
-    }
-];
+
 
 const SUMMARY_CARDS = [
     {
@@ -72,8 +60,46 @@ const SUMMARY_CARDS = [
 ];
 
 export default function DistrictsManagement() {
-    const [districts, setDistricts] = useState(DISTRICTS_DATA);
+    const [districts, setDistricts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+
+    useEffect(() => {
+        const fetchDistricts = async () => {
+            try {
+                const token = localStorage.getItem("authToken");
+                const response = await fetch("/api/districts", {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch districts');
+                }
+                
+                const result = await response.json();
+                
+                const dataArray = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : []);
+                
+                const fetchedDistricts = dataArray.map((d, index) => ({
+                    id: (d.id || d._id || index + 1).toString(),
+                    name: d.name || d.district || d.districtName || d.district_name || "",
+                    censusCode: (d.censusCode || d.census_code || d.census || "").toString()
+                }));
+                
+                setDistricts(fetchedDistricts);
+            } catch (error) {
+                console.error("Error fetching districts:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchDistricts();
+    }, []);
 
     // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
@@ -94,8 +120,11 @@ export default function DistrictsManagement() {
 
     const confirmAdd = () => {
         if (!addFormData.name || !addFormData.censusCode) return;
+        
+        // Use a timestamp for unique ID generation locally
+        // Once connected to an actual POST API backend, the DB will manage this.
         const newDistrict = {
-            id: (districts.length + 1).toString(),
+            id: Date.now().toString(),
             name: addFormData.name,
             censusCode: addFormData.censusCode
         };
@@ -147,10 +176,12 @@ export default function DistrictsManagement() {
         };
     }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen]);
 
-    const filteredDistricts = districts.filter((district) =>
-        district.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        district.censusCode.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredDistricts = districts.filter((district) => {
+        const name = district?.name || "";
+        const censusCode = district?.censusCode || "";
+        return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               censusCode.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     const handleExport = () => {
         exportToExcel({
@@ -258,7 +289,16 @@ export default function DistrictsManagement() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
-                                        {filteredDistricts.length > 0 ? (
+                                        {isLoading ? (
+                                            <tr>
+                                                <td colSpan="4" className="px-6 py-12 text-center">
+                                                    <div className="flex flex-col items-center justify-center text-slate-400">
+                                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-500 mb-3"></div>
+                                                        <p className="text-sm font-semibold">Loading districts...</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : filteredDistricts.length > 0 ? (
                                             filteredDistricts.map((district, idx) => (
                                                 <tr
                                                     key={district.id}
