@@ -111,10 +111,12 @@ export default function TalukasManagement() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "", districtName: "" });
+    const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "", districtID: "" });
     const [editFormError, setEditFormError] = useState("");
 
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState("");
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [talukaToDelete, setTalukaToDelete] = useState(null);
@@ -259,7 +261,9 @@ export default function TalukasManagement() {
     };
 
     const handleEditClick = (taluka) => {
-        setEditFormData({ id: taluka.id, name: taluka.name, censusCode: taluka.censusCode, districtName: taluka.districtName });
+        const matchedDistrict = districts.find(d => d.name === taluka.districtName || d.id == taluka.district_id);
+        const distId = matchedDistrict ? matchedDistrict.id : "";
+        setEditFormData({ id: taluka.id, name: taluka.name, censusCode: taluka.censusCode, districtID: distId });
         setEditFormError("");
         setEditModalOpen(true);
     };
@@ -268,7 +272,7 @@ export default function TalukasManagement() {
         setEditFormError("");
         const name = editFormData.name?.trim() || "";
         const censusCode = editFormData.censusCode?.toString().trim() || "";
-        const districtName = editFormData.districtName;
+        const districtID = editFormData.districtID;
 
         if (!name) { setEditFormError("Taluka Name is required."); return; }
         if (name.length < 3) { setEditFormError("Taluka Name must be at least 3 characters."); return; }
@@ -279,17 +283,49 @@ export default function TalukasManagement() {
         if (censusCode.length > 5) { setEditFormError("Census Code must be at most 5 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setEditFormError("Census Code must be a valid number."); return; }
 
-        if (!districtName) { setEditFormError("District Name is required."); return; }
+        if (!districtID) { setEditFormError("District is required."); return; }
 
+        setSaveError("");
         setSaveConfirmOpen(true);
     };
 
-    const confirmSave = () => {
-        setTalukas(talukas.map(t =>
-            t.id === editFormData.id ? { ...t, name: editFormData.name, censusCode: editFormData.censusCode, districtName: editFormData.districtName } : t
-        ));
-        setSaveConfirmOpen(false);
-        setEditModalOpen(false);
+    const confirmSave = async () => {
+        setIsSaving(true);
+        setSaveError("");
+        
+        try {
+            const token = localStorage.getItem("authToken");
+            if (!token) throw new Error("Authentication token missing. Please log in again.");
+
+            const payload = {
+                taluka_id: parseInt(editFormData.id, 10),
+                talukaName: editFormData.name,
+                censusCode: parseInt(editFormData.censusCode, 10),
+                districtID: parseInt(editFormData.districtID, 10)
+            };
+
+            const response = await fetch("/api/taluka-update", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Failed to update taluka (status: ${response.status})`);
+            }
+
+            await fetchTalukas(selectedDistrict ? selectedDistrict.id : null);
+            setSaveConfirmOpen(false);
+            setEditModalOpen(false);
+        } catch (error) {
+            setSaveError(error.message || "An error occurred while saving.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const filterRef = useRef(null);
@@ -759,15 +795,15 @@ export default function TalukasManagement() {
                                         />
                                     </div>
                                     <div className="w-full">
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">District</label>
                                         <select
-                                            value={editFormData.districtName}
-                                            onChange={(e) => setEditFormData({ ...editFormData, districtName: e.target.value })}
-                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('District Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            value={editFormData.districtID}
+                                            onChange={(e) => setEditFormData({ ...editFormData, districtID: e.target.value })}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('District') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
                                         >
                                             <option value="">Select District</option>
                                             {districts.map(d => (
-                                                <option key={d.id} value={d.name}>{d.name}</option>
+                                                <option key={d.id} value={d.id}>{d.name}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -820,12 +856,31 @@ export default function TalukasManagement() {
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Confirm Save</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-8 px-2">Are you sure you want to save these changes to the taluka form?</p>
+                                    
+                                    <AnimatePresence>
+                                        {saveError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100 mb-4"
+                                            >
+                                                {saveError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
+
                                     <div className="flex gap-3 justify-center w-full">
-                                        <button onClick={() => setSaveConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                                        <button disabled={isSaving} onClick={() => setSaveConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50">
                                             Cancel
                                         </button>
-                                        <button onClick={confirmSave} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-colors active:scale-95">
-                                            Yes, Save
+                                        <button disabled={isSaving} onClick={confirmSave} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-colors active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2">
+                                            {isSaving ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : "Yes, Save"}
                                         </button>
                                     </div>
                                 </div>
