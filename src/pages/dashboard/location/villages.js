@@ -94,9 +94,11 @@ export default function VillagesManagement() {
     // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [addFormData, setAddFormData] = useState({ name: "", talukaName: "", districtName: "", censusCode: "" });
+    const [addFormError, setAddFormError] = useState("");
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ id: "", name: "", talukaName: "", districtName: "", censusCode: "" });
+    const [editFormError, setEditFormError] = useState("");
 
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
@@ -112,17 +114,34 @@ export default function VillagesManagement() {
 
     const handleAddClick = () => {
         setAddFormData({ name: "", talukaName: "", districtName: "", censusCode: "" });
+        setAddFormError("");
         setAddModalOpen(true);
     };
 
     const confirmAdd = () => {
-        if (!addFormData.name || !addFormData.talukaName || !addFormData.districtName || !addFormData.censusCode) return;
+        setAddFormError("");
+        const name = addFormData.name.trim();
+        const talukaName = addFormData.talukaName;
+        const districtName = addFormData.districtName;
+        const censusCode = addFormData.censusCode.trim();
+
+        if (!name) { setAddFormError("Village Name is required."); return; }
+        if (name.length < 3) { setAddFormError("Village Name must be at least 3 characters."); return; }
+        if (!/^[a-zA-Z\s\-]+$/.test(name)) { setAddFormError("Village Name can only contain letters, spaces, and hyphens."); return; }
+
+        if (!talukaName) { setAddFormError("Taluka Name is required."); return; }
+        if (!districtName) { setAddFormError("District Name is required."); return; }
+
+        if (!censusCode) { setAddFormError("Census Code is required."); return; }
+        if (censusCode.length >= 7) { setAddFormError("Census Code must be below 7 digits."); return; }
+        if (!/^\d+$/.test(censusCode)) { setAddFormError("Census Code must be a valid number."); return; }
+
         const newVillage = {
             id: (villages.length + 1).toString(),
-            name: addFormData.name,
-            talukaName: addFormData.talukaName,
-            districtName: addFormData.districtName,
-            censusCode: addFormData.censusCode,
+            name,
+            talukaName,
+            districtName,
+            censusCode,
         };
         setVillages([...villages, newVillage]);
         setAddModalOpen(false);
@@ -143,10 +162,28 @@ export default function VillagesManagement() {
 
     const handleEditClick = (village) => {
         setEditFormData({ id: village.id, name: village.name, talukaName: village.talukaName, districtName: village.districtName, censusCode: village.censusCode });
+        setEditFormError("");
         setEditModalOpen(true);
     };
 
     const handleSaveClick = () => {
+        setEditFormError("");
+        const name = editFormData.name.trim();
+        const talukaName = editFormData.talukaName;
+        const districtName = editFormData.districtName;
+        const censusCode = editFormData.censusCode.toString().trim();
+
+        if (!name) { setEditFormError("Village Name is required."); return; }
+        if (name.length < 3) { setEditFormError("Village Name must be at least 3 characters."); return; }
+        if (!/^[a-zA-Z\s\-]+$/.test(name)) { setEditFormError("Village Name can only contain letters, spaces, and hyphens."); return; }
+
+        if (!talukaName) { setEditFormError("Taluka Name is required."); return; }
+        if (!districtName) { setEditFormError("District Name is required."); return; }
+
+        if (!censusCode) { setEditFormError("Census Code is required."); return; }
+        if (censusCode.length >= 7) { setEditFormError("Census Code must be below 7 digits."); return; }
+        if (!/^\d+$/.test(censusCode)) { setEditFormError("Census Code must be a valid number."); return; }
+
         setSaveConfirmOpen(true);
     };
 
@@ -509,8 +546,11 @@ export default function VillagesManagement() {
                                         <input
                                             type="text"
                                             value={addFormData.name}
-                                            onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                setAddFormData({ ...addFormData, name: val });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Village Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                             placeholder="e.g. Calangute"
                                         />
                                     </div>
@@ -519,7 +559,7 @@ export default function VillagesManagement() {
                                         <select
                                             value={addFormData.talukaName}
                                             onChange={(e) => setAddFormData({ ...addFormData, talukaName: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700 bg-white"
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('Taluka Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                         >
                                             <option value="">Select Taluka</option>
                                             <optgroup label="North Goa">
@@ -545,7 +585,7 @@ export default function VillagesManagement() {
                                         <select
                                             value={addFormData.districtName}
                                             onChange={(e) => setAddFormData({ ...addFormData, districtName: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700 bg-white"
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('District Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                         >
                                             <option value="">Select District</option>
                                             <option value="North Goa">North Goa</option>
@@ -556,12 +596,28 @@ export default function VillagesManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
                                         <input
                                             type="text"
+                                            maxLength={6}
                                             value={addFormData.censusCode}
-                                            onChange={(e) => setAddFormData({ ...addFormData, censusCode: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '');
+                                                setAddFormData({ ...addFormData, censusCode: val });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Census Code') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                             placeholder="e.g. 627023"
                                         />
                                     </div>
+                                    <AnimatePresence>
+                                        {addFormError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100"
+                                            >
+                                                {addFormError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-5 border-t border-slate-200 flex justify-end gap-3">
                                     <button onClick={confirmAdd} className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors">
@@ -605,9 +661,14 @@ export default function VillagesManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Village Name</label>
                                         <input
                                             type="text"
+                                            maxLength={100}
                                             value={editFormData.name}
-                                            onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                setEditFormData({ ...editFormData, name: val });
+                                            }}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Village Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            placeholder="e.g. Calangute"
                                         />
                                     </div>
                                     <div className="w-full">
@@ -615,7 +676,7 @@ export default function VillagesManagement() {
                                         <select
                                             value={editFormData.talukaName}
                                             onChange={(e) => setEditFormData({ ...editFormData, talukaName: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium bg-white"
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('Taluka Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
                                         >
                                             <optgroup label="North Goa">
                                                 <option>Bardez</option>
@@ -640,7 +701,7 @@ export default function VillagesManagement() {
                                         <select
                                             value={editFormData.districtName}
                                             onChange={(e) => setEditFormData({ ...editFormData, districtName: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium bg-white"
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('District Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
                                         >
                                             <option value="North Goa">North Goa</option>
                                             <option value="South Goa">South Goa</option>
@@ -650,11 +711,28 @@ export default function VillagesManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
                                         <input
                                             type="text"
+                                            maxLength={6}
                                             value={editFormData.censusCode}
-                                            onChange={(e) => setEditFormData({ ...editFormData, censusCode: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '');
+                                                setEditFormData({ ...editFormData, censusCode: val });
+                                            }}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Census Code') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            placeholder="Max 6 digits"
                                         />
                                     </div>
+                                    <AnimatePresence>
+                                        {editFormError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100"
+                                            >
+                                                {editFormError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                                     <button onClick={() => setEditModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors">

@@ -7,7 +7,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // 🔄 Restore session from localStorage on refresh
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("authToken");
@@ -17,7 +16,6 @@ export const AuthProvider = ({ children }) => {
     setAuthLoading(false);
   }, []);
 
-  // 🗺️ Maps API role_name → internal role key + dashboard path
   const ROLE_MAP = {
     "Super Admin":    { role: "super-admin",    dashboard: "/dashboard/super-admin" },
     "State Admin":    { role: "state-admin",     dashboard: "/dashboard/state-admin" },
@@ -27,7 +25,6 @@ export const AuthProvider = ({ children }) => {
     "CRP":            { role: "crp",              dashboard: "/dashboard/crp" },
   };
 
-  // 🔐 Real API Login — all roles supported
   const login = async (phone, password) => {
     try {
       console.log("%c[API] 🔐 POST /api/auth?action=login", "color: #3b82f6; font-weight: bold", { mobile: phone });
@@ -41,14 +38,11 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!data?.status) {
-        // API sometimes returns message as an object e.g. { password: "Invalid credentials" }
-        // instead of a plain string. We must flatten it to safely render in the UI.
         const rawMessage = data?.message;
         let errorMessage = "Login failed. Please try again.";
         if (typeof rawMessage === "string") {
           errorMessage = rawMessage;
         } else if (rawMessage && typeof rawMessage === "object") {
-          // Extract the first error value from the object
           errorMessage = Object.values(rawMessage)[0] || errorMessage;
         }
         return {
@@ -57,7 +51,6 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      // Resolve the role from API response
       const roleName = (data?.data?.role_name || "").trim();
       const mapped = ROLE_MAP[roleName];
 
@@ -100,7 +93,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("authToken");
       if (token) {
-        // Call the real logout API via server-side proxy (avoids CORS)
         console.log("%c[API] 🚪 POST /api/auth?action=logout", "color: #f59e0b; font-weight: bold");
         await fetch(`/api/auth?action=logout`, {
           method: "POST",
@@ -114,21 +106,17 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout API error (session cleared locally anyway):", err);
     } finally {
-      // Always clear local session — even if the API call fails
       setUser(null);
       localStorage.removeItem("user");
       localStorage.removeItem("authToken");
     }
   };
 
-  // These methods remain for forgot-password / OTP flow (can be wired to real API later)
   const verifyPhone = (phone) => {
-    // TODO: Hook to real OTP API
     return { success: true };
   };
 
   const updatePassword = (phone, newPassword) => {
-    // TODO: Hook to real password-reset API
     return { success: true };
   };
 

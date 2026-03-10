@@ -16,6 +16,13 @@ export default async function handler(req, res) {
   if (action === "login") {
     try {
       const { mobile, password } = req.body;
+      if (!mobile || !/^\d{10}$/.test(mobile.toString())) {
+        return res.status(400).json({ status: false, message: "Valid 10-digit mobile number is required" });
+      }
+      if (!password || password.length < 6) {
+        return res.status(400).json({ status: false, message: "Password must be at least 6 characters" });
+      }
+      
       console.log("[Server/API] 🔐 Calling real API: POST", `${API_BASE}/login`, "| mobile:", mobile);
       const apiRes = await fetch(`${API_BASE}/login`, {
         method: "POST",

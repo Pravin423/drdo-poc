@@ -36,6 +36,21 @@ export default async function handler(req, res) {
         });
       });
 
+      // Validation
+      const fullname = Array.isArray(fields.fullname) ? fields.fullname[0] : fields.fullname;
+      const mobile = Array.isArray(fields.mobile) ? fields.mobile[0] : fields.mobile;
+      const password = Array.isArray(fields.password) ? fields.password[0] : fields.password;
+
+      if (!fullname || fullname.trim().length === 0 || !/^[a-zA-Z\s\-]+$/.test(fullname)) {
+        return res.status(400).json({ status: false, message: "Invalid Full Name validation failed on API layer" });
+      }
+      if (!mobile || !/^\d{10}$/.test(mobile)) {
+        return res.status(400).json({ status: false, message: "Invalid Mobile Number validation failed on API layer" });
+      }
+      if (!password || password.length < 6) {
+        return res.status(400).json({ status: false, message: "Invalid Password validation failed on API layer" });
+      }
+
       // Build FormData to forward to the real API
       const formData = new FormData();
 

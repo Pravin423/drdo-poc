@@ -10,6 +10,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ status: false, message: "Method null allowed, must be POST!"});
   }
 
+  const { distName, censusCode } = req.body || {};
+  if (distName && (distName.length < 3 || !/^[a-zA-Z\s\-]+$/.test(distName))) {
+    return res.status(400).json({ status: false, message: "Invalid District Name validation failed on API layer" });
+  }
+  if (censusCode) {
+    const cc = censusCode.toString();
+    if (cc.length > 5 || !/^\d+$/.test(cc)) {
+      return res.status(400).json({ status: false, message: "Invalid Census Code validation failed on API layer" });
+    }
+  }
+
   try {
     const fetchOptions = {
       method: "POST",

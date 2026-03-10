@@ -14,27 +14,14 @@ import {
     Map,
     Eye,
     X,
-    Save
+    Save,
+    ChevronDown
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import { exportToExcel } from "../../../lib/exportToExcel";
-
-// Mock Data for Goa Talukas
-const TALUKAS_DATA = [
-    { id: "1", name: "Canacona", censusCode: "5619", districtName: "South Goa" },
-    { id: "2", name: "Mormugao", censusCode: "5615", districtName: "South Goa" },
-    { id: "3", name: "Quepem", censusCode: "5617", districtName: "South Goa" },
-    { id: "4", name: "Salcete", censusCode: "5616", districtName: "South Goa" },
-    { id: "5", name: "Sanguem", censusCode: "5618", districtName: "South Goa" },
-    { id: "6", name: "Bardez", censusCode: "5610", districtName: "North Goa" },
-    { id: "7", name: "Bicholim", censusCode: "5612", districtName: "North Goa" },
-    { id: "8", name: "Pernem", censusCode: "5609", districtName: "North Goa" },
-    { id: "9", name: "Ponda", censusCode: "5614", districtName: "North Goa" },
-    { id: "10", name: "Satari", censusCode: "5613", districtName: "North Goa" },
-];
 
 const SUMMARY_CARDS = [
     {
@@ -72,57 +59,229 @@ const SUMMARY_CARDS = [
 ];
 
 export default function TalukasManagement() {
-    const [talukas, setTalukas] = useState(TALUKAS_DATA);
+    const [talukas, setTalukas] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const [districts, setDistricts] = useState([]);
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [filterOpen, setFilterOpen] = useState(false);
+
+    const fetchDistricts = async () => {
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/districts", {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            if (!response.ok) return;
+            const result = await response.json();
+            const dataArray = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+            setDistricts(dataArray.map((d, i) => ({
+                id: (d.id || d._id || i + 1).toString(),
+                name: d.name || d.district || d.districtName || d.district_name || "",
+            })));
+        } catch (err) {
+            console.error("[Talukas] ❌ Error fetching districts for filter:", err);
+        }
+    };
+
+    const fetchTalukas = async (districtId = null) => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            const url = districtId ? `/api/talukas?district_id=${districtId}` : "/api/talukas";
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch talukas (status: ${response.status})`);
+            }
+
+            const result = await response.json();
+
+            const dataArray = Array.isArray(result.data)
+                ? result.data
+                : Array.isArray(result)
+                    ? result
+                    : [];
+
+            const fetchedTalukas = dataArray.map((t, index) => ({
+                id: (t.id || t._id || index + 1).toString(),
+                name: t.name || t.taluka || t.talukaName || t.taluka_name || "",
+                censusCode: (t.censusCode || t.census_code || t.census || "").toString(),
+                districtName: t.districtName || t.district_name || t.district || "",
+            }));
+
+            setTalukas(fetchedTalukas);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchDistricts();
+        fetchTalukas();
+    }, []);
+
+    const isMounted = useRef(false);
+    useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+        fetchTalukas(selectedDistrict ? selectedDistrict.id : null);
+    }, [selectedDistrict]);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
-    const [addFormData, setAddFormData] = useState({ name: "", censusCode: "", districtName: "" });
+    const [addFormData, setAddFormData] = useState({ name: "", censusCode: "", districtID: "" });
+    const [addFormError, setAddFormError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ id: "", name: "", censusCode: "", districtName: "" });
+    const [editFormError, setEditFormError] = useState("");
 
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [talukaToDelete, setTalukaToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
 
     const handleAddClick = () => {
-        setAddFormData({ name: "", censusCode: "", districtName: "" });
+        setAddFormData({ name: "", censusCode: "", districtID: "" });
+        setAddFormError("");
         setAddModalOpen(true);
     };
 
-    const confirmAdd = () => {
-        if (!addFormData.name || !addFormData.censusCode || !addFormData.districtName) return;
-        const newTaluka = {
-            id: (talukas.length + 1).toString(),
-            name: addFormData.name,
-            censusCode: addFormData.censusCode,
-            districtName: addFormData.districtName
-        };
-        setTalukas([...talukas, newTaluka]);
-        setAddModalOpen(false);
+    const confirmAdd = async () => {
+        setAddFormError("");
+        const name = addFormData.name?.trim() || "";
+        const censusCode = addFormData.censusCode?.trim() || "";
+        const districtID = addFormData.districtID;
+
+        // Validation to prevent vulnerabilities
+        if (!name) { setAddFormError("Taluka Name is required."); return; }
+        if (name.length < 3) { setAddFormError("Taluka Name must be at least 3 characters."); return; }
+        if (name.length > 100) { setAddFormError("Taluka Name must be at most 100 characters."); return; }
+        if (!/^[a-zA-Z\s\-]+$/.test(name)) { setAddFormError("Taluka Name can only contain letters, spaces, and hyphens."); return; }
+
+        if (!censusCode) { setAddFormError("Census Code is required."); return; }
+        if (censusCode.length > 5) { setAddFormError("Census Code must be at most 5 digits."); return; }
+        if (!/^\d+$/.test(censusCode)) { setAddFormError("Census Code must be a valid number."); return; }
+
+        if (!districtID) { setAddFormError("District is required."); return; }
+
+        setIsSubmitting(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            if (!token) throw new Error("Authentication token missing. Please log in again.");
+
+            const response = await fetch("/api/talukas", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    talukaName: name,
+                    censusCode: parseInt(censusCode, 10),
+                    districtID: parseInt(districtID, 10)
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Failed to add taluka (status: ${response.status})`);
+            }
+            
+            await fetchTalukas(selectedDistrict ? selectedDistrict.id : null);
+            setAddModalOpen(false);
+        } catch (error) {
+            setAddFormError(error.message || "An error occurred");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleDeleteClick = (id) => {
         setTalukaToDelete(id);
+        setDeleteError("");
         setDeleteConfirmOpen(true);
     };
 
-    const confirmDelete = () => {
-        if (talukaToDelete) {
-            setTalukas(talukas.filter(t => t.id !== talukaToDelete));
+    const confirmDelete = async () => {
+        if (!talukaToDelete) return;
+
+        // Protection logic: validate the ID formats specifically to protect against NoSQL/SQL injections effectively
+        if (!/^[a-zA-Z0-9_-]+$/.test(talukaToDelete.toString())) {
+            setDeleteError("Invalid Taluka ID format.");
+            return;
+        }
+
+        setIsDeleting(true);
+        setDeleteError("");
+
+        try {
+            const token = localStorage.getItem("authToken");
+            if (!token) throw new Error("Authentication token missing. Please log in again.");
+
+            const response = await fetch(`/api/taluka-delete?id=${talukaToDelete}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Failed to delete taluka (status: ${response.status})`);
+            }
+
+            // Immediately re-fetch after confirmed deletion
+            await fetchTalukas(selectedDistrict ? selectedDistrict.id : null);
+            
             setDeleteConfirmOpen(false);
             setTalukaToDelete(null);
+        } catch (error) {
+            setDeleteError(error.message || "An error occurred while deleting.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     const handleEditClick = (taluka) => {
         setEditFormData({ id: taluka.id, name: taluka.name, censusCode: taluka.censusCode, districtName: taluka.districtName });
+        setEditFormError("");
         setEditModalOpen(true);
     };
 
     const handleSaveClick = () => {
+        setEditFormError("");
+        const name = editFormData.name?.trim() || "";
+        const censusCode = editFormData.censusCode?.toString().trim() || "";
+        const districtName = editFormData.districtName;
+
+        if (!name) { setEditFormError("Taluka Name is required."); return; }
+        if (name.length < 3) { setEditFormError("Taluka Name must be at least 3 characters."); return; }
+        if (name.length > 100) { setEditFormError("Taluka Name must be at most 100 characters."); return; }
+        if (!/^[a-zA-Z\s\-]+$/.test(name)) { setEditFormError("Taluka Name can only contain letters, spaces, and hyphens."); return; }
+
+        if (!censusCode) { setEditFormError("Census Code is required."); return; }
+        if (censusCode.length > 5) { setEditFormError("Census Code must be at most 5 digits."); return; }
+        if (!/^\d+$/.test(censusCode)) { setEditFormError("Census Code must be a valid number."); return; }
+
+        if (!districtName) { setEditFormError("District Name is required."); return; }
+
         setSaveConfirmOpen(true);
     };
 
@@ -134,7 +293,17 @@ export default function TalukasManagement() {
         setEditModalOpen(false);
     };
 
-    // Disable background scroll when a modal is open
+    const filterRef = useRef(null);
+    useEffect(() => {
+        const handler = (e) => {
+            if (filterRef.current && !filterRef.current.contains(e.target)) {
+                setFilterOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
     useEffect(() => {
         if (addModalOpen || editModalOpen || saveConfirmOpen || deleteConfirmOpen) {
             document.body.style.overflow = 'hidden';
@@ -142,7 +311,6 @@ export default function TalukasManagement() {
             document.body.style.overflow = 'unset';
         }
 
-        // Cleanup function for when component unmounts
         return () => {
             document.body.style.overflow = 'unset';
         };
@@ -169,7 +337,6 @@ export default function TalukasManagement() {
                 <DashboardLayout>
                     <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
-                        {/* Header Section */}
                         <motion.header
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -196,7 +363,6 @@ export default function TalukasManagement() {
                             </div>
                         </motion.header>
 
-                        {/* Summary Cards */}
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {SUMMARY_CARDS.map((card, index) => (
                                 <motion.section
@@ -222,14 +388,12 @@ export default function TalukasManagement() {
                             ))}
                         </div>
 
-                        {/* Main Content Area: Table */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
                             className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px] flex flex-col"
                         >
-                            {/* Table Controls Header */}
                             <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
                                 <div className="relative max-w-md w-full">
                                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -241,14 +405,83 @@ export default function TalukasManagement() {
                                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 transition-all font-medium"
                                     />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-                                        <Filter size={16} /> Filters
-                                    </button>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {selectedDistrict && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold"
+                                        >
+                                            <MapPin size={12} />
+                                            {selectedDistrict.name}
+                                            <button
+                                                onClick={() => setSelectedDistrict(null)}
+                                                className="ml-0.5 text-blue-500 hover:text-blue-800 transition-colors"
+                                                title="Clear filter"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </motion.div>
+                                    )}
+
+                                    <div ref={filterRef} className="relative">
+                                        <button
+                                            onClick={() => setFilterOpen(prev => !prev)}
+                                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shadow-sm ${selectedDistrict
+                                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                                }`}
+                                        >
+                                            <Filter size={16} />
+                                            Filter by District
+                                            <ChevronDown size={14} className={`transition-transform duration-200 ${filterOpen ? "rotate-180" : ""}`} />
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {filterOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                                                    transition={{ duration: 0.15 }}
+                                                    className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden"
+                                                >
+                                                    <button
+                                                        onClick={() => { setSelectedDistrict(null); setFilterOpen(false); }}
+                                                        className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-between ${!selectedDistrict
+                                                                ? "bg-blue-50 text-blue-700"
+                                                                : "text-slate-700 hover:bg-slate-50"
+                                                            }`}
+                                                    >
+                                                        All Districts
+                                                        {!selectedDistrict && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                                    </button>
+                                                    <div className="border-t border-slate-100" />
+                                                    {districts.length === 0 ? (
+                                                        <p className="px-4 py-3 text-xs text-slate-400 font-medium">Loading districts...</p>
+                                                    ) : (
+                                                        districts.map(district => (
+                                                            <button
+                                                                key={district.id}
+                                                                onClick={() => { setSelectedDistrict(district); setFilterOpen(false); }}
+                                                                className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-between ${selectedDistrict?.id === district.id
+                                                                        ? "bg-blue-50 text-blue-700"
+                                                                        : "text-slate-700 hover:bg-slate-50"
+                                                                    }`}
+                                                            >
+                                                                {district.name}
+                                                                {selectedDistrict?.id === district.id && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Table */}
                             <div className="flex-1 overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
@@ -261,7 +494,16 @@ export default function TalukasManagement() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
-                                        {filteredTalukas.length > 0 ? (
+                                        {isLoading ? (
+                                            <tr>
+                                                <td colSpan="5" className="px-6 py-12 text-center">
+                                                    <div className="flex flex-col items-center justify-center text-slate-400">
+                                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-500 mb-3"></div>
+                                                        <p className="text-sm font-semibold">Loading talukas...</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : filteredTalukas.length > 0 ? (
                                             filteredTalukas.map((taluka) => (
                                                 <tr
                                                     key={taluka.id}
@@ -269,7 +511,7 @@ export default function TalukasManagement() {
                                                 >
                                                     <td className="px-6 py-4">
                                                         <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                                                            {taluka.id}
+                                                            {talukas.findIndex(t => t.id === taluka.id) + 1}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
@@ -309,7 +551,6 @@ export default function TalukasManagement() {
                                 </table>
                             </div>
 
-                            {/* Table Footer */}
                             <div className="px-6 py-4 bg-slate-50 mt-auto border-t border-slate-100 flex items-center justify-between">
                                 <p className="text-xs font-semibold text-slate-500">
                                     Showing all <span className="text-slate-900">{filteredTalukas.length}</span> records
@@ -328,7 +569,6 @@ export default function TalukasManagement() {
                     </div>
                 </DashboardLayout>
 
-                {/* Add Modal */}
                 <AnimatePresence>
                     {addModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -357,38 +597,70 @@ export default function TalukasManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Taluka Name</label>
                                         <input
                                             type="text"
+                                            maxLength={100}
                                             value={addFormData.name}
-                                            onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                setAddFormData({ ...addFormData, name: val });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Taluka Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            placeholder="e.g. Tiswadi"
                                         />
                                     </div>
                                     <div className="w-full">
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
                                         <input
                                             type="text"
+                                            maxLength={5}
                                             value={addFormData.censusCode}
-                                            onChange={(e) => setAddFormData({ ...addFormData, censusCode: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '');
+                                                setAddFormData({ ...addFormData, censusCode: val });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Census Code') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
                                     <div className="w-full">
-                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District</label>
                                         <select
-                                            value={addFormData.districtName}
-                                            onChange={(e) => setAddFormData({ ...addFormData, districtName: e.target.value })}
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-[15px] outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all text-slate-700 bg-white"
+                                            value={addFormData.districtID}
+                                            onChange={(e) => setAddFormData({ ...addFormData, districtID: e.target.value })}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('District') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                         >
                                             <option value="">Select District</option>
-                                            <option value="North Goa">North Goa</option>
-                                            <option value="South Goa">South Goa</option>
+                                            {districts.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                            ))}
                                         </select>
                                     </div>
+                                    <AnimatePresence>
+                                        {addFormError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100"
+                                            >
+                                                {addFormError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-5 border-t border-slate-200 flex justify-end gap-3">
-                                    <button onClick={confirmAdd} className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors">
-                                        Submit
+                                    <button 
+                                        onClick={confirmAdd} 
+                                        disabled={isSubmitting}
+                                        className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : "Submit"}
                                     </button>
-                                    <button onClick={() => setAddModalOpen(false)} className="px-5 py-2 text-[15px] font-medium text-white bg-[#6c757d] hover:bg-slate-600 rounded-lg text-center transition-colors">
+                                    <button onClick={() => setAddModalOpen(false)} disabled={isSubmitting} className="px-5 py-2 text-[15px] font-medium text-white bg-[#6c757d] hover:bg-slate-600 rounded-lg text-center transition-colors disabled:opacity-50">
                                         Close
                                     </button>
                                 </div>
@@ -397,7 +669,6 @@ export default function TalukasManagement() {
                     )}
                 </AnimatePresence>
 
-                {/* Edit Modal */}
                 <AnimatePresence>
                     {editModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -426,18 +697,28 @@ export default function TalukasManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Taluka Name</label>
                                         <input
                                             type="text"
+                                            maxLength={100}
                                             value={editFormData.name}
-                                            onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z\s\-]/g, '');
+                                                setEditFormData({ ...editFormData, name: val });
+                                            }}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Taluka Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            placeholder="e.g. Tiswadi"
                                         />
                                     </div>
                                     <div className="w-full">
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
                                         <input
                                             type="text"
+                                            maxLength={5}
                                             value={editFormData.censusCode}
-                                            onChange={(e) => setEditFormData({ ...editFormData, censusCode: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, '');
+                                                setEditFormData({ ...editFormData, censusCode: val });
+                                            }}
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Census Code') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
                                     <div className="w-full">
@@ -445,12 +726,26 @@ export default function TalukasManagement() {
                                         <select
                                             value={editFormData.districtName}
                                             onChange={(e) => setEditFormData({ ...editFormData, districtName: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20 transition-all text-slate-700 font-medium bg-white"
+                                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('District Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
                                         >
-                                            <option value="North Goa">North Goa</option>
-                                            <option value="South Goa">South Goa</option>
+                                            <option value="">Select District</option>
+                                            {districts.map(d => (
+                                                <option key={d.id} value={d.name}>{d.name}</option>
+                                            ))}
                                         </select>
                                     </div>
+                                    <AnimatePresence>
+                                        {editFormError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100"
+                                            >
+                                                {editFormError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                                     <button onClick={() => setEditModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors">
@@ -465,7 +760,6 @@ export default function TalukasManagement() {
                     )}
                 </AnimatePresence>
 
-                {/* Save Confirmation Modal */}
                 <AnimatePresence>
                     {saveConfirmOpen && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -503,7 +797,6 @@ export default function TalukasManagement() {
                     )}
                 </AnimatePresence>
 
-                {/* Delete Confirmation Modal */}
                 <AnimatePresence>
                     {deleteConfirmOpen && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -512,7 +805,7 @@ export default function TalukasManagement() {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
-                                onClick={() => setDeleteConfirmOpen(false)}
+                                onClick={() => !isDeleting && setDeleteConfirmOpen(false)}
                             />
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 10 }}
@@ -527,12 +820,31 @@ export default function TalukasManagement() {
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete Taluka?</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this taluka?</p>
+                                    
+                                    <AnimatePresence>
+                                        {deleteError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100 mb-4"
+                                            >
+                                                {deleteError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
+
                                     <div className="flex gap-3 justify-center w-full">
-                                        <button onClick={() => setDeleteConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                                        <button disabled={isDeleting} onClick={() => setDeleteConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50">
                                             Keep It
                                         </button>
-                                        <button onClick={confirmDelete} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors active:scale-95">
-                                            Yes, Delete
+                                        <button disabled={isDeleting} onClick={confirmDelete} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2">
+                                            {isDeleting ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Deleting...
+                                                </>
+                                            ) : "Yes, Delete"}
                                         </button>
                                     </div>
                                 </div>

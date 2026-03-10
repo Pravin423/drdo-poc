@@ -415,7 +415,6 @@ export default function HonorariumCalculation() {
   // Payment Status States
   const [selectedStatus, setSelectedStatus] = useState("All Status");
 
-  // Add Rate Form State
   const [rateForm, setRateForm] = useState({
     taskType: "",
     vertical: "",
@@ -423,6 +422,7 @@ export default function HonorariumCalculation() {
     bonusRate: "",
     effectiveFrom: "",
   });
+  const [addRateError, setAddRateError] = useState("");
 
   const tabs = [
     { id: "rateMaster", label: "Rate Master", icon: Settings },
@@ -459,6 +459,17 @@ export default function HonorariumCalculation() {
   // Handle Add Rate Submit
   const handleAddRate = (e) => {
     e.preventDefault();
+    setAddRateError("");
+
+    if (parseFloat(rateForm.baseRate) <= 0) {
+      setAddRateError("Base Rate must be greater than 0.");
+      return;
+    }
+    if (parseFloat(rateForm.bonusRate) < 0) {
+      setAddRateError("Bonus Rate cannot be negative.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Simulate API delay
@@ -658,6 +669,13 @@ export default function HonorariumCalculation() {
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
                     />
                   </div>
+                  {addRateError && (
+                    <div className="col-span-2 p-2">
+                       <p className="text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100">
+                          {addRateError}
+                       </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">
