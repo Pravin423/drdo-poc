@@ -119,8 +119,8 @@ export default function DistrictsManagement() {
             setAddFormError("Census Code is required.");
             return;
         }
-        if (censusCode.length >= 6) {
-            setAddFormError("Census Code must be below 6 digits.");
+        if (censusCode.length > 6) {
+            setAddFormError("Census Code must be at most 6 digits.");
             return;
         }
         if (!/^\d+$/.test(censusCode)) {
@@ -269,8 +269,8 @@ export default function DistrictsManagement() {
             setEditFormError("Census Code is required.");
             return;
         }
-        if (censusCode.length >= 6) {
-            setEditFormError("Census Code must be below 6 digits.");
+        if (censusCode.length > 6) {
+            setEditFormError("Census Code must be at most 6 digits.");
             return;
         }
         if (!/^\d+$/.test(censusCode)) {
@@ -544,14 +544,14 @@ export default function DistrictsManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
                                         <input
                                             type="text"
-                                            maxLength={5}
+                                            maxLength={6}
                                             value={addFormData.censusCode}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, ''); // enforce numbers only
                                                 setAddFormData({ ...addFormData, censusCode: val });
                                             }}
                                             className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Census Code') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
-                                            placeholder="Max 5 digits"
+                                            placeholder="e.g. 600001"
                                         />
                                     </div>
                                     <AnimatePresence>
@@ -688,14 +688,14 @@ export default function DistrictsManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
                                         <input
                                             type="text"
-                                            maxLength={5}
+                                            maxLength={6}
                                             value={editFormData.censusCode}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, ''); // enforce numbers only
                                                 setEditFormData({ ...editFormData, censusCode: val });
                                             }}
                                             className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Census Code') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
-                                            placeholder="Max 5 digits"
+                                            placeholder="e.g. 600001"
                                         />
                                     </div>
                                     <AnimatePresence>

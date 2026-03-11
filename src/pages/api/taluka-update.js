@@ -12,6 +12,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ status: false, message: "Method not allowed, must be POST or PUT" });
   }
 
+  const { talukaName, censusCode } = req.body || {};
+  if (talukaName && (talukaName.length < 3 || !/^[a-zA-Z\s\-]+$/.test(talukaName))) {
+    return res.status(400).json({ status: false, message: "Invalid Taluka Name validation failed on API layer" });
+  }
+  if (censusCode) {
+    const cc = censusCode.toString();
+    if (cc.length > 6 || !/^\d+$/.test(cc)) {
+      return res.status(400).json({ status: false, message: "Invalid Census Code validation failed on API layer" });
+    }
+  }
+
   try {
     const response = await fetch(
       `https://goadrda.runtime-solutions.net/admin/api/talukas/update`,

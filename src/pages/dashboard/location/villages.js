@@ -97,25 +97,49 @@ export default function VillagesManagement() {
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
 
-    // Hardcoded List from API payload
-    const districts = [
-        { "id": 1, "name": "North Goa" },
-        { "id": 2, "name": "South Goa" }
-    ];
+    const [districts, setDistricts] = useState([]);
+    const [talukasOptions, setTalukasOptions] = useState([]);
+    const [modalTalukas, setModalTalukas] = useState([]);
 
-    const talukasOptions = [
-        { "id": 1, "name": "Canacona" },
-        { "id": 2, "name": "Mormugao" },
-        { "id": 3, "name": "Quepem" },
-        { "id": 4, "name": "Salcete" },
-        { "id": 5, "name": "Sanguem" },
-        { "id": 6, "name": "Bardez" },
-        { "id": 7, "name": "Bicholim" },
-        { "id": 8, "name": "Pernem" },
-        { "id": 9, "name": "Ponda" },
-        { "id": 10, "name": "Satari" },
-        { "id": 11, "name": "Tiswadi" }
-    ];
+    const fetchDistricts = async () => {
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/districts", {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            if (!response.ok) return;
+            const result = await response.json();
+            const dataArray = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+            setDistricts(dataArray.map((d, i) => ({
+                id: (d.id || d._id || d.district_id || i + 1).toString(),
+                name: d.name || d.district || d.districtName || d.district_name || "",
+            })));
+        } catch (err) {
+            console.error("[Villages] ❌ Error fetching districts for filter:", err);
+        }
+    };
+
+    const fetchDropdownTalukas = async (districtId = null, setTarget = setTalukasOptions) => {
+        try {
+            const token = localStorage.getItem("authToken");
+            const url = districtId ? `/api/talukas?district_id=${districtId}` : "/api/talukas";
+            const response = await fetch(url, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            if (!response.ok) return;
+            const result = await response.json();
+            const dataArray = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+            setTarget(dataArray.map((t, i) => ({
+                id: (t.id || t._id || t.taluka_id || i + 1).toString(),
+                name: t.name || t.taluka || t.talukaName || t.taluka_name || "",
+                district_id: (t.district_id || t.districtID || "").toString()
+            })));
+        } catch (err) {
+            console.error("[Villages] ❌ Error fetching talukas:", err);
+        }
+    };
 
     const fetchVillages = async (distId = null, talId = null) => {
         setIsLoading(true);
@@ -167,6 +191,8 @@ export default function VillagesManagement() {
     };
 
     useEffect(() => {
+        fetchDistricts();
+        fetchDropdownTalukas();
         fetchVillages();
     }, []);
 
@@ -176,6 +202,7 @@ export default function VillagesManagement() {
             isMounted.current = true;
             return;
         }
+        fetchDropdownTalukas(selectedDistrict ? selectedDistrict.id : null);
         fetchVillages(selectedDistrict ? selectedDistrict.id : null, selectedTaluka ? selectedTaluka.id : null);
     }, [selectedDistrict, selectedTaluka]);
 
@@ -191,6 +218,7 @@ export default function VillagesManagement() {
 
     const handleAddClick = () => {
         setAddFormData({ name: "", talukaID: "", districtID: "", censusCode: "" });
+        setModalTalukas([]);
         setAddFormError("");
         setAddModalOpen(true);
     };
@@ -210,7 +238,7 @@ export default function VillagesManagement() {
         if (!districtID) { setAddFormError("District is required."); return; }
 
         if (!censusCode) { setAddFormError("Census Code is required."); return; }
-        if (censusCode.length >= 7) { setAddFormError("Census Code must be below 7 digits."); return; }
+        if (censusCode.length > 6) { setAddFormError("Census Code must be at most 6 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setAddFormError("Census Code must be a valid number."); return; }
 
         setIsSubmitting(true);
@@ -333,7 +361,7 @@ export default function VillagesManagement() {
         if (!districtName) { setEditFormError("District Name is required."); return; }
 
         if (!censusCode) { setEditFormError("Census Code is required."); return; }
-        if (censusCode.length >= 7) { setEditFormError("Census Code must be below 7 digits."); return; }
+        if (censusCode.length > 6) { setEditFormError("Census Code must be at most 6 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setEditFormError("Census Code must be a valid number."); return; }
 
         setSaveConfirmOpen(true);
@@ -409,6 +437,11 @@ export default function VillagesManagement() {
                 const [name, talukaName, districtName, censusCode] = cols;
                 if (!name || !talukaName || !districtName || !censusCode) {
                     errors.push(`Row ${idx + 2}: missing required fields.`);
+                    skipped++;
+                    return;
+                }
+                if (censusCode.length > 6 || !/^\d+$/.test(censusCode)) {
+                    errors.push(`Row ${idx + 2}: census code "${censusCode}" is invalid (max 6 digits).`);
                     skipped++;
                     return;
                 }
@@ -819,7 +852,9 @@ export default function VillagesManagement() {
                                         <select
                                             value={addFormData.districtID}
                                             onChange={(e) => {
-                                                setAddFormData({ ...addFormData, districtID: e.target.value, talukaID: "" });
+                                                const distId = e.target.value;
+                                                setAddFormData({ ...addFormData, districtID: distId, talukaID: "" });
+                                                fetchDropdownTalukas(distId, setModalTalukas);
                                             }}
                                             className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('District') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                         >
@@ -838,9 +873,7 @@ export default function VillagesManagement() {
                                             disabled={!addFormData.districtID}
                                         >
                                             <option value="">Select Taluka</option>
-                                            {talukasOptions
-                                                .filter(t => !addFormData.districtID || (addFormData.districtID == 1 && t.id >= 6 && t.id <= 11) || (addFormData.districtID == 2 && t.id >= 1 && t.id <= 5))
-                                                .map(t => (
+                                            {modalTalukas.map(t => (
                                                 <option key={t.id} value={t.id}>{t.name}</option>
                                             ))}
                                         </select>
@@ -943,33 +976,28 @@ export default function VillagesManagement() {
                                             onChange={(e) => setEditFormData({ ...editFormData, talukaName: e.target.value })}
                                             className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('Taluka Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
                                         >
-                                            <optgroup label="North Goa">
-                                                <option>Bardez</option>
-                                                <option>Bicholim</option>
-                                                <option>Pernem</option>
-                                                <option>Ponda</option>
-                                                <option>Satari</option>
-                                                <option>Tiswadi</option>
-                                            </optgroup>
-                                            <optgroup label="South Goa">
-                                                <option>Canacona</option>
-                                                <option>Dharbandora</option>
-                                                <option>Mormugao</option>
-                                                <option>Quepem</option>
-                                                <option>Salcete</option>
-                                                <option>Sanguem</option>
-                                            </optgroup>
+                                            <option value="">Select Taluka</option>
+                                            {modalTalukas.map(t => (
+                                                <option key={t.name} value={t.name}>{t.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="w-full">
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">District Name</label>
                                         <select
                                             value={editFormData.districtName}
-                                            onChange={(e) => setEditFormData({ ...editFormData, districtName: e.target.value })}
+                                            onChange={(e) => {
+                                                const selectedName = e.target.value;
+                                                setEditFormData({ ...editFormData, districtName: selectedName, talukaName: "" });
+                                                const dist = districts.find(d => d.name === selectedName);
+                                                if (dist) fetchDropdownTalukas(dist.id, setModalTalukas);
+                                            }}
                                             className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium bg-white ${editFormError && editFormError.includes('District Name') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
                                         >
-                                            <option value="North Goa">North Goa</option>
-                                            <option value="South Goa">South Goa</option>
+                                            <option value="">Select District</option>
+                                            {districts.map(d => (
+                                                <option key={d.id} value={d.name}>{d.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="w-full">
