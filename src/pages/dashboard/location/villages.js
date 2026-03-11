@@ -95,8 +95,9 @@ export default function VillagesManagement() {
 
     // Modal States
     const [addModalOpen, setAddModalOpen] = useState(false);
-    const [addFormData, setAddFormData] = useState({ name: "", talukaName: "", districtName: "", censusCode: "" });
+    const [addFormData, setAddFormData] = useState({ name: "", talukaID: "", districtID: "", censusCode: "" });
     const [addFormError, setAddFormError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ id: "", name: "", talukaName: "", districtName: "", censusCode: "" });
@@ -213,38 +214,60 @@ export default function VillagesManagement() {
     }, []);
 
     const handleAddClick = () => {
-        setAddFormData({ name: "", talukaName: "", districtName: "", censusCode: "" });
+        setAddFormData({ name: "", talukaID: "", districtID: "", censusCode: "" });
         setAddFormError("");
         setAddModalOpen(true);
     };
 
-    const confirmAdd = () => {
+    const confirmAdd = async () => {
         setAddFormError("");
         const name = addFormData.name.trim();
-        const talukaName = addFormData.talukaName;
-        const districtName = addFormData.districtName;
+        const talukaID = addFormData.talukaID;
+        const districtID = addFormData.districtID;
         const censusCode = addFormData.censusCode.trim();
 
         if (!name) { setAddFormError("Village Name is required."); return; }
         if (name.length < 3) { setAddFormError("Village Name must be at least 3 characters."); return; }
         if (!/^[a-zA-Z\s\-]+$/.test(name)) { setAddFormError("Village Name can only contain letters, spaces, and hyphens."); return; }
 
-        if (!talukaName) { setAddFormError("Taluka Name is required."); return; }
-        if (!districtName) { setAddFormError("District Name is required."); return; }
+        if (!talukaID) { setAddFormError("Taluka is required."); return; }
+        if (!districtID) { setAddFormError("District is required."); return; }
 
         if (!censusCode) { setAddFormError("Census Code is required."); return; }
         if (censusCode.length >= 7) { setAddFormError("Census Code must be below 7 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setAddFormError("Census Code must be a valid number."); return; }
 
-        const newVillage = {
-            id: (villages.length + 1).toString(),
-            name,
-            talukaName,
-            districtName,
-            censusCode,
-        };
-        setVillages([...villages, newVillage]);
-        setAddModalOpen(false);
+        setIsSubmitting(true);
+        try {
+            const token = localStorage.getItem("authToken");
+
+            const response = await fetch("/api/villages", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    villageName: name,
+                    censusCode: parseInt(censusCode, 10),
+                    talukaID: parseInt(talukaID, 10),
+                    districtID: parseInt(districtID, 10)
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Failed to add village (status: ${response.status})`);
+            }
+
+            // Refresh the table with the new data
+            await fetchVillages(selectedDistrict ? selectedDistrict.id : null, selectedTaluka ? selectedTaluka.id : null);
+            setAddModalOpen(false);
+        } catch (error) {
+            setAddFormError(error.message || "An error occurred");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleDeleteClick = (id) => {
@@ -783,42 +806,38 @@ export default function VillagesManagement() {
                                         />
                                     </div>
                                     <div className="w-full">
-                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">Taluka Name</label>
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
                                         <select
-                                            value={addFormData.talukaName}
-                                            onChange={(e) => setAddFormData({ ...addFormData, talukaName: e.target.value })}
-                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('Taluka Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            value={addFormData.districtID}
+                                            onChange={(e) => {
+                                                setAddFormData({ ...addFormData, districtID: e.target.value, talukaID: "" });
+                                            }}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('District') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
                                         >
-                                            <option value="">Select Taluka</option>
-                                            <optgroup label="North Goa">
-                                                <option>Bardez</option>
-                                                <option>Bicholim</option>
-                                                <option>Pernem</option>
-                                                <option>Ponda</option>
-                                                <option>Satari</option>
-                                                <option>Tiswadi</option>
-                                            </optgroup>
-                                            <optgroup label="South Goa">
-                                                <option>Canacona</option>
-                                                <option>Dharbandora</option>
-                                                <option>Mormugao</option>
-                                                <option>Quepem</option>
-                                                <option>Salcete</option>
-                                                <option>Sanguem</option>
-                                            </optgroup>
+                                            <option value="">Select District</option>
+                                            {districts.map(d => (
+                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="w-full">
-                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">District Name</label>
+                                        <label className="block text-[15px] font-normal text-slate-700 mb-2">Taluka Name</label>
                                         <select
-                                            value={addFormData.districtName}
-                                            onChange={(e) => setAddFormData({ ...addFormData, districtName: e.target.value })}
-                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('District Name') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            value={addFormData.talukaID}
+                                            onChange={(e) => setAddFormData({ ...addFormData, talukaID: e.target.value })}
+                                            className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 bg-white ${addFormError && addFormError.includes('Taluka') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
+                                            disabled={!addFormData.districtID}
                                         >
-                                            <option value="">Select District</option>
-                                            <option value="North Goa">North Goa</option>
-                                            <option value="South Goa">South Goa</option>
+                                            <option value="">Select Taluka</option>
+                                            {talukasOptions
+                                                .filter(t => !addFormData.districtID || (addFormData.districtID == 1 && t.id >= 6 && t.id <= 11) || (addFormData.districtID == 2 && t.id >= 1 && t.id <= 5))
+                                                .map(t => (
+                                                <option key={t.id} value={t.id}>{t.name}</option>
+                                            ))}
                                         </select>
+                                        {!addFormData.districtID && (
+                                            <p className="text-xs text-amber-600 mt-1.5">Please select a district first.</p>
+                                        )}
                                     </div>
                                     <div className="w-full">
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
@@ -848,10 +867,19 @@ export default function VillagesManagement() {
                                     </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-5 border-t border-slate-200 flex justify-end gap-3">
-                                    <button onClick={confirmAdd} className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors">
-                                        Submit
+                                    <button 
+                                        onClick={confirmAdd} 
+                                        disabled={isSubmitting}
+                                        className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : "Submit"}
                                     </button>
-                                    <button onClick={() => setAddModalOpen(false)} className="px-5 py-2 text-[15px] font-medium text-white bg-[#6c757d] hover:bg-slate-600 rounded-lg text-center transition-colors">
+                                    <button onClick={() => setAddModalOpen(false)} disabled={isSubmitting} className="px-5 py-2 text-[15px] font-medium text-white bg-[#6c757d] hover:bg-slate-600 rounded-lg text-center transition-colors disabled:opacity-50">
                                         Close
                                     </button>
                                 </div>
