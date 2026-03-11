@@ -87,7 +87,8 @@ const SUMMARY_CARDS = [
 
 export default function VillagesManagement() {
     const ROWS_PER_PAGE = 10;
-    const [villages, setVillages] = useState(VILLAGES_DATA);
+    const [villages, setVillages] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -111,6 +112,50 @@ export default function VillagesManagement() {
     const [importDragOver, setImportDragOver] = useState(false);
     const [importResult, setImportResult] = useState(null); // { added, skipped, errors }
     const [importLoading, setImportLoading] = useState(false);
+
+    const fetchVillages = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/villages", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch villages (status: ${response.status})`);
+            }
+
+            const result = await response.json();
+
+            const dataArray = Array.isArray(result.data) 
+                ? result.data 
+                : Array.isArray(result) 
+                    ? result 
+                    : [];
+
+            const fetchedVillages = dataArray.map((v, index) => ({
+                id: (v.id || v._id || index + 1).toString(),
+                name: v.villageName || v.village_name || v.name || "",
+                talukaName: v.talukaName || v.taluka_name || v.taluka || "",
+                districtName: v.districtName || v.district_name || v.district || "",
+                censusCode: (v.censusCode || v.census_code || v.census || "").toString(),
+            }));
+
+            setVillages(fetchedVillages);
+        } catch (error) {
+            console.error("[Villages] Error fetching data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchVillages();
+    }, []);
 
     const handleAddClick = () => {
         setAddFormData({ name: "", talukaName: "", districtName: "", censusCode: "" });
@@ -410,8 +455,17 @@ export default function VillagesManagement() {
                                             <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right bg-transparent">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {paginatedVillages.length > 0 ? (
+                                     <tbody className="divide-y divide-slate-100">
+                                        {isLoading ? (
+                                            <tr>
+                                                <td colSpan="6" className="px-6 py-12 text-center">
+                                                    <div className="flex flex-col items-center justify-center text-slate-400">
+                                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-500 mb-3"></div>
+                                                        <p className="text-sm font-semibold">Loading villages...</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : paginatedVillages.length > 0 ? (
                                             paginatedVillages.map((village) => (
                                                 <tr
                                                     key={village.id}
@@ -419,7 +473,7 @@ export default function VillagesManagement() {
                                                 >
                                                     <td className="px-6 py-4">
                                                         <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                                                            {village.id}
+                                                            {villages.findIndex(v => v.id === village.id) + 1}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
