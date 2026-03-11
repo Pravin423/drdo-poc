@@ -18,6 +18,7 @@ import {
     ChevronDown
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -33,7 +34,7 @@ export default function TalukasManagement() {
 
     const fetchDistricts = async () => {
         try {
-            const token = localStorage.getItem("authToken");
+            const token = Cookies.get("authToken");
             const response = await fetch("/api/districts", {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -53,7 +54,7 @@ export default function TalukasManagement() {
     const fetchTalukas = async (districtId = null) => {
         setIsLoading(true);
         try {
-            const token = localStorage.getItem("authToken");
+            const token = Cookies.get("authToken");
             const url = districtId ? `/api/talukas?district_id=${districtId}` : "/api/talukas";
             const response = await fetch(url, {
                 method: "GET",
@@ -154,7 +155,7 @@ export default function TalukasManagement() {
 
         setIsSubmitting(true);
         try {
-            const token = localStorage.getItem("authToken");
+            const token = Cookies.get("authToken");
             if (!token) throw new Error("Authentication token missing. Please log in again.");
 
             const response = await fetch("/api/talukas", {
@@ -203,7 +204,7 @@ export default function TalukasManagement() {
         setDeleteError("");
 
         try {
-            const token = localStorage.getItem("authToken");
+            const token = Cookies.get("authToken");
             if (!token) throw new Error("Authentication token missing. Please log in again.");
 
             const response = await fetch(`/api/taluka-delete?id=${talukaToDelete}`, {
@@ -238,7 +239,7 @@ export default function TalukasManagement() {
         setViewModalOpen(true);
 
         try {
-            const token = localStorage.getItem("authToken");
+            const token = Cookies.get("authToken");
             if (!token) throw new Error("Authentication token missing.");
 
             const response = await fetch(`/api/taluka-details?id=${id}`, {
@@ -294,7 +295,7 @@ export default function TalukasManagement() {
         setSaveError("");
         
         try {
-            const token = localStorage.getItem("authToken");
+            const token = Cookies.get("authToken");
             if (!token) throw new Error("Authentication token missing. Please log in again.");
 
             const payload = {

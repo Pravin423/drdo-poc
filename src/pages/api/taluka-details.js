@@ -1,5 +1,8 @@
 export default async function handler(req, res) {
-  const authHeader = req.headers["authorization"];
+  let authHeader = req.headers["authorization"];
+  if ((!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) && req.cookies?.authToken) {
+    authHeader = `Bearer ${req.cookies.authToken}`;
+  }
   const { id } = req.query;
 
   if (!authHeader) {

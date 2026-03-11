@@ -31,6 +31,10 @@ export default async function handler(req, res) {
       });
 
       const data = await apiRes.json();
+      if (data.token) {
+        // Set HttpOnly cookie for secure token storage
+        res.setHeader("Set-Cookie", `authToken=${data.token}; HttpOnly; Secure; SameSite=Strict; Path=/`);
+      }
       return res.status(apiRes.status).json(data);
     } catch (err) {
       console.error("[proxy/login] error:", err);
@@ -43,7 +47,10 @@ export default async function handler(req, res) {
   // ─── LOGOUT ───────────────────────────────────────────────────────────────
   if (action === "logout") {
     try {
-      const token = (req.headers["authorization"] || "").replace("Bearer ", "");
+      let token = (req.headers["authorization"] || "").replace("Bearer ", "");
+      if ((!token || token === "undefined" || token === "null") && req.cookies?.authToken) {
+        token = req.cookies.authToken;
+      }
       console.log("[Server/API] 🚪 Calling real API: POST", `${API_BASE}/logout`);
       const apiRes = await fetch(`${API_BASE}/logout`, {
         method: "POST",
@@ -55,10 +62,12 @@ export default async function handler(req, res) {
 
       // Treat any response (even errors) as a successful local logout
       const data = await apiRes.json().catch(() => ({}));
+      res.setHeader("Set-Cookie", "authToken=; HttpOnly; Secure; SameSite=Strict; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
       return res.status(200).json({ status: true, ...data });
     } catch (err) {
       console.error("[proxy/logout] error:", err);
       // Even if the API call fails, we still allow local logout
+      res.setHeader("Set-Cookie", "authToken=; HttpOnly; Secure; SameSite=Strict; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
       return res.status(200).json({ status: true, message: "Logged out locally." });
     }
   }

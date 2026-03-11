@@ -21,7 +21,10 @@ export default async function handler(req, res) {
   }
 
   const { action } = req.query;
-  const token = (req.headers["authorization"] || "").replace("Bearer ", "");
+  let token = (req.headers["authorization"] || "").replace("Bearer ", "");
+    if ((!token || token === "undefined" || token === "null") && req.cookies?.authToken) {
+      token = req.cookies.authToken;
+    }
 
   // ─── ADD USER ──────────────────────────────────────────────────────────────
   if (action === "add-user") {

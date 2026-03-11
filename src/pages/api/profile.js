@@ -11,7 +11,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const token = (req.headers["authorization"] || "").replace("Bearer ", "");
+    let token = (req.headers["authorization"] || "").replace("Bearer ", "");
+    if ((!token || token === "undefined" || token === "null") && req.cookies?.authToken) {
+      token = req.cookies.authToken;
+    }
     console.log("[Server/API] 👤 Calling real API: GET", `${API_BASE}/profile`);
     const apiRes = await fetch(`${API_BASE}/profile`, {
       method: "GET",
