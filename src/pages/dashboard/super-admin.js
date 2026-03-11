@@ -30,7 +30,6 @@ import {
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Cookies from "js-cookie";
 
 const handleExportActivities = () => {
   exportToExcel({
@@ -271,7 +270,7 @@ export default function SuperAdmin() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const token = Cookies.get("authToken");
+        const token = localStorage.getItem("authToken");
         const res = await fetch("/api/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });

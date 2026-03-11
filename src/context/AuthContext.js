@@ -1,6 +1,5 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import Cookies from "js-cookie";
 
 const AuthContext = createContext();
 
@@ -9,15 +8,9 @@ export const AuthProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Clean up legacy tokens from localStorage to prevent them from showing up
-    if (localStorage.getItem("authToken")) {
-      localStorage.removeItem("authToken");
-    }
-
     const storedUser = localStorage.getItem("user");
-    // Since authToken is HttpOnly, we can't read it via client-side JS anymore.
-    // Rely on the user object's presence for UI hydration. 
-    if (storedUser) {
+    const storedToken = localStorage.getItem("authToken");
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
     }
     setAuthLoading(false);
@@ -82,8 +75,7 @@ export const AuthProvider = ({ children }) => {
         profile:   data?.data?.profile || "",
       };
 
-      // We no longer set the authToken via js-cookie because the backend sends it as an HttpOnly Set-Cookie:
-      // Cookies.set("authToken", token, { path: '/' });
+      localStorage.setItem("authToken", token);
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
 
@@ -99,21 +91,24 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // The backend API routes will fetch the token from the HttpOnly cookie natively
-      console.log("%c[API] 🚪 POST /api/auth?action=logout", "color: #f59e0b; font-weight: bold");
-      await fetch(`/api/auth?action=logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-      });
-      console.log("%c[API] ✅ Logout API called successfully", "color: #22c55e; font-weight: bold");
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        console.log("%c[API] 🚪 POST /api/auth?action=logout", "color: #f59e0b; font-weight: bold");
+        await fetch(`/api/auth?action=logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("%c[API] ✅ Logout API called successfully", "color: #22c55e; font-weight: bold");
+      }
     } catch (err) {
       console.error("Logout API error (session cleared locally anyway):", err);
     } finally {
       setUser(null);
       localStorage.removeItem("user");
-      // Removing the HttpOnly cookie is handled via the backend's Set-Cookie response 
+      localStorage.removeItem("authToken");
     }
   };
 

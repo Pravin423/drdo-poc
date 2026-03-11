@@ -16,7 +16,6 @@ import {
     Save
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -67,7 +66,7 @@ export default function DistrictsManagement() {
     const fetchDistricts = async () => {
         setIsLoading(true);
         try {
-            const token = Cookies.get("authToken");
+            const token = localStorage.getItem("authToken");
             const response = await fetch("/api/districts", {
                 method: 'GET',
                 headers: {
@@ -165,7 +164,7 @@ export default function DistrictsManagement() {
         }
 
         try {
-            const token = Cookies.get("authToken");
+            const token = localStorage.getItem("authToken");
 
             // Expected payload format based on Postman details: {"distName": "...", "censusCode": "..."}
             const payload = {
@@ -207,7 +206,7 @@ export default function DistrictsManagement() {
         setIsViewLoading(true);
         setViewDistrictData(null);
         try {
-            const token = Cookies.get("authToken");
+            const token = localStorage.getItem("authToken");
             const response = await fetch(`/api/district-details?id=${district.id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -243,7 +242,7 @@ export default function DistrictsManagement() {
     const confirmDelete = async () => {
         if (!districtToDelete) return;
         try {
-            const token = Cookies.get("authToken");
+            const token = localStorage.getItem("authToken");
             const response = await fetch(`/api/district-delete?id=${districtToDelete}`, {
                 method: "DELETE",
                 headers: {
@@ -319,7 +318,7 @@ export default function DistrictsManagement() {
 
     const confirmSave = async () => {
         try {
-            const token = Cookies.get("authToken");
+            const token = localStorage.getItem("authToken");
 
             // Expected payload format based on Postman details: {"district_id": 7, "distName": "...", "censusCode": "..."}
             const payload = {

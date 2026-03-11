@@ -1,7 +1,6 @@
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import { useState, useEffect } from "react";
-import Cookies from "js-cookie";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -70,7 +69,7 @@ export default function ProfilePage() {
     setLoading(true);
     setError("");
     try {
-      const token = Cookies.get("authToken");
+      const token = localStorage.getItem("authToken");
       console.log("%c[API] 👤 GET /api/profile", "color: #3b82f6; font-weight: bold", "| role:", user?.role);
       const res = await fetch("/api/profile", {
         headers: { Authorization: `Bearer ${token}` },
