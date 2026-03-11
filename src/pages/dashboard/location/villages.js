@@ -19,8 +19,9 @@ import {
     CheckCircle2,
     AlertCircle,
     FileUp,
+    ChevronDown,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -113,11 +114,46 @@ export default function VillagesManagement() {
     const [importResult, setImportResult] = useState(null); // { added, skipped, errors }
     const [importLoading, setImportLoading] = useState(false);
 
-    const fetchVillages = async () => {
+    // Filters State
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [selectedTaluka, setSelectedTaluka] = useState(null);
+    const [filterOpen, setFilterOpen] = useState(false);
+    const filterRef = useRef(null);
+
+    // Hardcoded List from API payload
+    const districts = [
+        { "id": 1, "name": "North Goa" },
+        { "id": 2, "name": "South Goa" }
+    ];
+
+    const talukasOptions = [
+        { "id": 1, "name": "Canacona" },
+        { "id": 2, "name": "Mormugao" },
+        { "id": 3, "name": "Quepem" },
+        { "id": 4, "name": "Salcete" },
+        { "id": 5, "name": "Sanguem" },
+        { "id": 6, "name": "Bardez" },
+        { "id": 7, "name": "Bicholim" },
+        { "id": 8, "name": "Pernem" },
+        { "id": 9, "name": "Ponda" },
+        { "id": 10, "name": "Satari" },
+        { "id": 11, "name": "Tiswadi" }
+    ];
+
+    const fetchVillages = async (distId = null, talId = null) => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem("authToken");
-            const response = await fetch("/api/villages", {
+            let endpoint = "/api/villages";
+            const params = new URLSearchParams();
+            if (distId) params.append("district_id", distId);
+            if (talId) params.append("taluka_id", talId);
+            
+            if (distId || talId) {
+                endpoint += `?${params.toString()}`;
+            }
+
+            const response = await fetch(endpoint, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -155,6 +191,25 @@ export default function VillagesManagement() {
 
     useEffect(() => {
         fetchVillages();
+    }, []);
+
+    const isMounted = useRef(false);
+    useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+        fetchVillages(selectedDistrict ? selectedDistrict.id : null, selectedTaluka ? selectedTaluka.id : null);
+    }, [selectedDistrict, selectedTaluka]);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (filterRef.current && !filterRef.current.contains(e.target)) {
+                setFilterOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
     }, []);
 
     const handleAddClick = () => {
@@ -435,10 +490,129 @@ export default function VillagesManagement() {
                                         className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 transition-all font-medium"
                                     />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm">
-                                        <Filter size={16} /> Filters
-                                    </button>
+                                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                    {selectedDistrict && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold"
+                                        >
+                                            <MapPin size={12} />
+                                            {selectedDistrict.name}
+                                            <button
+                                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); }}
+                                                className="ml-0.5 text-blue-500 hover:text-blue-800 transition-colors"
+                                                title="Clear district filter"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </motion.div>
+                                    )}
+
+                                    {selectedTaluka && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-semibold"
+                                        >
+                                            <Map size={12} />
+                                            {selectedTaluka.name}
+                                            <button
+                                                onClick={() => setSelectedTaluka(null)}
+                                                className="ml-0.5 text-emerald-500 hover:text-emerald-800 transition-colors"
+                                                title="Clear taluka filter"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </motion.div>
+                                    )}
+
+                                    <div ref={filterRef} className="relative z-10 ml-auto sm:ml-0">
+                                        <button
+                                            onClick={() => setFilterOpen(prev => !prev)}
+                                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shadow-sm ${selectedDistrict || selectedTaluka
+                                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                                }`}
+                                        >
+                                            <Filter size={16} />
+                                            Filters
+                                            <ChevronDown size={14} className={`transition-transform duration-200 ${filterOpen ? "rotate-180" : ""}`} />
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {filterOpen && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                                                    transition={{ duration: 0.15 }}
+                                                    className="absolute right-0 top-full mt-2 w-[520px] bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden p-4 grid grid-cols-2 gap-4 origin-top-right z-50"
+                                                >
+                                                    <div>
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">1. Select District</h4>
+                                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                                            <button
+                                                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); setFilterOpen(false); }}
+                                                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedDistrict
+                                                                        ? "bg-blue-50 text-blue-700"
+                                                                        : "text-slate-700 hover:bg-slate-50"
+                                                                    }`}
+                                                            >
+                                                                All Districts
+                                                                {!selectedDistrict && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                                            </button>
+                                                            {districts.map(district => (
+                                                                <button
+                                                                    key={district.id}
+                                                                    onClick={() => { setSelectedDistrict(district); setSelectedTaluka(null); }}
+                                                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedDistrict?.id === district.id
+                                                                            ? "bg-blue-50 text-blue-700"
+                                                                            : "text-slate-700 hover:bg-slate-50"
+                                                                        }`}
+                                                                >
+                                                                    {district.name}
+                                                                    {selectedDistrict?.id === district.id && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="border-l border-slate-100 pl-4">
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">2. Select Taluka</h4>
+                                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                                            <button
+                                                                onClick={() => { setSelectedTaluka(null); setFilterOpen(false); }}
+                                                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedTaluka
+                                                                        ? "bg-emerald-50 text-emerald-700"
+                                                                        : "text-slate-700 hover:bg-slate-50"
+                                                                    }`}
+                                                            >
+                                                                All Talukas
+                                                                {!selectedTaluka && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                                                            </button>
+                                                            {talukasOptions
+                                                                .map(taluka => (
+                                                                <button
+                                                                    key={taluka.id}
+                                                                    onClick={() => { setSelectedTaluka(taluka); setFilterOpen(false); }}
+                                                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedTaluka?.id === taluka.id
+                                                                            ? "bg-emerald-50 text-emerald-700"
+                                                                            : "text-slate-700 hover:bg-slate-50"
+                                                                        }`}
+                                                                >
+                                                                    {taluka.name}
+                                                                    {selectedTaluka?.id === taluka.id && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             </div>
 
