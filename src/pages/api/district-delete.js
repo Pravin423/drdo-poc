@@ -1,8 +1,8 @@
 // src/pages/api/district-delete.js
 export default async function handler(req, res) {
   let authHeader = req.headers["authorization"];
-  if ((!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) && req.cookies?.authToken) {
-    authHeader = `Bearer ${req.cookies.authToken}`;
+  if ((!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) && req.cookies?.auth_token) {
+    authHeader = `Bearer ${req.cookies.auth_token}`;
   }
   const { id } = req.query;
 

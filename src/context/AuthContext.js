@@ -9,8 +9,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("authToken");
-    if (storedUser && storedToken) {
+    // We check for user data; token is now securely stored in an HttpOnly cookie
+    if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
     setAuthLoading(false);
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
         profile:   data?.data?.profile || "",
       };
 
-      localStorage.setItem("authToken", token);
+      // authToken is intentionally not stored in localStorage anymore as it is managed via HttpOnly cookie
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
 
@@ -91,18 +91,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const token = localStorage.getItem("authToken");
-      if (token) {
-        console.log("%c[API] 🚪 POST /api/auth?action=logout", "color: #f59e0b; font-weight: bold");
-        await fetch(`/api/auth?action=logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("%c[API] ✅ Logout API called successfully", "color: #22c55e; font-weight: bold");
-      }
+      console.log("%c[API] 🚪 POST /api/auth?action=logout", "color: #f59e0b; font-weight: bold");
+      await fetch(`/api/auth?action=logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("%c[API] ✅ Logout API called successfully", "color: #22c55e; font-weight: bold");
     } catch (err) {
       console.error("Logout API error (session cleared locally anyway):", err);
     } finally {

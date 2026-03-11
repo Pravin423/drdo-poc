@@ -31,6 +31,16 @@ export default async function handler(req, res) {
       });
 
       const data = await apiRes.json();
+      
+      if (apiRes.ok && data.token) {
+        // Set HttpOnly, Secure, SameSite cookie
+        // Using strict to protect against CSRF
+        res.setHeader(
+          "Set-Cookie",
+          `auth_token=${data.token}; Path=/; HttpOnly; Secure; SameSite=Strict`
+        );
+      }
+
       return res.status(apiRes.status).json(data);
     } catch (err) {
       console.error("[proxy/login] error:", err);
@@ -43,7 +53,10 @@ export default async function handler(req, res) {
   // ─── LOGOUT ───────────────────────────────────────────────────────────────
   if (action === "logout") {
     try {
-      const token = (req.headers["authorization"] || "").replace("Bearer ", "");
+      let token = (req.headers["authorization"] || "").replace("Bearer ", "");
+      if (!token && req.cookies && req.cookies.auth_token) {
+        token = req.cookies.auth_token;
+      }
       console.log("[Server/API] 🚪 Calling real API: POST", `${API_BASE}/logout`);
       const apiRes = await fetch(`${API_BASE}/logout`, {
         method: "POST",
@@ -53,11 +66,22 @@ export default async function handler(req, res) {
         },
       });
 
+      // Clear the auth_token cookie
+      res.setHeader(
+        "Set-Cookie",
+        `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict`
+      );
+
       // Treat any response (even errors) as a successful local logout
       const data = await apiRes.json().catch(() => ({}));
       return res.status(200).json({ status: true, ...data });
     } catch (err) {
       console.error("[proxy/logout] error:", err);
+      // Clear cookie even if proxy API fetch fails
+      res.setHeader(
+        "Set-Cookie",
+        `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict`
+      );
       // Even if the API call fails, we still allow local logout
       return res.status(200).json({ status: true, message: "Logged out locally." });
     }

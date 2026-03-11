@@ -155,7 +155,6 @@ export default function TalukasManagement() {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("authToken");
-            if (!token) throw new Error("Authentication token missing. Please log in again.");
 
             const response = await fetch("/api/talukas", {
                 method: "POST",
@@ -204,7 +203,6 @@ export default function TalukasManagement() {
 
         try {
             const token = localStorage.getItem("authToken");
-            if (!token) throw new Error("Authentication token missing. Please log in again.");
 
             const response = await fetch(`/api/taluka-delete?id=${talukaToDelete}`, {
                 method: "DELETE",
@@ -239,7 +237,6 @@ export default function TalukasManagement() {
 
         try {
             const token = localStorage.getItem("authToken");
-            if (!token) throw new Error("Authentication token missing.");
 
             const response = await fetch(`/api/taluka-details?id=${id}`, {
                 method: "GET",
@@ -295,7 +292,6 @@ export default function TalukasManagement() {
         
         try {
             const token = localStorage.getItem("authToken");
-            if (!token) throw new Error("Authentication token missing. Please log in again.");
 
             const payload = {
                 taluka_id: parseInt(editFormData.id, 10),
