@@ -25,6 +25,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
+import LocationSummaryCards from "../../../components/LocationSummaryCards";
 import { exportToExcel } from "../../../lib/exportToExcel";
 
 // Mock Data for Goa Villages (based on provided screenshot data)
@@ -51,40 +52,6 @@ const VILLAGES_DATA = [
     { id: "20", name: "Assagao", talukaName: "Bardez", districtName: "North Goa", censusCode: "626736" },
 ];
 
-const SUMMARY_CARDS = [
-    {
-        label: "Total Districts",
-        value: "2",
-        delta: "State of Goa",
-        isPositive: true,
-        icon: MapPin,
-        accent: "text-blue-600 bg-blue-50 border-blue-100",
-    },
-    {
-        label: "Total Talukas",
-        value: "10",
-        delta: "Across all districts",
-        isPositive: true,
-        icon: Map,
-        accent: "text-emerald-600 bg-emerald-50 border-emerald-100",
-    },
-    {
-        label: "Total Villages",
-        value: "334",
-        delta: "100% Mapped",
-        isPositive: true,
-        icon: Home,
-        accent: "text-purple-600 bg-purple-50 border-purple-100",
-    },
-    {
-        label: "Active Field CRPs",
-        value: "8,970",
-        delta: "Deployed",
-        isPositive: true,
-        icon: Users,
-        accent: "text-amber-600 bg-amber-50 border-amber-100",
-    },
-];
 
 export default function VillagesManagement() {
     const ROWS_PER_PAGE = 10;
@@ -107,6 +74,8 @@ export default function VillagesManagement() {
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [villageToDelete, setVillageToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
 
     // Import Modal States
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -175,7 +144,7 @@ export default function VillagesManagement() {
                     : [];
 
             const fetchedVillages = dataArray.map((v, index) => ({
-                id: (v.id || v._id || index + 1).toString(),
+                id: (v.id || v.village_id || v.villageId || v.villageID || v._id || index + 1).toString(),
                 name: v.villageName || v.village_name || v.name || "",
                 talukaName: v.talukaName || v.taluka_name || v.taluka || "",
                 districtName: v.districtName || v.district_name || v.district || "",
@@ -272,14 +241,39 @@ export default function VillagesManagement() {
 
     const handleDeleteClick = (id) => {
         setVillageToDelete(id);
+        setDeleteError("");
         setDeleteConfirmOpen(true);
     };
 
-    const confirmDelete = () => {
-        if (villageToDelete) {
-            setVillages(villages.filter(v => v.id !== villageToDelete));
-            setDeleteConfirmOpen(false);
-            setVillageToDelete(null);
+    const confirmDelete = async () => {
+        if (!villageToDelete) return;
+        
+        setIsDeleting(true);
+        setDeleteError("");
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch(`/api/village-delete?id=${villageToDelete}`, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.status === 1 || result.success || response.ok) {
+                await fetchVillages(selectedDistrict ? selectedDistrict.id : null, selectedTaluka ? selectedTaluka.id : null);
+                setDeleteConfirmOpen(false);
+                setVillageToDelete(null);
+            } else {
+                setDeleteError(result.message || "Failed to delete village.");
+            }
+        } catch (error) {
+            console.error("Error deleting village:", error);
+            setDeleteError("Failed to delete village. Please try again.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -469,30 +463,7 @@ export default function VillagesManagement() {
                         </motion.header>
 
                         {/* Summary Cards */}
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            {SUMMARY_CARDS.map((card, index) => (
-                                <motion.section
-                                    key={card.label}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
-                                    className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div className={`p-3 rounded-2xl ${card.accent} border`}>
-                                            <card.icon size={22} />
-                                        </div>
-                                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 rounded-full">
-                                            {card.delta}
-                                        </div>
-                                    </div>
-                                    <div className="mt-6 space-y-1">
-                                        <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{card.value}</p>
-                                        <p className="text-sm font-semibold text-slate-500">{card.label}</p>
-                                    </div>
-                                </motion.section>
-                            ))}
-                        </div>
+                        <LocationSummaryCards totalDistricts={2} totalTalukas={11} totalVillages={villages.length} />
 
                         {/* Main Content Area: Table */}
                         <motion.div
@@ -1065,12 +1036,29 @@ export default function VillagesManagement() {
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete Village?</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this village record?</p>
+                                    <AnimatePresence>
+                                        {deleteError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100 mb-6 text-center"
+                                            >
+                                                {deleteError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
                                     <div className="flex gap-3 justify-center w-full">
-                                        <button onClick={() => setDeleteConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                                        <button onClick={() => setDeleteConfirmOpen(false)} disabled={isDeleting} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50">
                                             Keep It
                                         </button>
-                                        <button onClick={confirmDelete} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors active:scale-95">
-                                            Yes, Delete
+                                        <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                            {isDeleting ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Deleting...
+                                                </>
+                                            ) : "Yes, Delete"}
                                         </button>
                                     </div>
                                 </div>

@@ -19,44 +19,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
+import LocationSummaryCards from "../../../components/LocationSummaryCards";
 import { exportToExcel } from "../../../lib/exportToExcel";
 
-
-
-const SUMMARY_CARDS = [
-    {
-        label: "Total Districts",
-        value: "2",
-        delta: "State of Goa",
-        isPositive: true,
-        icon: MapPin,
-        accent: "text-blue-600 bg-blue-50 border-blue-100",
-    },
-    {
-        label: "Total Talukas",
-        value: "12",
-        delta: "Across all districts",
-        isPositive: true,
-        icon: Map,
-        accent: "text-emerald-600 bg-emerald-50 border-emerald-100",
-    },
-    {
-        label: "Geocoded Villages",
-        value: "396",
-        delta: "100% Mapped",
-        isPositive: true,
-        icon: TrendingUp,
-        accent: "text-purple-600 bg-purple-50 border-purple-100",
-    },
-    {
-        label: "Active Field CRPs",
-        value: "8,970",
-        delta: "Deployed",
-        isPositive: true,
-        icon: Users,
-        accent: "text-amber-600 bg-amber-50 border-amber-100",
-    },
-];
 
 export default function DistrictsManagement() {
     const [districts, setDistricts] = useState([]);
@@ -420,33 +385,7 @@ export default function DistrictsManagement() {
                         </motion.header>
 
                         {/* Summary Cards */}
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            {SUMMARY_CARDS.map((card, index) => (
-                                <motion.section
-                                    key={card.label}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
-                                    className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div className={`p-3 rounded-2xl ${card.accent} border`}>
-                                            <card.icon size={22} />
-                                        </div>
-                                        <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 rounded-full">
-                                            {card.delta}
-                                        </div>
-                                    </div>
-                                    <div className="mt-6 space-y-1">
-                                        <p className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                                            {/* "Total Districts" card (index 0) uses live count; others use static value */}
-                                            {index === 0 ? districts.length : card.value}
-                                        </p>
-                                        <p className="text-sm font-semibold text-slate-500">{card.label}</p>
-                                    </div>
-                                </motion.section>
-                            ))}
-                        </div>
+                        <LocationSummaryCards totalDistricts={districts.length} />
 
                         {/* Main Content Area: Table */}
                         <motion.div
