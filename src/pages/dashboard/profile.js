@@ -9,9 +9,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-/* ─────────────────────────────────────────────────────────────────
-   Sub-components
-───────────────────────────────────────────────────────────────── */
 function InfoChip({ icon: Icon, text, color = "bg-slate-100 text-slate-600" }) {
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${color}`}>
@@ -37,7 +34,6 @@ function DetailRow({ icon: Icon, label, value, last = false }) {
   );
 }
 
-/* Mask Aadhaar: XXXX-XXXX-1234 */
 function maskAadhar(val) {
   if (!val) return null;
   const clean = String(val).replace(/\D/g, "");
@@ -45,20 +41,12 @@ function maskAadhar(val) {
   return "XXXX-XXXX-" + clean.slice(-4);
 }
 
-/**
- * The backend stores images referencing its own localhost.
- * Replace it with the real public-facing domain so the browser can load it.
- */
 const BACKEND_PUBLIC = "https://goadrda.runtime-solutions.net";
 function resolveImageUrl(url) {
   if (!url) return null;
-  // Replace any http://localhost/... or https://localhost/... with the real domain
   return url.replace(/https?:\/\/localhost/i, BACKEND_PUBLIC);
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   Profile Page — works for ALL roles, data from API
-───────────────────────────────────────────────────────────────── */
 export default function ProfilePage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -90,7 +78,6 @@ export default function ProfilePage() {
     if (user) fetchProfile();
   }, [user]);
 
-  // ── Derive display values — API first, fallback to AuthContext ──
   const p       = profile || {};
   const name    = p.fullname    || p.name       || user?.name    || "—";
   const phone   = p.mobile      || p.phone       || user?.phone;
@@ -100,16 +87,13 @@ export default function ProfilePage() {
   const gender   = p.gender;
   const aadhar   = p.aadhar_number || p.aadhar || p.aadhaar_number || p.aadhaar;
   const initials  = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
-  // Resolve the profile photo URL (backend returns localhost path — fix it)
   const avatarUrl = resolveImageUrl(p.profile || user?.profile || "");
 
   return (
-    // No allowedRole → any logged-in user can access
     <ProtectedRoute>
       <DashboardLayout>
         <div className="min-h-screen bg-[#f7f8fc] flex flex-col items-center px-4 py-10">
 
-          {/* Top bar */}
           <div className="w-full max-w-xl flex items-center justify-between mb-8">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Profile</h1>
@@ -126,7 +110,6 @@ export default function ProfilePage() {
             </motion.button>
           </div>
 
-          {/* Loading */}
           <AnimatePresence>
             {loading && (
               <motion.div
@@ -139,7 +122,6 @@ export default function ProfilePage() {
             )}
           </AnimatePresence>
 
-          {/* Error */}
           <AnimatePresence>
             {error && !loading && (
               <motion.div
@@ -155,7 +137,6 @@ export default function ProfilePage() {
             )}
           </AnimatePresence>
 
-          {/* Profile Card */}
           {!loading && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -165,7 +146,6 @@ export default function ProfilePage() {
             >
               <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
 
-                {/* Cover gradient */}
                 <div className="relative h-28 bg-gradient-to-r from-[#3b52ab] via-[#4f6ac9] to-[#6b84e0] overflow-hidden">
                   <div
                     className="absolute inset-0"
@@ -178,7 +158,6 @@ export default function ProfilePage() {
                   <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-[#1a2e7a]/30 rounded-full blur-2xl" />
                 </div>
 
-                {/* Avatar + name row */}
                 <div className="px-7 pb-6">
                   <div className="flex items-end gap-5 -mt-10 mb-5">
                     <div className="relative shrink-0">
@@ -222,10 +201,8 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Divider */}
                   <div className="border-t border-slate-100 mb-1" />
 
-                  {/* Details */}
                   <div className="pt-1">
                     <DetailRow icon={User}        label="Full Name" value={name} />
                     <DetailRow icon={Phone}       label="Phone"     value={phone ? `+91 ${phone}` : null} />
@@ -245,7 +222,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Footer strip */}
                 <div className="px-7 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                   <p className="text-xs text-slate-400">DRDA Goa — Government of Goa</p>
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">

@@ -98,7 +98,6 @@ export default function DistrictsManagement() {
         const name = addFormData.name.trim();
         const censusCode = addFormData.censusCode.trim();
 
-        // --- Name validations ---
         if (!name) {
             setAddFormError("District Name is required.");
             return;
@@ -116,7 +115,6 @@ export default function DistrictsManagement() {
             return;
         }
 
-        // --- Census Code validations ---
         if (!censusCode) {
             setAddFormError("Census Code is required.");
             return;
@@ -133,7 +131,6 @@ export default function DistrictsManagement() {
         try {
             const token = localStorage.getItem("authToken");
 
-            // Expected payload format based on Postman details: {"distName": "...", "censusCode": "..."}
             const payload = {
                 distName: name,
                 censusCode: censusCode
@@ -152,10 +149,8 @@ export default function DistrictsManagement() {
                 throw new Error("Failed to create district");
             }
 
-            // Check successfully returned response to conditionally re-fetch
             const result = await response.json();
             if (result.status === 1 || result.success) {
-                // Re-fetch all districts from server to guarantee sync with Database
                 await fetchDistricts();
                 setAddModalOpen(false);
                 setAddFormData({ name: "", censusCode: "" });
@@ -225,7 +220,6 @@ export default function DistrictsManagement() {
             const result = await response.json();
 
             if (result.status === 1 || result.success || (response.ok && result.status !== 0)) {
-                // Re-fetch from server to stay in sync
                 await fetchDistricts();
                 setDeleteConfirmOpen(false);
                 setDistrictToDelete(null);
@@ -252,7 +246,6 @@ export default function DistrictsManagement() {
         const name = editFormData.name.trim();
         const censusCode = editFormData.censusCode.toString().trim();
 
-        // --- Name validations ---
         if (!name) {
             setEditFormError("District Name is required.");
             return;
@@ -270,7 +263,6 @@ export default function DistrictsManagement() {
             return;
         }
 
-        // --- Census Code validations ---
         if (!censusCode) {
             setEditFormError("Census Code is required.");
             return;
@@ -291,7 +283,6 @@ export default function DistrictsManagement() {
         try {
             const token = localStorage.getItem("authToken");
 
-            // Expected payload format based on Postman details: {"district_id": 7, "distName": "...", "censusCode": "..."}
             const payload = {
                 district_id: parseInt(editFormData.id, 10),
                 distName: editFormData.name.trim(),
