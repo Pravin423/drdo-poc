@@ -10,14 +10,42 @@ export default function ViewForm() {
   const [form, setForm] = useState(null);
   const [formData, setFormData] = useState({});
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    if (router.query.id) {
-      const saved = JSON.parse(localStorage.getItem("activity_forms") || "[]");
-      const found = saved.find((f) => f.id === router.query.id);
-      if (found) {
-        setForm(found);
+    const fetchFormDetails = async () => {
+      if (!router.query.id) return;
+      
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`/api/activity-form-details?id=${router.query.id}`, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch form details");
+        }
+
+        const result = await response.json();
+        
+        // Assemble format for the UI
+        setForm({
+            ...result.data,
+            title: result.data.form_name,
+            fields: result.fields || []
+        });
+
+      } catch (err) {
+        console.error("Error fetching form:", err);
+        setError("Could not load the activity form.");
       }
-    }
+    };
+
+    fetchFormDetails();
   }, [router.query.id]);
 
   const handleInputChange = (label, value) => {
@@ -31,12 +59,25 @@ export default function ViewForm() {
     router.push("/dashboard/activity-forms/all");
   };
 
-  if (!form) {
+  if (error) {
     return (
       <ProtectedRoute allowedRole="super-admin">
         <DashboardLayout>
           <div className="flex items-center justify-center min-h-[50vh]">
-            <p className="text-slate-500 font-medium">Loading form...</p>
+            <p className="text-red-500 font-medium px-4 py-2 bg-red-50 rounded-lg">{error}</p>
+          </div>
+        </DashboardLayout>
+      </ProtectedRoute>
+    );
+  }
+
+  if (!form) {
+    return (
+      <ProtectedRoute allowedRole="super-admin">
+        <DashboardLayout>
+          <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+             <div className="w-8 h-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+            <p className="text-slate-500 font-medium">Loading form details...</p>
           </div>
         </DashboardLayout>
       </ProtectedRoute>
@@ -60,9 +101,7 @@ export default function ViewForm() {
             >
               <ArrowLeft size={18} />
             </button>
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <FileText size={22} className="text-white" />
-            </div>
+            
             <div>
               <h1 className="text-2xl font-bold text-slate-900">{form.title}</h1>
               <p className="text-slate-500 text-sm font-medium">{form.description || "No description provided."}</p>
@@ -73,92 +112,63 @@ export default function ViewForm() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.4 }}
+            className="grid grid-cols-3 gap-4 pb-2"
+          >
+             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
+                <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${form.status === 1 ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                    <p className="text-sm font-semibold text-slate-800">{form.status === 1 ? 'Active' : 'Inactive'}</p>
+                </div>
+             </div>
+             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Created By</p>
+                <p className="text-sm font-semibold text-slate-800">{form.created_by_name || form.created_by || 'Unknown'}</p>
+             </div>
+             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Created At</p>
+                <p className="text-sm font-semibold text-slate-800">{form.created_at ? new Date(form.created_at).toLocaleString() : 'N/A'}</p>
+             </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
           >
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60">
-              <h2 className="text-base font-bold text-slate-800">Fill out this form</h2>
+              <h2 className="text-base font-bold text-slate-800">Fields on this form</h2>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              {form.customFields && form.customFields.length > 0 ? (
-                form.customFields.map((field, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-700">
-                      {field.label || `Field ${idx + 1}`}
-                      {field.required && <span className="text-red-500 ml-1">*</span>}
-                    </label>
+            <div className="p-6 space-y-4">
+              {form.fields && form.fields.length > 0 ? (
+                form.fields.map((field, idx) => {
+                  const isReq = field.is_required === 1;
+                  return (
+                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-bold text-slate-800 capitalize">
+                        {field.label || field.name || `Field ${idx + 1}`}
+                        {isReq && <span className="text-red-500 ml-1" title="Required">*</span>}
+                        </label>
+                        <span className="text-xs font-semibold px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-500 capitalize">{field.type}</span>
+                    </div>
                     
-                    {field.type === "text" && (
-                      <input
-                        type="text"
-                        required={field.required}
-                        placeholder={field.placeholder || ""}
-                        onChange={(e) => handleInputChange(field.label, e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all"
-                      />
-                    )}
-
-                    {field.type === "textarea" && (
-                      <textarea
-                        rows={3}
-                        required={field.required}
-                        placeholder={field.placeholder || ""}
-                        onChange={(e) => handleInputChange(field.label, e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all resize-y"
-                      />
-                    )}
-
-                    {field.type === "number" && (
-                      <input
-                        type="number"
-                        required={field.required}
-                        placeholder={field.placeholder || ""}
-                        onChange={(e) => handleInputChange(field.label, e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all"
-                      />
-                    )}
-
-                    {field.type === "select" && (
-                      <select
-                        required={field.required}
-                        onChange={(e) => handleInputChange(field.label, e.target.value)}
-                        className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all bg-white"
-                      >
-                        <option value="">{field.placeholder || "Select an option"}</option>
-                        <option value="Option 1">Option 1</option>
-                        <option value="Option 2">Option 2</option>
-                        <option value="Option 3">Option 3</option>
-                      </select>
-                    )}
-
-                    {field.type === "checkbox" && (
-                      <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          required={field.required}
-                          onChange={(e) => handleInputChange(field.label, e.target.checked)}
-                          className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20 accent-indigo-600"
-                        />
-                        <span>{field.placeholder || "Check here"}</span>
-                      </label>
-                    )}
+                    <div className="text-xs text-slate-500 font-medium">
+                        <p>Internal Name: <span className="text-slate-700">{field.name}</span></p>
+                        {Array.isArray(field.options) && field.options.length > 0 && (
+                            <p className="mt-1">Options: <span className="text-slate-700">{field.options.join(", ")}</span></p>
+                        )}
+                    </div>
                   </div>
-                ))
+                )})
               ) : (
                 <div className="py-8 text-center text-slate-500 text-sm">
-                  This form currently has no fields. Let an admin know to add some fields!
+                  This form currently has no fields attached to it.
                 </div>
               )}
-
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-md shadow-indigo-500/20 active:scale-95"
-                >
-                  <Send size={16} /> Submit Response
-                </button>
-              </div>
-            </form>
+            </div>
           </motion.div>
 
         </div>
