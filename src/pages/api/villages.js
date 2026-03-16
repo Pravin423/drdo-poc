@@ -18,16 +18,6 @@ export default async function handler(req, res) {
     };
 
     if (req.method !== "GET" && req.method !== "HEAD") {
-      const { villageName, censusCode } = req.body || {};
-      if (villageName && (villageName.length < 3 || !/^[a-zA-Z\s\-]+$/.test(villageName))) {
-        return res.status(400).json({ status: false, message: "Invalid Village Name validation failed on API layer" });
-      }
-      if (censusCode) {
-        const cc = censusCode.toString();
-        if (cc.length > 6 || !/^\d+$/.test(cc)) {
-          return res.status(400).json({ status: false, message: "Invalid Census Code validation failed on API layer" });
-        }
-      }
       fetchOptions.body = JSON.stringify(req.body);
     }
 

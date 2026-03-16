@@ -148,7 +148,7 @@ export default function TalukasManagement() {
         if (!/^[a-zA-Z\s\-]+$/.test(name)) { setAddFormError("Taluka Name can only contain letters, spaces, and hyphens."); return; }
 
         if (!censusCode) { setAddFormError("Census Code is required."); return; }
-        if (censusCode.length > 6) { setAddFormError("Census Code must be at most 6 digits."); return; }
+        if (censusCode.length > 5) { setAddFormError("Census Code must be at most 5 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setAddFormError("Census Code must be a valid number."); return; }
 
         if (!districtID) { setAddFormError("District is required."); return; }
@@ -174,7 +174,7 @@ export default function TalukasManagement() {
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || `Failed to add taluka (status: ${response.status})`);
             }
-            
+
             await fetchTalukas(selectedDistrict ? selectedDistrict.id : null);
             setAddModalOpen(false);
         } catch (error) {
@@ -220,7 +220,7 @@ export default function TalukasManagement() {
 
             // Immediately re-fetch after confirmed deletion
             await fetchTalukas(selectedDistrict ? selectedDistrict.id : null);
-            
+
             setDeleteConfirmOpen(false);
             setTalukaToDelete(null);
         } catch (error) {
@@ -278,7 +278,7 @@ export default function TalukasManagement() {
         if (!/^[a-zA-Z\s\-]+$/.test(name)) { setEditFormError("Taluka Name can only contain letters, spaces, and hyphens."); return; }
 
         if (!censusCode) { setEditFormError("Census Code is required."); return; }
-        if (censusCode.length > 6) { setEditFormError("Census Code must be at most 6 digits."); return; }
+        if (censusCode.length > 5) { setEditFormError("Census Code must be at most 5 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setEditFormError("Census Code must be a valid number."); return; }
 
         if (!districtID) { setEditFormError("District is required."); return; }
@@ -290,7 +290,7 @@ export default function TalukasManagement() {
     const confirmSave = async () => {
         setIsSaving(true);
         setSaveError("");
-        
+
         try {
             const token = localStorage.getItem("authToken");
 
@@ -439,8 +439,8 @@ export default function TalukasManagement() {
                                         <button
                                             onClick={() => setFilterOpen(prev => !prev)}
                                             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shadow-sm ${selectedDistrict
-                                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                                ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                                                 }`}
                                         >
                                             <Filter size={16} />
@@ -460,8 +460,8 @@ export default function TalukasManagement() {
                                                     <button
                                                         onClick={() => { setSelectedDistrict(null); setFilterOpen(false); }}
                                                         className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-between ${!selectedDistrict
-                                                                ? "bg-blue-50 text-blue-700"
-                                                                : "text-slate-700 hover:bg-slate-50"
+                                                            ? "bg-blue-50 text-blue-700"
+                                                            : "text-slate-700 hover:bg-slate-50"
                                                             }`}
                                                     >
                                                         All Districts
@@ -476,8 +476,8 @@ export default function TalukasManagement() {
                                                                 key={district.id}
                                                                 onClick={() => { setSelectedDistrict(district); setFilterOpen(false); }}
                                                                 className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors flex items-center justify-between ${selectedDistrict?.id === district.id
-                                                                        ? "bg-blue-50 text-blue-700"
-                                                                        : "text-slate-700 hover:bg-slate-50"
+                                                                    ? "bg-blue-50 text-blue-700"
+                                                                    : "text-slate-700 hover:bg-slate-50"
                                                                     }`}
                                                             >
                                                                 {district.name}
@@ -624,14 +624,14 @@ export default function TalukasManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
                                         <input
                                             type="text"
-                                            maxLength={6}
+                                            maxLength={5}
                                             value={addFormData.censusCode}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, '');
                                                 setAddFormData({ ...addFormData, censusCode: val });
                                             }}
                                             className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Census Code') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
-                                            placeholder="e.g. 600001"
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
                                     <div className="w-full">
@@ -661,8 +661,8 @@ export default function TalukasManagement() {
                                     </AnimatePresence>
                                 </div>
                                 <div className="px-6 py-5 border-t border-slate-200 flex justify-end gap-3">
-                                    <button 
-                                        onClick={confirmAdd} 
+                                    <button
+                                        onClick={confirmAdd}
                                         disabled={isSubmitting}
                                         className="px-5 py-2 text-[15px] font-medium text-white bg-[#0d6efd] hover:bg-blue-600 rounded-lg shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
                                     >
@@ -724,14 +724,14 @@ export default function TalukasManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
                                         <input
                                             type="text"
-                                            maxLength={6}
+                                            maxLength={5}
                                             value={editFormData.censusCode}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, '');
                                                 setEditFormData({ ...editFormData, censusCode: val });
                                             }}
                                             className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Census Code') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
-                                            placeholder="e.g. 600001"
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
                                     <div className="w-full">
@@ -796,7 +796,7 @@ export default function TalukasManagement() {
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Confirm Save</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-8 px-2">Are you sure you want to save these changes to the taluka form?</p>
-                                    
+
                                     <AnimatePresence>
                                         {saveError && (
                                             <motion.p
@@ -852,7 +852,7 @@ export default function TalukasManagement() {
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete Taluka?</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this taluka?</p>
-                                    
+
                                     <AnimatePresence>
                                         {deleteError && (
                                             <motion.p
@@ -952,11 +952,11 @@ export default function TalukasManagement() {
                                                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">District</p>
                                                 <p className="text-[15px] font-semibold text-slate-800 flex items-center gap-2">
                                                     <MapPin size={14} className="text-blue-500" />
-                                                    {talukaDetails.districtName || 
-                                                     talukaDetails.district_name || 
-                                                     talukaDetails.district?.name || 
-                                                     districts.find(d => d.id == talukaDetails.district_id)?.name || 
-                                                     'N/A'}
+                                                    {talukaDetails.districtName ||
+                                                        talukaDetails.district_name ||
+                                                        talukaDetails.district?.name ||
+                                                        districts.find(d => d.id == talukaDetails.district_id)?.name ||
+                                                        'N/A'}
                                                 </p>
                                             </div>
                                         </div>

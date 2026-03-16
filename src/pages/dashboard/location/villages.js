@@ -238,7 +238,7 @@ export default function VillagesManagement() {
         if (!districtID) { setAddFormError("District is required."); return; }
 
         if (!censusCode) { setAddFormError("Census Code is required."); return; }
-        if (censusCode.length > 6) { setAddFormError("Census Code must be at most 6 digits."); return; }
+        if (censusCode.length >= 7) { setAddFormError("Census Code must be below 7 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setAddFormError("Census Code must be a valid number."); return; }
 
         setIsSubmitting(true);
@@ -361,7 +361,7 @@ export default function VillagesManagement() {
         if (!districtName) { setEditFormError("District Name is required."); return; }
 
         if (!censusCode) { setEditFormError("Census Code is required."); return; }
-        if (censusCode.length > 6) { setEditFormError("Census Code must be at most 6 digits."); return; }
+        if (censusCode.length >= 7) { setEditFormError("Census Code must be below 7 digits."); return; }
         if (!/^\d+$/.test(censusCode)) { setEditFormError("Census Code must be a valid number."); return; }
 
         setSaveConfirmOpen(true);
@@ -437,11 +437,6 @@ export default function VillagesManagement() {
                 const [name, talukaName, districtName, censusCode] = cols;
                 if (!name || !talukaName || !districtName || !censusCode) {
                     errors.push(`Row ${idx + 2}: missing required fields.`);
-                    skipped++;
-                    return;
-                }
-                if (censusCode.length > 6 || !/^\d+$/.test(censusCode)) {
-                    errors.push(`Row ${idx + 2}: census code "${censusCode}" is invalid (max 6 digits).`);
                     skipped++;
                     return;
                 }

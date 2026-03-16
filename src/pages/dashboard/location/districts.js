@@ -83,6 +83,8 @@ export default function DistrictsManagement() {
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [districtToDelete, setDistrictToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
 
     const handleAddClick = () => {
         setAddFormData({ name: "", censusCode: "" });
@@ -119,8 +121,8 @@ export default function DistrictsManagement() {
             setAddFormError("Census Code is required.");
             return;
         }
-        if (censusCode.length > 6) {
-            setAddFormError("Census Code must be at most 6 digits.");
+        if (censusCode.length >= 6) {
+            setAddFormError("Census Code must be below 6 digits.");
             return;
         }
         if (!/^\d+$/.test(censusCode)) {
@@ -201,11 +203,15 @@ export default function DistrictsManagement() {
 
     const handleDeleteClick = (id) => {
         setDistrictToDelete(id);
+        setDeleteError("");
         setDeleteConfirmOpen(true);
     };
 
     const confirmDelete = async () => {
         if (!districtToDelete) return;
+        
+        setIsDeleting(true);
+        setDeleteError("");
         try {
             const token = localStorage.getItem("authToken");
             const response = await fetch(`/api/district-delete?id=${districtToDelete}`, {
@@ -218,19 +224,19 @@ export default function DistrictsManagement() {
 
             const result = await response.json();
 
-            if (result.status === 1 || result.success || response.ok) {
+            if (result.status === 1 || result.success || (response.ok && result.status !== 0)) {
                 // Re-fetch from server to stay in sync
                 await fetchDistricts();
                 setDeleteConfirmOpen(false);
                 setDistrictToDelete(null);
             } else {
-                alert(result.message || "Failed to delete district.");
-                setDeleteConfirmOpen(false);
+                setDeleteError(result.message || "Failed to delete district.");
             }
         } catch (error) {
             console.error("Error deleting district:", error);
-            alert("Failed to delete district. Please try again.");
-            setDeleteConfirmOpen(false);
+            setDeleteError("Failed to delete district. Please try again.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -269,8 +275,8 @@ export default function DistrictsManagement() {
             setEditFormError("Census Code is required.");
             return;
         }
-        if (censusCode.length > 6) {
-            setEditFormError("Census Code must be at most 6 digits.");
+        if (censusCode.length >= 6) {
+            setEditFormError("Census Code must be below 6 digits.");
             return;
         }
         if (!/^\d+$/.test(censusCode)) {
@@ -544,14 +550,14 @@ export default function DistrictsManagement() {
                                         <label className="block text-[15px] font-normal text-slate-700 mb-2">Census Code</label>
                                         <input
                                             type="text"
-                                            maxLength={6}
+                                            maxLength={5}
                                             value={addFormData.censusCode}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, ''); // enforce numbers only
                                                 setAddFormData({ ...addFormData, censusCode: val });
                                             }}
                                             className={`w-full border rounded-lg px-3 py-2 text-[15px] outline-none transition-all text-slate-700 ${addFormError && addFormError.includes('Census Code') ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400'}`}
-                                            placeholder="e.g. 600001"
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
                                     <AnimatePresence>
@@ -688,14 +694,14 @@ export default function DistrictsManagement() {
                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">Census Code</label>
                                         <input
                                             type="text"
-                                            maxLength={6}
+                                            maxLength={5}
                                             value={editFormData.censusCode}
                                             onChange={(e) => {
                                                 const val = e.target.value.replace(/\D/g, ''); // enforce numbers only
                                                 setEditFormData({ ...editFormData, censusCode: val });
                                             }}
                                             className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all text-slate-700 font-medium ${editFormError && editFormError.includes('Census Code') ? 'border-red-400 focus:ring-2 focus:ring-red-400/20' : 'border-slate-300 focus:border-tech-blue-500 focus:ring-2 focus:ring-tech-blue-500/20'}`}
-                                            placeholder="e.g. 600001"
+                                            placeholder="Max 5 digits"
                                         />
                                     </div>
                                     <AnimatePresence>
@@ -786,12 +792,31 @@ export default function DistrictsManagement() {
                                     </div>
                                     <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete District?</h3>
                                     <p className="text-sm font-medium text-slate-500 mb-8">This action cannot be undone. Are you sure you want to permanently delete this district?</p>
+                                    
+                                    <AnimatePresence>
+                                        {deleteError && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="w-full text-sm font-medium text-red-500 bg-red-50 p-3 rounded-xl border border-red-100 mb-6"
+                                            >
+                                                {deleteError}
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
+
                                     <div className="flex gap-3 justify-center w-full">
-                                        <button onClick={() => setDeleteConfirmOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                                        <button onClick={() => setDeleteConfirmOpen(false)} disabled={isDeleting} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50">
                                             Keep It
                                         </button>
-                                        <button onClick={confirmDelete} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors active:scale-95">
-                                            Yes, Delete
+                                        <button onClick={confirmDelete} disabled={isDeleting} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                            {isDeleting ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Deleting...
+                                                </>
+                                            ) : "Yes, Delete"}
                                         </button>
                                     </div>
                                 </div>

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         }
         if (censusCode) {
           const cc = censusCode.toString();
-          if (cc.length > 6 || !/^\d+$/.test(cc)) {
+          if (cc.length > 5 || !/^\d+$/.test(cc)) {
             return res.status(400).json({ status: false, message: "Invalid Census Code validation failed on API layer" });
           }
         }
