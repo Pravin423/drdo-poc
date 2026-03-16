@@ -59,6 +59,35 @@ export default function ViewForm() {
     router.push("/dashboard/activity-forms/all");
   };
 
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const toggleStatus = async () => {
+    setIsUpdatingStatus(true);
+    const newStatus = form.status === 1 ? 0 : 1;
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`/api/activity-form-toggle?id=${form.id}`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (response.ok) {
+            setForm(prev => ({...prev, status: newStatus}));
+        } else {
+            console.error("Failed to update status");
+            alert("Failed to update status.");
+        }
+    } catch(err) {
+        console.error("Error updating status:", err);
+        alert("An error occurred while updating the status.");
+    } finally {
+        setIsUpdatingStatus(false);
+    }
+  };
+
   if (error) {
     return (
       <ProtectedRoute allowedRole="super-admin">
@@ -114,11 +143,21 @@ export default function ViewForm() {
             transition={{ delay: 0.1, duration: 0.4 }}
             className="grid grid-cols-3 gap-4 pb-2"
           >
-             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${form.status === 1 ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                    <p className="text-sm font-semibold text-slate-800">{form.status === 1 ? 'Active' : 'Inactive'}</p>
+             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</p>
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={toggleStatus} 
+                        disabled={isUpdatingStatus}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${form.status === 1 ? 'bg-emerald-500' : 'bg-slate-300'} ${isUpdatingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        <span 
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.status === 1 ? 'translate-x-6' : 'translate-x-1'}`} 
+                        />
+                    </button>
+                    <p className={`text-sm font-semibold tracking-wide ${form.status === 1 ? 'text-emerald-700' : 'text-slate-600'} ${isUpdatingStatus ? 'opacity-50' : ''}`}>
+                        {form.status === 1 ? 'Active' : 'Inactive'}
+                    </p>
                 </div>
              </div>
              <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
