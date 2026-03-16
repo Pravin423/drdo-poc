@@ -13,14 +13,25 @@ export default function CreateForm() {
   const isEditing = Boolean(router.query.id);
 
   useEffect(() => {
-    if (router.query.id) {
-      const saved = JSON.parse(localStorage.getItem("activity_forms") || "[]");
-      const toEdit = saved.find((f) => f.id === router.query.id);
-      if (toEdit) {
-        setFormName(toEdit.title);
-        setDescription(toEdit.description || "");
+    const fetchFormDetails = async () => {
+      if (!router.query.id) return;
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`/api/activity-form-details?id=${router.query.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const body = await response.json();
+            if (body.data) {
+                setFormName(body.data.form_name || "");
+                setDescription(body.data.description || "");
+            }
+        }
+      } catch (e) {
+        console.error("Failed to fetch form details");
       }
-    }
+    };
+    fetchFormDetails();
   }, [router.query.id]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,8 +61,8 @@ export default function CreateForm() {
 
     try {
       const token = localStorage.getItem("authToken");
-      const url = isEditing ? `/api/activity-forms?id=${router.query.id}` : "/api/activity-forms";
-      const method = isEditing ? "PUT" : "POST";
+      const url = isEditing ? `/api/activity-form-update?id=${router.query.id}` : "/api/activity-forms";
+      const method = "POST";
 
       const response = await fetch(url, {
         method,
