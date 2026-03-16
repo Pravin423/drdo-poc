@@ -6,27 +6,55 @@ import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Plus, Search, Eye, Trash2, Edit2 } from "lucide-react";
 
-const INITIAL_MOCK_FORMS = [
-  { id: "1", title: "Monthly CRP Activity Report", fields: 8, submissions: 124, createdAt: "2026-02-01", status: "Active" },
-  { id: "2", title: "Village Survey Form",          fields: 12, submissions: 87,  createdAt: "2026-01-15", status: "Active" },
-  { id: "3", title: "Attendance Verification",      fields: 5,  submissions: 210, createdAt: "2026-01-08", status: "Inactive" },
-];
+
 
 export default function AllForms() {
   const [search, setSearch] = useState("");
   const [forms, setForms] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [formToDelete, setFormToDelete] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const saved = localStorage.getItem("activity_forms");
-    if (saved) {
-      setForms(JSON.parse(saved));
-    } else {
-      localStorage.setItem("activity_forms", JSON.stringify(INITIAL_MOCK_FORMS));
-      setForms(INITIAL_MOCK_FORMS);
+  const fetchForms = async () => {
+    setIsLoading(true);
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch("/api/activity-forms", {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch activity forms`);
+        }
+
+        const result = await response.json();
+        const dataArray = Array.isArray(result.data) ? result.data : [];
+
+        const fetchedForms = dataArray.map((f, index) => ({
+            id: (f.id || index + 1).toString(),
+            title: f.form_name || "",
+            description: f.description || "",
+            fields: f.field_count || 0,
+            createdBy: f.created_by_name || f.created_by || "",
+            createdAt: f.created_at || "",
+            status: f.status === 1 ? "Active" : "Inactive"
+        }));
+
+        setForms(fetchedForms);
+    } catch (error) {
+        console.error("Error fetching forms:", error);
+    } finally {
+        setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchForms();
   }, []);
 
   const handleDeleteClick = (id) => {
@@ -36,9 +64,9 @@ export default function AllForms() {
 
   const confirmDelete = () => {
     if (formToDelete) {
+      // Mock delete for now, replace with API call when implemented
       const filtered = forms.filter((f) => f.id !== formToDelete);
       setForms(filtered);
-      localStorage.setItem("activity_forms", JSON.stringify(filtered));
       setDeleteConfirmOpen(false);
       setFormToDelete(null);
     }
@@ -107,30 +135,43 @@ export default function AllForms() {
                 <tr className="bg-slate-50 border-b border-slate-100">
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">#</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Form Title</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Description</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Fields</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Submissions</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Created</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Created By</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Created At</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filtered.length > 0 ? filtered.map((form) => (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center text-slate-400">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-500 mb-3"></div>
+                        <p className="text-sm font-semibold">Loading forms...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.length > 0 ? filtered.map((form, index) => (
                   <tr key={form.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{form.id}</span>
+                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{index + 1}</span>
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-semibold text-slate-800">{form.title}</p>
                     </td>
                     <td className="px-6 py-4">
+                      <p className="text-sm text-slate-600 line-clamp-2 max-w-xs" title={form.description}>{form.description}</p>
+                    </td>
+                    <td className="px-6 py-4">
                       <span className="text-sm text-slate-600">{form.fields} fields</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-slate-700">{form.submissions}</span>
+                      <span className="text-sm font-semibold text-slate-700">{form.createdBy}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-500">{form.createdAt}</span>
+                      <span className="text-sm text-slate-500 whitespace-nowrap">{form.createdAt}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
@@ -157,7 +198,7 @@ export default function AllForms() {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center">
+                    <td colSpan="8" className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center text-slate-400">
                         <FileText size={32} className="mb-3 opacity-40" />
                         <p className="text-sm font-semibold">No forms found.</p>
