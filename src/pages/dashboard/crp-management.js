@@ -85,11 +85,7 @@ export default function CrpManagement() {
       const result = await res.json();
       const arr = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
 
-      // Log the raw keys of the first record for debugging
-      if (arr.length > 0) {
-        console.log("[CRP] Raw API keys:", Object.keys(arr[0]));
-        console.log("[CRP] First record sample:", JSON.stringify(arr[0]).slice(0, 400));
-      }
+
 
       setCrpList(arr.map((c, i) => {
         // Exact field names from API response
@@ -175,16 +171,31 @@ export default function CrpManagement() {
   const [bulkFile, setBulkFile] = useState(null);
 
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("All");
+  const [status, setStatus] = useState("All Statuses");
   const [district, setDistrict] = useState("All Districts");
   const [taluka, setTaluka] = useState("All Talukas");
   const [vertical, setVertical] = useState("All Verticals");
 
-  // Stats — derived from live crpList
-  const totalCRPs = crpList.length;
-  const activeCRPs = crpList.filter((c) => c.status === "Active").length;
-  const inactiveCRPs = crpList.filter((c) => c.status === "Inactive").length;
-  const villagesCovered = crpList.reduce((sum, c) => sum + (Number(c.villages) || 0), 0);
+  // Filter CRPs
+  const filteredCRPs = crpList.filter((crp) => {
+    const matchSearch =
+      crp.name.toLowerCase().includes(search.toLowerCase()) ||
+      (crp.aadhaar || "").includes(search) ||
+      (crp.mobile || "").includes(search);
+
+    const matchStatus = status === "All Statuses" || crp.status === status;
+    const matchDistrict = district === "All Districts" || crp.district === district;
+    const matchTaluka = taluka === "All Talukas" || crp.taluka === taluka;
+    const matchVertical = vertical === "All Verticals" || crp.vertical === vertical;
+
+    return matchSearch && matchStatus && matchDistrict && matchTaluka && matchVertical;
+  });
+
+  // Stats — derived from filteredCRPs
+  const totalCRPs = filteredCRPs.length;
+  const activeCRPs = filteredCRPs.filter((c) => c.status === "Active").length;
+  const inactiveCRPs = filteredCRPs.filter((c) => c.status === "Inactive").length;
+  const villagesCovered = filteredCRPs.reduce((sum, c) => sum + (Number(c.villages) || 0), 0);
 
   const [documents, setDocuments] = useState({
     profilePhoto: null,
@@ -244,7 +255,6 @@ export default function CrpManagement() {
       setDocErrors(prev => ({ ...prev, [docType]: '' }));
       setDocuments(prev => ({ ...prev, [docType]: file }));
       setDocumentPreviews(prev => ({ ...prev, [docType]: previewUrl }));
-      console.log(`${docType} selected:`, file.name);
 
       // We do not reset e.target.value here because maintaining it is fine, 
       // but if you want users to be able to upload the same file twice in a row:
@@ -344,20 +354,7 @@ export default function CrpManagement() {
 
 
 
-  // Filter CRPs
-  const filteredCRPs = crpList.filter((crp) => {
-    const matchSearch =
-      crp.name.toLowerCase().includes(search.toLowerCase()) ||
-      (crp.aadhaar || "").includes(search) ||
-      (crp.mobile || "").includes(search);
 
-    const matchStatus = status === "All" || crp.status === status;
-    const matchDistrict = district === "All Districts" || crp.district === district;
-    const matchTaluka = taluka === "All Talukas" || crp.taluka === taluka;
-    const matchVertical = vertical === "All Verticals" || crp.vertical === vertical;
-
-    return matchSearch && matchStatus && matchDistrict && matchTaluka && matchVertical;
-  });
 
   const [form, setForm] = useState({
     // Personal
@@ -652,10 +649,10 @@ export default function CrpManagement() {
 
             <div className="p-6">
               {/* Main Responsive Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
+              <div className="flex flex-col md:flex-row items-end gap-5">
 
                 {/* Search Input - Spanned for importance */}
-                <div className="md:col-span-2">
+                <div className="flex-1 w-full md:w-auto">
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Search</label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -670,64 +667,52 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
-                {/* Select Groups */}
-                {[
-                  { label: "District", value: district, setter: setDistrict, options: ["All Districts", "North Goa", "South Goa"] },
-                  { label: "Taluka", value: taluka, setter: setTaluka, options: ["All Talukas", "Bardez", "Tiswadi"] },
-                  { label: "Status", value: status, setter: setStatus, options: ["All Statuses", "Active", "Inactive", "On Leave"] },
-                  { label: "Vertical", value: vertical, setter: setVertical, options: ["All Verticals", "Health", "Education"] },
-                ].map((filter, idx) => (
-                  <div key={idx} className="relative">
-                    <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">{filter.label}</label>
-                    <div className="relative">
-                      <select
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none bg-slate-50/30 focus:bg-white cursor-pointer transition-all"
-                        value={filter.value}
-                        onChange={(e) => filter.setter(e.target.value)}
-                      >
-                        {filter.options.map(opt => <option key={opt}>{opt}</option>)}
-                      </select>
-                      {/* Custom Arrow Icon */}
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                        <ChevronDown size={14} />
-                      </div>
+                {/* Status Filter */}
+                <div className="w-full md:w-48 relative">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Status</label>
+                  <div className="relative">
+                    <select
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none appearance-none bg-slate-50/30 focus:bg-white cursor-pointer transition-all"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                    >
+                      {["All Statuses", "Active", "Inactive", "On Leave"].map(opt => <option key={opt}>{opt}</option>)}
+                    </select>
+                    {/* Custom Arrow Icon */}
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                      <ChevronDown size={14} />
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Action Footer */}
-              <div className="flex flex-col sm:flex-row justify-end items-center mt-8 pt-6 border-t border-slate-100 gap-3">
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
+                  {/* Clear Filters */}
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setStatus("All Statuses");
+                      setDistrict("All Districts");
+                      setTaluka("All Talukas");
+                      setVertical("All Verticals");
+                    }}
+                    className="w-full sm:w-auto text-slate-500 border border-slate-200 hover:text-slate-800 hover:bg-slate-50 rounded-xl px-5 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <RefreshCw size={16} />
+                    Clear All
+                  </button>
 
-                {/* Clear Filters */}
-                <button
-                  onClick={() => {
-                    setSearch("");
-                    setStatus("All Statuses");
-                    setDistrict("All Districts");
-                    setTaluka("All Talukas");
-                    setVertical("All Verticals");
-                  }}
-                  className="w-full sm:w-auto text-slate-500 border border-slate-200 hover:text-slate-800 hover:bg-slate-50 rounded-xl px-5 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
-                >
-                  <RefreshCw size={16} />
-                  Clear All
-                </button>
-
-
-
-                {/* Export CSV */}
-                <button
-                  onClick={exportToCSV}
-                  className="px-4 py-2 border rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50"
-                >
-                  <UploadCloud size={16} />
-                  Export CSV
-                </button>
-
+                  {/* Export CSV */}
+                  <button
+                    onClick={exportToCSV}
+                    className="w-full sm:w-auto px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                  >
+                    <UploadCloud size={16} />
+                    Export CSV
+                  </button>
+                </div>
 
               </div>
-
             </div>
           </div>
 
