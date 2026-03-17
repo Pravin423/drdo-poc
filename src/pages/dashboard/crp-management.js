@@ -11,7 +11,7 @@ import {
   Edit,
   MoreHorizontal,
   Search,
-  RefreshCw,
+  RefreshCw,  
   UploadCloud,
   ChevronDown,
   UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap
@@ -104,8 +104,8 @@ export default function CrpManagement() {
         const status = rawStatus === 1 || rawStatus === "1" || rawStatus === "Active"
           ? "Active"
           : rawStatus === 0 || rawStatus === "0" || rawStatus === "Inactive"
-          ? "Inactive"
-          : typeof rawStatus === "string" ? rawStatus : "Active";
+            ? "Inactive"
+            : typeof rawStatus === "string" ? rawStatus : "Active";
 
         // Signature status: API returns 0/1 numeric
         const sigRaw = c.signature_status ?? c.signatureStatus;
@@ -179,9 +179,9 @@ export default function CrpManagement() {
   // Filter CRPs
   const filteredCRPs = crpList.filter((crp) => {
     const matchSearch =
-      crp.name.toLowerCase().includes(search.toLowerCase()) ||
-      (crp.aadhaar || "").includes(search) ||
-      (crp.mobile || "").includes(search);
+      (crp.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      String(crp.aadhaar ?? "").includes(search) ||
+      String(crp.mobile ?? "").includes(search)
 
     const matchStatus = status === "All Statuses" || crp.status === status;
     const matchDistrict = district === "All Districts" || crp.district === district;
@@ -676,7 +676,7 @@ export default function CrpManagement() {
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
                     >
-                      {["All Statuses", "Active", "Inactive", "On Leave"].map(opt => <option key={opt}>{opt}</option>)}
+                      {["All Status", "Active", "Inactive", "On Leave"].map(opt => <option key={opt}>{opt}</option>)}
                     </select>
                     {/* Custom Arrow Icon */}
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
@@ -1272,113 +1272,115 @@ export default function CrpManagement() {
           </div>
         )}
       </AnimatePresence>
-
-
-      {isModalOpen && selectedCRP && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white w-full max-w-3xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
-          >
-            {/* 1. Profile Header with Gradient Background */}
-            <div className="relative h-32 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-end">
-              <button
-                onClick={closeModal}
-                className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-
-              <div className="flex translate-y-12 items-end gap-6">
-                <div className="relative">
-                  <img
-                    src={selectedCRP.image}
-                    alt={selectedCRP.name}
-                    className="w-32 h-32 rounded-3xl object-cover border-4 border-white shadow-xl bg-white"
-                  />
-                  <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-white w-8 h-8 rounded-full" />
-                </div>
-                <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-white drop-shadow-sm">
-                    {selectedCRP.name}
-                  </h2>
-                  <div className="flex items-center gap-2 mt-1">
-                    <StatusBadge status={selectedCRP.status} />
-                    <span className="text-slate-300 text-sm font-medium flex items-center gap-1">
-                      <MapPin size={14} /> {selectedCRP.district}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Content Body (Scrollable) */}
-            <div className="pt-20 px-8 pb-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
-
-              {/* Navigation Tabs (Visual only for now) */}
-              <div className="flex gap-6 border-b border-slate-100 sticky top-0 bg-white z-10">
-                <button className="pb-3 border-b-2 border-slate-900 text-sm font-bold text-slate-900">Overview</button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Main Info Column */}
-                <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                  {[
-                    { label: "Phone", value: selectedCRP.mobile, icon: <Activity size={14} /> },
-                    { label: "Email", value: selectedCRP.email, icon: <FileText size={14} /> },
-                    { label: "Taluka", value: selectedCRP.taluka, icon: <MapPin size={14} /> },
-                    { label: "Block", value: selectedCRP.block, icon: <Shield size={14} /> },
-                    { label: "Aadhaar", value: selectedCRP.aadhaar, icon: <ShieldCheck size={14} /> },
-                    { label: "Vertical", value: selectedCRP.vertical, icon: <Zap size={14} /> },
-                  ].map((item) => (
-                    <div key={item.label} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-sm transition-all">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                        {item.icon} {item.label}
-                      </p>
-                      <p className="text-sm text-slate-800 font-bold truncate">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Side Summary Stats */}
-                <div className="space-y-4">
-                  <div className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100">
-                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Coverage</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-black text-blue-700">{selectedCRP.villages}</span>
-                      <span className="text-blue-600/70 font-semibold text-sm">Villages</span>
-                    </div>
-                    <div className="mt-4 h-1.5 bg-blue-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-600 w-2/3 rounded-full" />
-                    </div>
-                  </div>
-
-                  <div className="p-5 rounded-3xl bg-slate-900 text-white shadow-lg shadow-slate-200">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Last Activity</p>
-                    <p className="text-sm font-bold mb-1">{selectedCRP.lastActivity}</p>
-                    <p className="text-[11px] text-slate-400 font-medium">{selectedCRP.time}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Footer Actions */}
-            <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center">
-              <div className="flex gap-3">
+      <AnimatePresence>
+        {isModalOpen && selectedCRP && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white w-full max-w-3xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
+            >
+              {/* 1. Profile Header with Gradient Background */}
+              <div className="relative h-32 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-end">
                 <button
                   onClick={closeModal}
-                  className="px-6 py-2.5 cursor-pointer rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all"
+                  className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
                 >
-                  Close
+                  <X size={20} />
                 </button>
 
+                <div className="flex translate-y-12 items-end gap-6">
+                  <div className="relative">
+                    <img
+                      src={selectedCRP.image}
+                      alt={selectedCRP.name}
+                      className="w-32 h-32 rounded-3xl object-cover border-4 border-white shadow-xl bg-white"
+                    />
+                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-white w-8 h-8 rounded-full" />
+                  </div>
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-white drop-shadow-sm">
+                      {selectedCRP.name}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-1">
+                      <StatusBadge status={selectedCRP.status} />
+                      <span className="text-slate-300 text-sm font-medium flex items-center gap-1">
+                        <MapPin size={14} /> {selectedCRP.district}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+
+              {/* 2. Content Body (Scrollable) */}
+              <div className="pt-20 px-8 pb-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
+
+                {/* Navigation Tabs (Visual only for now) */}
+                <div className="flex gap-6 border-b border-slate-100 sticky top-0 bg-white z-10">
+                  <button className="pb-3 border-b-2 border-slate-900 text-sm font-bold text-slate-900">Overview</button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Main Info Column */}
+                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                    {[
+                      { label: "Phone", value: selectedCRP.mobile, icon: <Activity size={14} /> },
+                      { label: "Email", value: selectedCRP.email, icon: <FileText size={14} /> },
+                      { label: "Taluka", value: selectedCRP.taluka, icon: <MapPin size={14} /> },
+                      { label: "Block", value: selectedCRP.block, icon: <Shield size={14} /> },
+                      { label: "Aadhaar", value: selectedCRP.aadhaar, icon: <ShieldCheck size={14} /> },
+                      { label: "Vertical", value: selectedCRP.vertical, icon: <Zap size={14} /> },
+                    ].map((item) => (
+                      <div key={item.label} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-sm transition-all">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                          {item.icon} {item.label}
+                        </p>
+                        <p className="text-sm text-slate-800 font-bold truncate">{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Side Summary Stats */}
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100">
+                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Coverage</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-black text-blue-700">{selectedCRP.villages}</span>
+                        <span className="text-blue-600/70 font-semibold text-sm">Villages</span>
+                      </div>
+                      <div className="mt-4 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-600 w-2/3 rounded-full" />
+                      </div>
+                    </div>
+
+                    <div className="p-5 rounded-3xl bg-slate-900 text-white shadow-lg shadow-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Last Activity</p>
+                      <p className="text-sm font-bold mb-1">{selectedCRP.lastActivity}</p>
+                      <p className="text-[11px] text-slate-400 font-medium">{selectedCRP.time}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Footer Actions */}
+              <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center">
+                <div className="flex gap-3">
+                  <button
+                    onClick={closeModal}
+                    className="px-6 py-2.5 cursor-pointer rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all"
+                  >
+                    Close
+                  </button>
+
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+
 
       {isOtpModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
