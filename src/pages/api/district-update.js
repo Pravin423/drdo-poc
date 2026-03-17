@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ status: false, message: "No authorization header" });
   }
 
-  if (req.method !== "POST") {
+  if (req.method !== "POST") {  
     return res.status(405).json({ status: false, message: "Method null allowed, must be POST!"});
   }
 

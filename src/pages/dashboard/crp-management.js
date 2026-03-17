@@ -23,105 +23,6 @@ import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import { exportToExcel } from "../../lib/exportToExcel";
 
-/* ---------------- MOCK DATA ---------------- */
-const CRP_DATA = [
-  {
-    id: 1,
-    name: "Priya Desai",
-    aadhaar: "1234-5678-9012",
-    mobile: "9876543210",
-    email: "priya.desai@goagov.in",
-    district: "North Goa",
-    taluka: "Bardez",
-    block: "Block 1",
-    villages: 5,
-    status: "Active",
-    lastActivity: "Task Submitted",
-    vertical: "Health & Nutrition",
-    time: "29 Jan 2026, 10:30 AM",
-    image: "https://i.pravatar.cc/150?img=1",
-  },
-  {
-    id: 2,
-    name: "Rajesh Kumar",
-    aadhaar: "2345-6789-0123",
-    mobile: "9876543211",
-    email: "rajesh.kumar@goagov.in",
-    district: "South Goa",
-    taluka: "Salcete",
-    block: "Block 2",
-    villages: 7,
-    status: "Active",
-    lastActivity: "Attendance Marked",
-    vertical: "Education & Literacy",
-    time: "30 Jan 2026, 09:15 AM",
-    image: "https://i.pravatar.cc/150?img=2",
-  },
-  {
-    id: 3,
-    name: "Anita Fernandes",
-    aadhaar: "3456-7890-1234",
-    mobile: "9876543212",
-    email: "anita.fernandes@goagov.in",
-    district: "North Goa",
-    taluka: "Tiswadi",
-    block: "Block 3",
-    villages: 4,
-    status: "Active",
-    lastActivity: "Training Attended",
-    vertical: "Livelihood & Skills",
-    time: "28 Jan 2026, 02:45 PM",
-    image: "https://i.pravatar.cc/150?img=3",
-  },
-  {
-    id: 4,
-    name: "Suresh Naik",
-    aadhaar: "4567-8901-2345",
-    mobile: "9876543213",
-    email: "suresh.naik@goagov.in",
-    district: "South Goa",
-    taluka: "Quepem",
-    block: "Block 1",
-    villages: 6,
-    status: "Inactive",
-    lastActivity: "Leave Applied",
-    vertical: "Agriculture & Allied",
-    time: "25 Jan 2026, 11:20 AM",
-    image: "https://i.pravatar.cc/150?img=4",
-  },
-  {
-    id: 5,
-    name: "Meera Patel",
-    aadhaar: "5678-9012-3456",
-    mobile: "9876543214",
-    email: "meera.patel@goagov.in",
-    district: "North Goa",
-    taluka: "Pernem",
-    block: "Block 2",
-    villages: 8,
-    status: "Active",
-    lastActivity: "Report Verified",
-    vertical: "Infrastructure Development",
-    time: "30 Jan 2026, 08:00 AM",
-    image: "https://i.pravatar.cc/150?img=5",
-  },
-  {
-    id: 6,
-    name: "Vikram Singh",
-    aadhaar: "6789-0123-4567",
-    mobile: "9876543215",
-    email: "vikram.singh@goagov.in",
-    district: "South Goa",
-    taluka: "Canacona",
-    block: "Block 3",
-    villages: 3,
-    status: "Blacklisted",
-    lastActivity: "Disciplinary Action",
-    vertical: "Social Welfare",
-    time: "20 Jan 2026, 03:30 PM",
-    image: "https://i.pravatar.cc/150?img=6",
-  },
-];
 
 
 /* ---------------- BADGES ---------------- */
@@ -166,6 +67,83 @@ export default function CrpManagement() {
     "Saligao",
     "Verna"
   ];
+  const [crpList, setCrpList] = useState([]);
+  const [isLoadingCRPs, setIsLoadingCRPs] = useState(true);
+
+  const fetchCRPs = async () => {
+    setIsLoadingCRPs(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch("/api/crp-employee", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+      const arr = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+
+      // Log the raw keys of the first record for debugging
+      if (arr.length > 0) {
+        console.log("[CRP] Raw API keys:", Object.keys(arr[0]));
+        console.log("[CRP] First record sample:", JSON.stringify(arr[0]).slice(0, 400));
+      }
+
+      setCrpList(arr.map((c, i) => {
+        // Exact field names from API response
+        const name = c.fullname           // API returns lowercase "fullname"
+          || c.fullName
+          || c.name
+          || c.full_name
+          || c.employeeName
+          || c.employee_name
+          || c.userName
+          || [c.firstName || c.first_name || "", c.lastName || c.last_name || ""].filter(Boolean).join(" ")
+          || "";
+
+        // Status: API returns 0 = Inactive, 1 = Active (numeric)
+        const rawStatus = c.status;
+        const status = rawStatus === 1 || rawStatus === "1" || rawStatus === "Active"
+          ? "Active"
+          : rawStatus === 0 || rawStatus === "0" || rawStatus === "Inactive"
+          ? "Inactive"
+          : typeof rawStatus === "string" ? rawStatus : "Active";
+
+        // Signature status: API returns 0/1 numeric
+        const sigRaw = c.signature_status ?? c.signatureStatus;
+        const signatureStatus = sigRaw === 1 || sigRaw === "1" ? "Approved" : sigRaw === 0 || sigRaw === "0" ? "Pending" : sigRaw || "Approved";
+
+        return {
+          id: c.crp_id || c.id || c._id || c.crpId || (i + 1),   // Show CRP0014 style ID
+          numericId: c.id || i + 1,
+          name,
+          aadhaar: c.aadhaar || c.aadhaar_number || c.aadhaarNumber || "",
+          mobile: c.mobile || c.phone || c.mobile_number || c.mobileNumber || "",
+          email: c.email || c.email_address || c.emailAddress || "",
+          gender: c.gender || "",
+          dob: c.date_of_birth || c.dob || "",
+          status,
+          signatureStatus,
+          rolename: c.rolename || c.role_name || "Community Resource Person",
+          district: c.district || c.districtName || c.district_name || "",
+          taluka: c.taluka || c.talukaName || c.taluka_name || "",
+          block: c.block || "",
+          villages: c.villages || 0,
+          vertical: c.vertical || "",
+          lastActivity: c.lastActivity || c.last_activity || "",
+          time: c.time || c.created_at || c.createdAt || "",
+          image: c.profile || c.image || c.profile_photo || c.profilePhoto || `https://i.pravatar.cc/150?img=${i + 1}`,
+        };
+      }));
+    } catch (err) {
+      console.error("[CRP] ❌ Failed to fetch CRP list:", err);
+    } finally {
+      setIsLoadingCRPs(false);
+    }
+  };
+
   const [selectedCRP, setSelectedCRP] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -186,6 +164,7 @@ export default function CrpManagement() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [formStep, setFormStep] = useState(1);
 
 
   const [isUploading, setIsUploading] = useState(false);
@@ -201,36 +180,75 @@ export default function CrpManagement() {
   const [taluka, setTaluka] = useState("All Talukas");
   const [vertical, setVertical] = useState("All Verticals");
 
-  // Stats
-  const totalCRPs = CRP_DATA.length;
-  const activeCRPs = CRP_DATA.filter((c) => c.status === "Active").length;
-  const inactiveCRPs = CRP_DATA.filter((c) => c.status === "Inactive").length;
-  const villagesCovered = CRP_DATA.reduce((sum, c) => sum + c.villages, 0);
+  // Stats — derived from live crpList
+  const totalCRPs = crpList.length;
+  const activeCRPs = crpList.filter((c) => c.status === "Active").length;
+  const inactiveCRPs = crpList.filter((c) => c.status === "Inactive").length;
+  const villagesCovered = crpList.reduce((sum, c) => sum + (Number(c.villages) || 0), 0);
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [error, setError] = useState('');
-  const handleFileChange = (e) => {
+  const [documents, setDocuments] = useState({
+    profilePhoto: null,
+    aadhaarCard: null,
+    panCard: null,
+    educationalCertificates: null,
+    passBook: null
+  });
+  const [documentPreviews, setDocumentPreviews] = useState({
+    profilePhoto: null,
+    aadhaarCard: null,
+    panCard: null,
+    educationalCertificates: null,
+    passBook: null
+  });
+  const [docErrors, setDocErrors] = useState({
+    profilePhoto: '',
+    aadhaarCard: '',
+    panCard: '',
+    educationalCertificates: '',
+    passBook: ''
+  });
+
+  const handleDocumentChange = (docType) => (e) => {
     const file = e.target.files[0];
 
     if (file) {
-      // Check file size (2MB = 2 * 1024 * 1024 bytes)
-      if (file.size > 2 * 1024 * 1024) {
-        setError('File size must be less than 2MB');
-        setSelectedFile(null);
+      // Check file size (5MB = 5 * 1024 * 1024 bytes)
+      if (file.size > 5 * 1024 * 1024) {
+        setDocErrors(prev => ({ ...prev, [docType]: 'File size must be less than 5MB' }));
+        setDocuments(prev => ({ ...prev, [docType]: null }));
+        if (documentPreviews[docType]) URL.revokeObjectURL(documentPreviews[docType]);
+        setDocumentPreviews(prev => ({ ...prev, [docType]: null }));
+        // Reset input value so same file can be selected again
+        e.target.value = '';
         return;
       }
 
-      // Check file type (optional - add your allowed types)
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-      if (!allowedTypes.includes(file.type)) {
-        setError('Please upload a valid document (JPG, PNG, or PDF)');
-        setSelectedFile(null);
+      // Check file type via extension or MIME type
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      const isValidExtension = /\.(jpe?g|png|pdf)$/i.test(file.name);
+
+      if (!allowedTypes.includes(file.type) && !isValidExtension) {
+        setDocErrors(prev => ({ ...prev, [docType]: 'Please upload a valid document (JPG, PNG, or PDF)' }));
+        setDocuments(prev => ({ ...prev, [docType]: null }));
+        if (documentPreviews[docType]) URL.revokeObjectURL(documentPreviews[docType]);
+        setDocumentPreviews(prev => ({ ...prev, [docType]: null }));
+        e.target.value = '';
         return;
       }
 
-      setError('');
-      setSelectedFile(file);
-      console.log('File selected:', file.name);
+      if (documentPreviews[docType]) {
+        URL.revokeObjectURL(documentPreviews[docType]);
+      }
+      const previewUrl = URL.createObjectURL(file);
+
+      setDocErrors(prev => ({ ...prev, [docType]: '' }));
+      setDocuments(prev => ({ ...prev, [docType]: file }));
+      setDocumentPreviews(prev => ({ ...prev, [docType]: previewUrl }));
+      console.log(`${docType} selected:`, file.name);
+
+      // We do not reset e.target.value here because maintaining it is fine, 
+      // but if you want users to be able to upload the same file twice in a row:
+      // e.target.value = ''; 
     }
   };
   const summaryCards = [
@@ -263,13 +281,6 @@ export default function CrpManagement() {
   }
 
   const handleSubmit = () => {
-    setSubmitted(true);
-
-    if (!form.name || !form.aadhaar || !form.mobile) {
-      alert("Please fill all required fields");
-      return;
-    }
-
     setIsSubmitting(true);
 
     setTimeout(() => {
@@ -280,23 +291,65 @@ export default function CrpManagement() {
         name: "",
         aadhaar: "",
         mobile: "",
-        email: ""
+        email: "",
+        dob: "",
+        gender: "",
+        district: "",
+        taluka: "",
+        block: "",
+        villages: [],
+        vertical: "",
+        bankName: "",
+        bankAccount: "",
+        ifsc: "",
+        pan: "",
+      });
+      setVillage("");
+      setAadhaarVerified(false);
+      setDocuments({
+        profilePhoto: null,
+        aadhaarCard: null,
+        panCard: null,
+        educationalCertificates: null,
+        passBook: null
+      });
+      Object.values(documentPreviews).forEach(url => { if (url) URL.revokeObjectURL(url); });
+      setDocumentPreviews({
+        profilePhoto: null,
+        aadhaarCard: null,
+        panCard: null,
+        educationalCertificates: null,
+        passBook: null
       });
 
       setConfirmChecked(false);
       setSubmitted(false);
+      setFormStep(1);
     }, 1500);
+  };
+
+  const handleNextStep = () => {
+    setSubmitted(true);
+    if (!form.name || !form.aadhaar || !form.mobile || !form.dob || !form.gender) {
+      alert("Please fill all required fields");
+      return;
+    }
+    if (!aadhaarVerified) {
+      alert("Please verify Aadhaar to continue");
+      return;
+    }
+    setFormStep(2);
   };
 
 
 
 
   // Filter CRPs
-  const filteredCRPs = CRP_DATA.filter((crp) => {
+  const filteredCRPs = crpList.filter((crp) => {
     const matchSearch =
       crp.name.toLowerCase().includes(search.toLowerCase()) ||
-      crp.aadhaar.includes(search) ||
-      crp.mobile.includes(search);
+      (crp.aadhaar || "").includes(search) ||
+      (crp.mobile || "").includes(search);
 
     const matchStatus = status === "All" || crp.status === status;
     const matchDistrict = district === "All Districts" || crp.district === district;
@@ -312,6 +365,8 @@ export default function CrpManagement() {
     aadhaar: "",
     mobile: "",
     email: "",
+    dob: "",
+    gender: "",
 
     // Administrative Assignment
     district: "",
@@ -320,9 +375,10 @@ export default function CrpManagement() {
     villages: [],
 
     // Vertical Assignment
-    verticals: [],
+    vertical: "",
 
     // Financial
+    bankName: "",
     bankAccount: "",
     ifsc: "",
     pan: "",
@@ -333,6 +389,11 @@ export default function CrpManagement() {
 
 
   const [submitted, setSubmitted] = useState(false);
+
+  // Fetch CRPs on mount
+  useEffect(() => {
+    fetchCRPs();
+  }, []);
 
   // Disable background scroll when any modal is open
   useEffect(() => {
@@ -672,24 +733,24 @@ export default function CrpManagement() {
 
           {/* ---------- TABLE ---------- */}
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-            {/* Make table horizontally scrollable on small screens */}
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-slate-50/60">
                   <tr>
                     {[
-                      "Image",
-                      "CRP Details",
-                      "Contact",
-                      "Assignment",
+                      "ID",
+                      "Name",
+                      "Email",
+                      "Mobile",
+                      "Gender",
+                      "Role Name",
                       "Status",
-                      "Last Activity",
-                      "Actions",
+                      "Signature Status",
+                      "Action",
                     ].map((h) => (
                       <th
                         key={h}
-                        className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Actions" ? "text-right" : "text-left"
-                          }`}
+                        className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}
                       >
                         {h}
                       </th>
@@ -698,67 +759,90 @@ export default function CrpManagement() {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {filteredCRPs.map((crp, idx) => (
-                    <motion.tr
-                      key={crp.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="hover:bg-slate-50/70"
-                    >
-                      <td className="px-4 py-3">
-                        <img
-                          src={crp.image}
-                          alt={crp.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-slate-900">{crp.name}</p>
-                        <p className="text-xs text-slate-500">Aadhaar: {crp.aadhaar}</p>
-                      </td>
-
-                      <td className="px-4 py-3 text-sm">
-                        <p>{crp.mobile}</p>
-                        <p className="text-xs text-slate-500">{crp.email}</p>
-                      </td>
-
-                      <td className="px-4 py-3 text-sm">
-                        <p className="font-medium">{crp.district}</p>
-                        <p className="text-xs text-slate-500">
-                          {crp.taluka} – {crp.block} • {crp.villages} villages
-                        </p>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <StatusBadge status={crp.status} />
-                      </td>
-
-                      <td className="px-4 py-3 text-sm">
-                        <p>{crp.lastActivity}</p>
-                        <p className="text-xs text-slate-500">{crp.time}</p>
-                      </td>
-
-                      <td className="px-4 py-3 text-right">
-                        <div className="inline-flex gap-2 text-slate-500">
-                          <Eye
-                            size={18}
-                            onClick={() => openModal(crp)}
-                            className="cursor-pointer hover:text-blue-600"
-                          />
-                          <Edit
-                            size={18}
-                            className="cursor-pointer hover:text-emerald-600"
-                          />
-                          <MoreHorizontal
-                            size={18}
-                            className="cursor-pointer hover:text-slate-700"
-                          />
+                  {isLoadingCRPs ? (
+                    // Loading skeleton
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        {Array.from({ length: 9 }).map((_, j) => (
+                          <td key={j} className="px-4 py-4">
+                            <div className="h-4 bg-slate-100 rounded-lg" style={{ width: j === 1 ? '120px' : j === 2 ? '160px' : '80px' }} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : filteredCRPs.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-16 text-center">
+                        <div className="flex flex-col items-center gap-3 text-slate-400">
+                          <Users size={36} className="opacity-30" />
+                          <p className="text-sm font-semibold">No CRP records found</p>
+                          <p className="text-xs">Try adjusting your search or filters</p>
                         </div>
                       </td>
-                    </motion.tr>
-                  ))}
+                    </tr>
+                  ) : (
+                    filteredCRPs.map((crp, idx) => (
+                      <motion.tr
+                        key={crp.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="hover:bg-slate-50/70"
+                      >
+                        {/* ID */}
+                        <td className="px-4 py-3 text-sm font-bold text-slate-500">{crp.id}</td>
+
+                        {/* Name */}
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-slate-900 text-sm">{crp.name}</p>
+                        </td>
+
+                        {/* Email */}
+                        <td className="px-4 py-3 text-sm text-slate-600">{crp.email}</td>
+
+                        {/* Mobile */}
+                        <td className="px-4 py-3 text-sm text-slate-700 font-medium">{crp.mobile}</td>
+
+                        {/* Gender */}
+                        <td className="px-4 py-3 text-sm text-slate-600 capitalize">
+                          {crp.gender || "—"}
+                        </td>
+
+                        {/* Role Name */}
+                        <td className="px-4 py-3 text-sm text-slate-600">Community Resource Person</td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3">
+                          <StatusBadge status={crp.status} />
+                        </td>
+
+                        {/* Signature Status */}
+                        <td className="px-4 py-3">
+                          <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${(crp.signatureStatus || "Approved") === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" : (crp.signatureStatus === "Rejected" ? "bg-red-50 text-red-700 border-red-200" : "bg-emerald-50 text-emerald-700 border-emerald-100")}`}>
+                            {crp.signatureStatus || "Approved"}
+                          </span>
+                        </td>
+
+                        {/* Action */}
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex gap-2 items-center">
+                            <button
+                              onClick={() => openModal(crp)}
+                              className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                            >
+                              <Eye size={14} />
+                            </button>
+                            <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-200 transition-colors">
+                              <Edit size={14} />
+                            </button>
+                            <button className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -803,6 +887,17 @@ export default function CrpManagement() {
 
               {/* 2. Content Body (Scrollable) */}
               <div className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-8 custom-scrollbar">
+
+                {/* Step Indicator */}
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">{formStep === 1 ? '1' : '✓'}</span> Fill Details
+                  </div>
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 2 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review & Confirm
+                  </div>
+                </div>
 
                 {/* Section: Personal Info */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -884,148 +979,33 @@ export default function CrpManagement() {
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
                       />
                     </div>
-                  </div>
-                </div>
 
-                <hr className="border-slate-100" />
-
-                {/* Section: Administrative Assignment */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
-                    <h3 className="text-sm font-bold text-slate-900">Administrative Assignment</h3>
-                    <p className="text-xs text-slate-500 mt-1">Geographical responsibility details.</p>
-                  </div>
-
-                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">District *</p>
-                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
-                        <option>Select District</option>
-                        <option>North Goa</option>
-                        <option>South Goa</option>
-                      </select>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Date of Birth *</p>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm text-slate-600"
+                        value={form.dob}
+                        onChange={(e) => setForm({ ...form, dob: e.target.value })}
+                      />
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Block *</p>
-                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
-                        <option>Select Block</option>
-                        <option> Block 1</option>
-                        <option> Block 2</option>
-                        <option> Block 3</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Taluka *</p>
-                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
-                        <option>Select Taluka</option>
-                        <optgroup label="North Goa">
-                          <option>Bardez</option>
-                          <option>Bicholim</option>
-                          <option>Pernem</option>
-                          <option>Ponda</option>
-                          <option>Sattari</option>
-                          <option>Tiswadi</option>
-                        </optgroup>
-                        <optgroup label="South Goa">
-                          <option>Canacona</option>
-                          <option>Dharbandora</option>
-                          <option>Mormugao</option>
-                          <option>Quepem</option>
-                          <option>Salcete</option>
-                          <option>Sanguem</option>
-                        </optgroup>
-                      </select>
-                    </div>
-
-
-                    <div className="relative col-span-2 w-full space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Assigned Village *</p>
-                      {/* Select Box */}
-                      <div
-                        onClick={() => setOpen((prev) => !prev)}
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm cursor-pointer flex items-center justify-between transition-all ${open ? "bg-white border-blue-500 ring-4 ring-blue-500/10" : "bg-slate-50 border-slate-100 hover:border-slate-200"
-                          }`}
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender *</p>
+                      <select
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm text-slate-600"
+                        value={form.gender}
+                        onChange={(e) => setForm({ ...form, gender: e.target.value })}
                       >
-                        <span className={village ? "text-slate-900 font-medium" : "text-slate-400"}>
-                          {village || "Select Village"}
-                        </span>
-                        <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-                      </div>
-
-                      {open && (
-                        <div className="absolute z-50 mt-2 w-full rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                          {/* Search */}
-                          <div className="p-2 border-b border-slate-100 bg-slate-50/50">
-                            <div className="relative">
-                              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                              <input
-                                type="text"
-                                placeholder="Search village..."
-                                value={searchvill}
-                                onChange={(e) => setSearchvill(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
-                                autoFocus
-                              />
-                            </div>
-                          </div>
-
-                          {/* Options */}
-                          <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
-                            {filteredVillages.length > 0 ? (
-                              filteredVillages.map((v, i) => (
-                                <div
-                                  key={i}
-                                  onClick={() => {
-                                    setVillage(v);
-                                    setOpen(false);
-                                    setSearchvill("");
-                                  }}
-                                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${village === v ? "bg-blue-50 text-blue-700 font-semibold" : "text-slate-600 hover:bg-slate-50"}`}
-                                >
-                                  {v}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="px-4 py-8 text-center text-sm text-slate-400">
-                                No results found
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <hr className="border-slate-100" />
-                {/* Section: Vertical Assignment */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
-                    <h3 className="text-sm font-bold text-slate-900">Vertical Assignment</h3>
-                    <p className="text-xs text-slate-500 mt-1">Program or department mapping.</p>
-                  </div>
-
-                  <div className="md:col-span-2 grid  gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vertical *</p>
-                      <select className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none">
-                        <option>Select Vertical</option>
-                        <option>Health & Nutrition</option>
-                        <option>Education & Literacy</option>
-                        <option>Livelihood & Skills</option>
-                        <option>Agriculture & Allied</option>
-                        <option>Infrastructure Development</option>
-                        <option>Social Welfare</option>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
                       </select>
                     </div>
-
-
                   </div>
                 </div>
 
-                <hr className="border-slate-100" />
+
                 {/* Section: Financial Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1">
@@ -1035,10 +1015,22 @@ export default function CrpManagement() {
 
                   <div className="md:col-span-2 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Name</p>
+                      <input
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
+                        placeholder="Bank Name"
+                        value={form.bankName}
+                        onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Number</p>
                       <input
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
-                        placeholder="Bank Account Number"
+                        placeholder="Account Number"
+                        value={form.bankAccount}
+                        onChange={(e) => setForm({ ...form, bankAccount: e.target.value })}
                       />
                     </div>
 
@@ -1047,7 +1039,50 @@ export default function CrpManagement() {
                       <input
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
                         placeholder="IFSC Code"
+                        value={form.ifsc}
+                        onChange={(e) => setForm({ ...form, ifsc: e.target.value })}
                       />
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pass Book</p>
+                      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
+                        <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100 text-blue-600">
+                          {documentPreviews['passBook'] ? (
+                            documents['passBook']?.type === 'application/pdf' || documents['passBook']?.name.toLowerCase().endsWith('.pdf') ? (
+                              <FileText size={20} className="text-blue-600" />
+                            ) : (
+                              <img src={documentPreviews['passBook']} alt="preview" className="w-full h-full object-cover" />
+                            )
+                          ) : (
+                            <Upload size={20} className="text-blue-600" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">
+                            Pass Book
+                          </p>
+                          <p className="text-xs text-slate-500 truncate pr-2">
+                            {documents['passBook'] ? documents['passBook'].name : 'Bank details (Max 5MB)'}
+                          </p>
+                          {docErrors['passBook'] && <p className="text-xs text-red-500 mt-1">{docErrors['passBook']}</p>}
+                        </div>
+
+                        <input
+                          type="file"
+                          id="doc-upload-passBook"
+                          className="hidden"
+                          onChange={handleDocumentChange('passBook')}
+                          accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                        />
+                        <label
+                          htmlFor="doc-upload-passBook"
+                          className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+                        >
+                          BROWSE
+                        </label>
+                      </div>
                     </div>
 
                     <div className="col-span-2 space-y-1">
@@ -1055,6 +1090,8 @@ export default function CrpManagement() {
                       <input
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
                         placeholder="Pan Card Number"
+                        value={form.pan}
+                        onChange={(e) => setForm({ ...form, pan: e.target.value })}
                       />
                     </div>
                   </div>
@@ -1068,73 +1105,183 @@ export default function CrpManagement() {
                     <p className="text-xs text-slate-500 mt-1">Verification documents.</p>
                   </div>
 
-                  <div className="md:col-span-2">
-                    <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
-                      <div className="p-2 bg-white rounded-lg shadow-sm">
-                        <Upload size={16} className="text-blue-600" />
-                      </div>
+                  <div className="md:col-span-2 space-y-4">
+                    {[
+                      { id: 'profilePhoto', label: 'Profile Photo', desc: 'Passport size photo (Max 5MB)' },
+                      { id: 'aadhaarCard', label: 'Aadhaar Card', desc: 'Front and back side (Max 5MB)' },
+                      { id: 'panCard', label: 'PAN Card', desc: 'Clear copy (Max 5MB)' },
+                      { id: 'educationalCertificates', label: 'Educational Certificates', desc: 'Highest qualification (Max 5MB)' }
+                    ].map((doc) => (
+                      <div key={doc.id} className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
+                        <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100 text-blue-600">
+                          {documentPreviews[doc.id] ? (
+                            documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name.toLowerCase().endsWith('.pdf') ? (
+                              <FileText size={20} className="text-blue-600" />
+                            ) : (
+                              <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
+                            )
+                          ) : (
+                            <Upload size={20} className="text-blue-600" />
+                          )}
+                        </div>
 
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                          Upload Document
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {selectedFile ? selectedFile.name : 'Aadhaar / ID Proof (Max 2MB)'}
-                        </p>
-                        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-                      </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">
+                            {doc.label}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate pr-2">
+                            {documents[doc.id] ? documents[doc.id].name : doc.desc}
+                          </p>
+                          {docErrors[doc.id] && <p className="text-xs text-red-500 mt-1">{docErrors[doc.id]}</p>}
+                        </div>
 
-                      <input
-                        type="file"
-                        id="doc-upload"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept="image/jpeg,image/jpg,image/png,application/pdf"
-                      />
-                      <label
-                        htmlFor="doc-upload"
-                        className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
-                      >
-                        BROWSE
-                      </label>
-                    </div>
+                        <input
+                          type="file"
+                          id={`doc-upload-${doc.id}`}
+                          className="hidden"
+                          onChange={handleDocumentChange(doc.id)}
+                          accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                        />
+                        <label
+                          htmlFor={`doc-upload-${doc.id}`}
+                          className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+                        >
+                          BROWSE
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
 
 
-                {/* Confirmation Checkbox */}
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={confirmChecked}
-                      onChange={(e) => setConfirmChecked(e.target.checked)}
-                      className="mt-1 w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
-                    />
-                    <span className="text-xs text-slate-600 leading-relaxed font-medium">
-                      I confirm that all the information provided above is accurate. I understand that any discrepancies may lead to the rejection of this registration.
-                    </span>
-                  </label>
-                </div>
+                {/* ===== STEP 2: PREVIEW ===== */}
+                {formStep === 2 && (
+                  <div className="space-y-6">
+
+                    {/* Personal Info Preview */}
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { label: 'Full Name', value: form.name },
+                          { label: 'Aadhaar', value: form.aadhaar, extra: aadhaarVerified ? <span className="text-emerald-600 text-[10px] font-bold ml-1">✓ Verified</span> : null },
+                          { label: 'Mobile', value: form.mobile },
+                          { label: 'Email', value: form.email || '—' },
+                          { label: 'Date of Birth', value: form.dob },
+                          { label: 'Gender', value: form.gender },
+                        ].map(item => (
+                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                            <p className="text-sm font-bold text-slate-800 truncate">{item.value}{item.extra}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Financial Info Preview */}
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Information</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { label: 'Bank Name', value: form.bankName || '—' },
+                          { label: 'Account Number', value: form.bankAccount || '—' },
+                          { label: 'IFSC Code', value: form.ifsc || '—' },
+                          { label: 'PAN Card', value: form.pan || '—' },
+                        ].map(item => (
+                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                            <p className="text-sm font-bold text-slate-800 truncate">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Document Uploads Preview */}
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Uploaded Documents</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { id: 'profilePhoto', label: 'Profile Photo' },
+                          { id: 'aadhaarCard', label: 'Aadhaar Card' },
+                          { id: 'panCard', label: 'PAN Card' },
+                          { id: 'educationalCertificates', label: 'Edu. Certificates' },
+                          { id: 'passBook', label: 'Pass Book' },
+                        ].map(doc => (
+                          <div key={doc.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center gap-2 text-center">
+                            <div className="w-14 h-14 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                              {documentPreviews[doc.id] ? (
+                                documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name?.toLowerCase().endsWith('.pdf') ? (
+                                  <FileText size={24} className="text-blue-500" />
+                                ) : (
+                                  <img src={documentPreviews[doc.id]} alt={doc.label} className="w-full h-full object-cover" />
+                                )
+                              ) : (
+                                <Upload size={20} className="text-slate-300" />
+                              )}
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{doc.label}</p>
+                            <p className="text-[10px] text-slate-400 truncate w-full">
+                              {documents[doc.id] ? <span className="text-emerald-600 font-semibold">✓ Uploaded</span> : <span className="text-slate-300">Not uploaded</span>}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Confirmation Checkbox */}
+                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={confirmChecked}
+                          onChange={(e) => setConfirmChecked(e.target.checked)}
+                          className="mt-1 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                        />
+                        <span className="text-xs text-amber-800 leading-relaxed font-medium">
+                          I confirm that all the information provided above is accurate and complete. I understand that any discrepancies may lead to the rejection of this registration.
+                        </span>
+                      </label>
+                    </div>
+
+                  </div>
+                )}
+
+
               </div>
 
               {/* 3. Footer Actions */}
               <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center gap-3">
                 <button
-                  onClick={() => setIsRegisterOpen(false)}
+                  onClick={() => {
+                    if (formStep === 2) {
+                      setFormStep(1);
+                      setConfirmChecked(false);
+                    } else {
+                      setIsRegisterOpen(false);
+                    }
+                  }}
                   className="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all shadow-sm"
                 >
-                  Cancel
+                  {formStep === 2 ? '← Back' : 'Cancel'}
                 </button>
-                <button
-                  disabled={!confirmChecked || isSubmitting}
-                  onClick={handleSubmit}
-                  className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${confirmChecked ? "bg-slate-900 text-white hover:bg-slate-800 active:scale-95" : "bg-slate-300 text-white cursor-not-allowed"
-                    }`}
-                >
-                  {isSubmitting ? "Processing..." : "Register CRP"}
-                </button>
+                {formStep === 1 ? (
+                  <button
+                    onClick={handleNextStep}
+                    className="px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 bg-slate-900 text-white hover:bg-slate-800 active:scale-95"
+                  >
+                    Next: Preview →
+                  </button>
+                ) : (
+                  <button
+                    disabled={!confirmChecked || isSubmitting}
+                    onClick={handleSubmit}
+                    className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${confirmChecked && !isSubmitting ? 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95' : 'bg-slate-300 text-white cursor-not-allowed'
+                      }`}
+                  >
+                    {isSubmitting ? 'Processing...' : '✓ Confirm & Register CRP'}
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

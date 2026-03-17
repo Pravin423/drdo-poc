@@ -1,0 +1,32 @@
+// src/pages/api/crp-employee.js
+// Server-side proxy — avoids CORS when the browser fetches the external API.
+
+export default async function handler(req, res) {
+  let authHeader = req.headers["authorization"];
+  if ((!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) && req.cookies?.auth_token) {
+    authHeader = `Bearer ${req.cookies.auth_token}`;
+  }
+
+  if (!authHeader) {
+    return res.status(401).json({ status: false, message: "No authorization header" });
+  }
+
+  try {
+    const response = await fetch("https://goadrda.runtime-solutions.net/admin/api/crp-employee", {
+      method: "GET",
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+    // Log first record so we can see the actual field names
+    const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+    if (arr.length > 0) console.log("[CRP API] First record keys:", Object.keys(arr[0]), "| Sample:", JSON.stringify(arr[0]).slice(0, 300));
+    return res.status(response.status).json(data);
+  } catch (error) {
+    console.error("CRP Employee proxy fetch error:", error);
+    return res.status(500).json({ status: false, message: "Proxy request failed", error: error.message });
+  }
+}
