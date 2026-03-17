@@ -265,7 +265,6 @@ export default function CrpManagement() {
     { label: "Total CRPs", value: totalCRPs, icon: Users, accent: "bg-blue-50 text-blue-600 border-blue-200" },
     { label: "Active CRPs", value: activeCRPs, icon: Users, accent: "bg-emerald-50 text-emerald-600 border-emerald-200" },
     { label: "Inactive CRPs", value: inactiveCRPs, icon: Users, accent: "bg-rose-50 text-rose-600 border-rose-200" },
-    { label: "Villages Covered", value: villagesCovered, icon: MapPin, accent: "bg-purple-50 text-purple-600 border-purple-200" },
   ];
   const exportToCSV = () => {
     if (!filteredCRPs.length) return;
@@ -613,7 +612,7 @@ export default function CrpManagement() {
           </motion.header>
 
           {/* ---------- SUMMARY CARDS ---------- */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-y-8 gap-x-6 md:grid-cols-2 lg:grid-cols-4 ">
             {summaryCards.map((card, index) => (
               <motion.section
                 key={card.label}
@@ -691,10 +690,8 @@ export default function CrpManagement() {
                   <button
                     onClick={() => {
                       setSearch("");
-                      setStatus("All Statuses");
-                      setDistrict("All Districts");
-                      setTaluka("All Talukas");
-                      setVertical("All Verticals");
+                      setStatus("All Status");
+                     
                     }}
                     className="w-full sm:w-auto text-slate-500 border border-slate-200 hover:text-slate-800 hover:bg-slate-50 rounded-xl px-5 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
