@@ -25,7 +25,7 @@ import { exportToExcel } from "../../lib/exportToExcel";
 
 
 
-/* ---------------- BADGES ---------------- */
+
 const StatusBadge = ({ status }) => {
   const styles = {
     Active: "bg-emerald-50 text-emerald-700 border-emerald-100",
@@ -43,7 +43,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-/* ---------------- PAGE ---------------- */
+
 export default function CrpManagement() {
   const goaVillages = [
     "Panjim",
@@ -168,7 +168,7 @@ export default function CrpManagement() {
   const [bulkFile, setBulkFile] = useState(null);
 
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("All Statuses");
+  const [status, setStatus] = useState("All Status");
   const [district, setDistrict] = useState("All Districts");
   const [taluka, setTaluka] = useState("All Talukas");
   const [vertical, setVertical] = useState("All Verticals");
@@ -180,7 +180,7 @@ export default function CrpManagement() {
       String(crp.aadhaar ?? "").includes(search) ||
       String(crp.mobile ?? "").includes(search)
 
-    const matchStatus = status === "All Statuses" || crp.status === status;
+    const matchStatus = status === "All Status" || crp.status === status;
     const matchDistrict = district === "All Districts" || crp.district === district;
     const matchTaluka = taluka === "All Talukas" || crp.taluka === taluka;
     const matchVertical = vertical === "All Verticals" || crp.vertical === vertical;
@@ -448,7 +448,7 @@ export default function CrpManagement() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden"
           >
-            {/* Header */}
+            
             <div className="flex items-center justify-between px-6 py-5 border-b">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Bulk Import CRPs</h2>
@@ -465,9 +465,9 @@ export default function CrpManagement() {
               </button>
             </div>
 
-            {/* Body */}
+            
             <div className="p-6 space-y-6">
-              {/* Instructions */}
+              
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <h4 className="font-semibold text-slate-800 mb-3">
                   Before you upload
@@ -481,7 +481,7 @@ export default function CrpManagement() {
                 </ul>
               </div>
 
-              {/* Download Template */}
+              
               <div className="flex justify-center">
                 <button
 
@@ -492,7 +492,7 @@ export default function CrpManagement() {
                 </button>
               </div>
 
-              {/* Upload Area */}
+              
               <label className="group flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 cursor-pointer transition hover:border-slate-400 hover:bg-slate-50">
                 <UploadCloud
                   size={34}
@@ -534,7 +534,7 @@ export default function CrpManagement() {
               </label>
             </div>
 
-            {/* Footer */}
+            
             <div className="flex justify-end gap-3 px-6 py-4 border-t bg-slate-50">
               <button
                 onClick={() => {
@@ -611,7 +611,7 @@ export default function CrpManagement() {
 
       <DashboardLayout>
         <div className="max-w-[1600px]  mx-auto space-y-8 p-6">
-          {/* ---------- HEADER ---------- */}
+          
           <motion.header
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -644,7 +644,7 @@ export default function CrpManagement() {
             </div>
           </motion.header>
 
-          {/* ---------- SUMMARY CARDS ---------- */}
+          
           <div className="grid gap-y-8 gap-x-6 md:grid-cols-2 lg:grid-cols-4 ">
             {summaryCards.map((card, index) => (
               <motion.section
@@ -672,18 +672,18 @@ export default function CrpManagement() {
             ))}
           </div>
 
-          {/* ---------- FILTERS ---------- */}
+          
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            {/* Header Section */}
+            
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Filter Records</h3>
             </div>
 
             <div className="p-6">
-              {/* Main Responsive Grid */}
+              
               <div className="flex flex-col md:flex-row items-end gap-5">
 
-                {/* Search Input - Spanned for importance */}
+                
                 <div className="flex-1 w-full md:w-auto">
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Search</label>
                   <div className="relative group">
@@ -699,7 +699,7 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
-                {/* Status Filter */}
+                
                 <div className="w-full md:w-48 relative">
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Status</label>
                   <div className="relative">
@@ -710,16 +710,16 @@ export default function CrpManagement() {
                     >
                       {["All Status", "Active", "Inactive", "On Leave"].map(opt => <option key={opt}>{opt}</option>)}
                     </select>
-                    {/* Custom Arrow Icon */}
+                    
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                       <ChevronDown size={14} />
                     </div>
                   </div>
                 </div>
 
-                {/* Actions */}
+                
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
-                  {/* Clear Filters */}
+                  
                   <button
                     onClick={() => {
                       setSearch("");
@@ -732,7 +732,7 @@ export default function CrpManagement() {
                     Clear All
                   </button>
 
-                  {/* Export CSV */}
+                  
                   <button
                     onClick={exportToCSV}
                     className="w-full sm:w-auto px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
@@ -746,7 +746,7 @@ export default function CrpManagement() {
             </div>
           </div>
 
-          {/* ---------- TABLE ---------- */}
+          
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px]">
@@ -804,41 +804,41 @@ export default function CrpManagement() {
                         transition={{ delay: idx * 0.05 }}
                         className="hover:bg-slate-50/70"
                       >
-                        {/* ID */}
+                        
                         <td className="px-4 py-3 text-sm font-bold text-slate-500">{crp.id}</td>
 
-                        {/* Name */}
+                        
                         <td className="px-4 py-3">
                           <p className="font-semibold text-slate-900 text-sm">{crp.name}</p>
                         </td>
 
-                        {/* Email */}
+                        
                         <td className="px-4 py-3 text-sm text-slate-600">{crp.email}</td>
 
-                        {/* Mobile */}
+                        
                         <td className="px-4 py-3 text-sm text-slate-700 font-medium">{crp.mobile}</td>
 
-                        {/* Gender */}
+                        
                         <td className="px-4 py-3 text-sm text-slate-600 capitalize">
                           {crp.gender || "—"}
                         </td>
 
-                        {/* Role Name */}
+                        
                         <td className="px-4 py-3 text-sm text-slate-600">Community Resource Person</td>
 
-                        {/* Status */}
+                        
                         <td className="px-4 py-3">
                           <StatusBadge status={crp.status} />
                         </td>
 
-                        {/* Signature Status */}
+                        
                         <td className="px-4 py-3">
                           <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${(crp.signatureStatus || "Approved") === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" : (crp.signatureStatus === "Rejected" ? "bg-red-50 text-red-700 border-red-200" : "bg-emerald-50 text-emerald-700 border-emerald-100")}`}>
                             {crp.signatureStatus || "Approved"}
                           </span>
                         </td>
 
-                        {/* Action */}
+                        
                         <td className="px-4 py-3 text-right">
                           <div className="inline-flex gap-2 items-center">
                             <button
@@ -878,7 +878,7 @@ export default function CrpManagement() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white w-full max-w-4xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
-              {/* 1. Profile-Style Header */}
+              
               <div className="relative h-28 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-center">
                 <div className="flex items-center gap-5">
                   <div className="p-3.5 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
@@ -900,7 +900,7 @@ export default function CrpManagement() {
                 </button>
               </div>
 
-              {/* 2. Content Body — animated step swap */}
+              
               <div className="relative overflow-hidden">
                 <AnimatePresence mode="wait" initial={false}>
                   {formStep === 1 ? (
@@ -912,7 +912,7 @@ export default function CrpManagement() {
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-8 custom-scrollbar"
                     >
-                {/* Step Indicator */}
+                
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                     <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">{formStep === 1 ? '1' : '✓'}</span> Fill Details
@@ -923,7 +923,7 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
-                {/* Section: Personal Info */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1">
                     <h3 className="text-sm font-bold text-slate-900">Personal Information</h3>
@@ -1011,7 +1011,7 @@ export default function CrpManagement() {
                 </div>
 
 
-                {/* Section: Financial Information */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1">
                     <h3 className="text-sm font-bold text-slate-900">Financial Information</h3>
@@ -1101,7 +1101,7 @@ export default function CrpManagement() {
                 </div>
 
                 <hr className="border-slate-100" />
-                {/* Section: Document Upload */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="md:col-span-1">
                     <h3 className="text-sm font-bold text-slate-900">Document Upload</h3>
@@ -1150,7 +1150,7 @@ export default function CrpManagement() {
 
                     </motion.div>
                   ) : (
-                    /* ── STEP 2 : REVIEW & CONFIRM ───────────────── */
+                    
                     <motion.div
                       key="step2"
                       initial={{ opacity: 0, x: 32 }}
@@ -1160,7 +1160,7 @@ export default function CrpManagement() {
                       className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-6 custom-scrollbar"
                     >
 
-                {/* Step 2 indicator */}
+                
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
                     <span className="w-5 h-5 flex items-center justify-center rounded-full bg-emerald-100">✓</span> Fill Details
@@ -1171,7 +1171,7 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
-                {/* Review banner */}
+                
                 <div className="rounded-2xl bg-blue-50 border border-blue-100 px-5 py-4 flex items-center gap-3">
                   <div className="p-2 bg-blue-100 rounded-xl text-blue-600"><Eye size={18} /></div>
                   <div>
@@ -1180,7 +1180,7 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
-                <div className="space-y-6">                    {/* Personal Info Preview */}
+                <div className="space-y-6">                    
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1200,7 +1200,7 @@ export default function CrpManagement() {
                       </div>
                     </div>
 
-                    {/* Financial Info Preview */}
+                    
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Information</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1219,7 +1219,7 @@ export default function CrpManagement() {
                       </div>
                     </div>
 
-                    {/* Document Uploads Preview */}
+                    
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Uploaded Documents</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1251,7 +1251,7 @@ export default function CrpManagement() {
                       </div>
                     </div>
 
-                    {/* Confirmation Checkbox */}
+                    
                     <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
@@ -1273,7 +1273,7 @@ export default function CrpManagement() {
                 </AnimatePresence>
               </div>
 
-              {/* 3. Footer Actions */}
+              
               <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center gap-3">
                 <button
                   onClick={() => {
@@ -1319,7 +1319,7 @@ export default function CrpManagement() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white w-full max-w-3xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
-              {/* 1. Profile Header with Gradient Background */}
+              
               <div className="relative h-32 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-end">
                 <button
                   onClick={closeModal}
@@ -1351,16 +1351,16 @@ export default function CrpManagement() {
                 </div>
               </div>
 
-              {/* 2. Content Body (Scrollable) */}
+              
               <div className="pt-20 px-8 pb-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
 
-                {/* Navigation Tabs (Visual only for now) */}
+                
                 <div className="flex gap-6 border-b border-slate-100 sticky top-0 bg-white z-10">
                   <button className="pb-3 border-b-2 border-slate-900 text-sm font-bold text-slate-900">Overview</button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Main Info Column */}
+                  
                   <div className="md:col-span-2 grid grid-cols-2 gap-4">
                     {[
                       { label: "Phone", value: selectedCRP.mobile, icon: <Activity size={14} /> },
@@ -1379,7 +1379,7 @@ export default function CrpManagement() {
                     ))}
                   </div>
 
-                  {/* Side Summary Stats */}
+                  
                   <div className="space-y-4">
                     <div className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100">
                       <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Coverage</p>
@@ -1401,7 +1401,7 @@ export default function CrpManagement() {
                 </div>
               </div>
 
-              {/* 3. Footer Actions */}
+              
               <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center">
                 <div className="flex gap-3">
                   <button
