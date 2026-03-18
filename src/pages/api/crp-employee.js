@@ -21,9 +21,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    // Log first record so we can see the actual field names
-    const arr = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
-    if (arr.length > 0) console.log("[CRP API] First record keys:", Object.keys(arr[0]), "| Sample:", JSON.stringify(arr[0]).slice(0, 300));
+
     return res.status(response.status).json(data);
   } catch (error) {
     console.error("CRP Employee proxy fetch error:", error);
