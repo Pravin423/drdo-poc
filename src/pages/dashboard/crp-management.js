@@ -17,7 +17,7 @@ import {
   UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap
 } from "lucide-react";
 import { useState, useEffect } from "react";
-// Update your framer-motion import to include AnimatePresence
+
 import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
@@ -88,8 +88,8 @@ export default function CrpManagement() {
 
 
       setCrpList(arr.map((c, i) => {
-        // Exact field names from API response
-        const name = c.fullname           // API returns lowercase "fullname"
+
+        const name = c.fullname
           || c.fullName
           || c.name
           || c.full_name
@@ -99,7 +99,7 @@ export default function CrpManagement() {
           || [c.firstName || c.first_name || "", c.lastName || c.last_name || ""].filter(Boolean).join(" ")
           || "";
 
-        // Status: API returns 0 = Inactive, 1 = Active (numeric)
+
         const rawStatus = c.status;
         const status = rawStatus === 1 || rawStatus === "1" || rawStatus === "Active"
           ? "Active"
@@ -107,12 +107,12 @@ export default function CrpManagement() {
             ? "Inactive"
             : typeof rawStatus === "string" ? rawStatus : "Active";
 
-        // Signature status: API returns 0/1 numeric
+
         const sigRaw = c.signature_status ?? c.signatureStatus;
         const signatureStatus = sigRaw === 1 || sigRaw === "1" ? "Approved" : sigRaw === 0 || sigRaw === "0" ? "Pending" : sigRaw || "Approved";
 
         return {
-          id: c.crp_id || c.id || c._id || c.crpId || (i + 1),   // Show CRP0014 style ID
+          id: c.crp_id || c.id || c._id || c.crpId || (i + 1),
           numericId: c.id || i + 1,
           name,
           aadhaar: c.aadhaar || c.aadhaar_number || c.aadhaarNumber || "",
@@ -173,7 +173,7 @@ export default function CrpManagement() {
   const [taluka, setTaluka] = useState("All Talukas");
   const [vertical, setVertical] = useState("All Verticals");
 
-  // Filter CRPs
+
   const filteredCRPs = crpList.filter((crp) => {
     const matchSearch =
       (crp.name || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -188,7 +188,7 @@ export default function CrpManagement() {
     return matchSearch && matchStatus && matchDistrict && matchTaluka && matchVertical;
   });
 
-  // Stats — derived from filteredCRPs
+
   const totalCRPs = filteredCRPs.length;
   const activeCRPs = filteredCRPs.filter((c) => c.status === "Active").length;
   const inactiveCRPs = filteredCRPs.filter((c) => c.status === "Inactive").length;
@@ -220,18 +220,18 @@ export default function CrpManagement() {
     const file = e.target.files[0];
 
     if (file) {
-      // Check file size (5MB = 5 * 1024 * 1024 bytes)
+
       if (file.size > 5 * 1024 * 1024) {
         setDocErrors(prev => ({ ...prev, [docType]: 'File size must be less than 5MB' }));
         setDocuments(prev => ({ ...prev, [docType]: null }));
         if (documentPreviews[docType]) URL.revokeObjectURL(documentPreviews[docType]);
         setDocumentPreviews(prev => ({ ...prev, [docType]: null }));
-        // Reset input value so same file can be selected again
+
         e.target.value = '';
         return;
       }
 
-      // Check file type via extension or MIME type
+
       const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
       const isValidExtension = /\.(jpe?g|png|pdf)$/i.test(file.name);
 
@@ -253,9 +253,7 @@ export default function CrpManagement() {
       setDocuments(prev => ({ ...prev, [docType]: file }));
       setDocumentPreviews(prev => ({ ...prev, [docType]: previewUrl }));
 
-      // We do not reset e.target.value here because maintaining it is fine, 
-      // but if you want users to be able to upload the same file twice in a row:
-      // e.target.value = ''; 
+
     }
   };
   const summaryCards = [
@@ -324,7 +322,7 @@ export default function CrpManagement() {
         throw new Error(msg);
       }
 
-      // ── Success: close, reset, refresh list ──────────────────────────
+
       setIsRegisterOpen(false);
       setFormStep(1);
       setFormErrors({});
@@ -348,7 +346,7 @@ export default function CrpManagement() {
 
   const handleNextStep = () => {
     const errors = {};
-    // ── Personal (all required by API)
+
     if (!form.name.trim())                              errors.name        = "Full name is required.";
     if (!form.aadhaar || form.aadhaar.length !== 12)    errors.aadhaar     = "Enter a valid 12-digit Aadhaar number.";
     if (!form.mobile || !/^\d{10}$/.test(form.mobile))  errors.mobile      = "Enter a valid 10-digit mobile number.";
@@ -357,7 +355,7 @@ export default function CrpManagement() {
                                                         errors.email       = "Enter a valid email address.";
     if (!form.dob)                                      errors.dob         = "Date of birth is required.";
     if (!form.gender)                                   errors.gender      = "Please select a gender.";
-    // ── Financial (all required by API)
+
     if (!form.bankName.trim())                          errors.bankName    = "Bank name is required.";
     if (!form.branchName.trim())                        errors.branchName  = "Branch name is required.";
     if (!form.bankAccount.trim())                       errors.bankAccount = "Account number is required.";
@@ -369,7 +367,7 @@ export default function CrpManagement() {
     if (!form.pan.trim())                               errors.pan         = "PAN number is required.";
     else if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(form.pan.trim()))
                                                         errors.pan         = "Invalid PAN format (e.g. ABCDE1234F).";
-    // ── Documents (all required by API)
+
     if (!documents.profilePhoto)                        errors.profilePhoto          = "Profile photo is required.";
     if (!documents.aadhaarCard)                         errors.aadhaarCard           = "Aadhaar card image is required.";
     if (!documents.panCard)                             errors.panCard               = "PAN card image is required.";
@@ -388,7 +386,7 @@ export default function CrpManagement() {
 
 
   const [form, setForm] = useState({
-    // Personal
+
     name: "",
     aadhaar: "",
     mobile: "",
@@ -396,35 +394,35 @@ export default function CrpManagement() {
     dob: "",
     gender: "",
 
-    // Administrative Assignment
+
     district: "",
     taluka: "",
     block: "",
     villages: [],
 
-    // Vertical Assignment
+
     vertical: "",
 
-    // Financial
+
     bankName: "",
     branchName: "",
     bankAccount: "",
     ifsc: "",
     pan: "",
 
-    // Document
+
     photo: null,
   });
 
 
   const [submitted, setSubmitted] = useState(false);
 
-  // Fetch CRPs on mount
+
   useEffect(() => {
     fetchCRPs();
   }, []);
 
-  // Disable background scroll when any modal is open
+
   useEffect(() => {
     if (isModalOpen || isRegisterOpen || isBulkImportOpen) {
       document.body.style.overflow = 'hidden';
@@ -551,7 +549,7 @@ export default function CrpManagement() {
                 onClick={() => {
                   setIsUploading(true);
 
-                  // simulate API call
+
                   setTimeout(() => {
                     setIsUploading(false);
                     setUploadSuccess(true);
@@ -775,7 +773,7 @@ export default function CrpManagement() {
 
                 <tbody className="divide-y divide-slate-100">
                   {isLoadingCRPs ? (
-                    // Loading skeleton
+
                     Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="animate-pulse">
                         {Array.from({ length: 9 }).map((_, j) => (
