@@ -900,9 +900,18 @@ export default function CrpManagement() {
                 </button>
               </div>
 
-              {/* 2. Content Body (Scrollable) */}
-              <div className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-8 custom-scrollbar">
-
+              {/* 2. Content Body — animated step swap */}
+              <div className="relative overflow-hidden">
+                <AnimatePresence mode="wait" initial={false}>
+                  {formStep === 1 ? (
+                    <motion.div
+                      key="step1"
+                      initial={{ opacity: 0, x: -32 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -32 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-8 custom-scrollbar"
+                    >
                 {/* Step Indicator */}
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
@@ -1139,13 +1148,39 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
+                    </motion.div>
+                  ) : (
+                    /* ── STEP 2 : REVIEW & CONFIRM ───────────────── */
+                    <motion.div
+                      key="step2"
+                      initial={{ opacity: 0, x: 32 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 32 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-6 custom-scrollbar"
+                    >
 
+                {/* Step 2 indicator */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-emerald-100">✓</span> Fill Details
+                  </div>
+                  <div className="flex-1 h-px bg-emerald-200" />
+                  <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-slate-900 text-white border-slate-900">
+                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review &amp; Confirm
+                  </div>
+                </div>
 
-                {/* ===== STEP 2: PREVIEW ===== */}
-                {formStep === 2 && (
-                  <div className="space-y-6">
+                {/* Review banner */}
+                <div className="rounded-2xl bg-blue-50 border border-blue-100 px-5 py-4 flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-xl text-blue-600"><Eye size={18} /></div>
+                  <div>
+                    <p className="text-sm font-bold text-blue-800">Review before submitting</p>
+                    <p className="text-xs text-blue-500 mt-0.5">Please verify all information is accurate. You can go back to edit.</p>
+                  </div>
+                </div>
 
-                    {/* Personal Info Preview */}
+                <div className="space-y-6">                    {/* Personal Info Preview */}
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1231,10 +1266,11 @@ export default function CrpManagement() {
                       </label>
                     </div>
 
-                  </div>
-                )}
+                </div>
 
-
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* 3. Footer Actions */}
