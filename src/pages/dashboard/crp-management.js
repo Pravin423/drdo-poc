@@ -11,7 +11,7 @@ import {
   Edit,
   MoreHorizontal,
   Search,
-  RefreshCw,  
+  RefreshCw,
   UploadCloud,
   ChevronDown,
   UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap
@@ -151,10 +151,7 @@ export default function CrpManagement() {
     v.toLowerCase().includes(searchvill.toLowerCase())
   );
 
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [aadhaarVerified, setAadhaarVerified] = useState(false);
-  const [otpError, setOtpError] = useState("");
+
 
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -289,68 +286,103 @@ export default function CrpManagement() {
     setSelectedCRP(null);
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const fd = new FormData();
+      fd.append("fullname",       form.name);
+      fd.append("aadharnumber",   form.aadhaar);
+      fd.append("mobile",         form.mobile);
+      fd.append("email",          form.email);
+      fd.append("gender",         form.gender);
+      fd.append("dob",            form.dob);
+      fd.append("pan_number",     form.pan);
+      fd.append("bank_name",      form.bankName);
+      fd.append("branch_name",    form.branchName);
+      fd.append("account_number", form.bankAccount);
+      fd.append("ifsc",           form.ifsc);
+
+      if (documents.profilePhoto)            fd.append("profile_img",      documents.profilePhoto);
+      if (documents.aadhaarCard)             fd.append("aadhaar_img",      documents.aadhaarCard);
+      if (documents.panCard)                 fd.append("pan_img",          documents.panCard);
+      if (documents.educationalCertificates) fd.append("edu_certificates", documents.educationalCertificates);
+      if (documents.passBook)                fd.append("passbook_img",     documents.passBook);
+
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/add-crp", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+
+      const result = await response.json();
+      if (!response.ok || result?.status === false) {
+        const msg = typeof result?.message === "string"
+          ? result.message
+          : JSON.stringify(result?.message ?? result?.error ?? `HTTP ${response.status}`);
+        throw new Error(msg);
+      }
+
+      // ── Success: close, reset, refresh list ──────────────────────────
       setIsRegisterOpen(false);
-
-      setForm({
-        name: "",
-        aadhaar: "",
-        mobile: "",
-        email: "",
-        dob: "",
-        gender: "",
-        district: "",
-        taluka: "",
-        block: "",
-        villages: [],
-        vertical: "",
-        bankName: "",
-        bankAccount: "",
-        ifsc: "",
-        pan: "",
-      });
+      setFormStep(1);
+      setFormErrors({});
+      setForm({ name:"", aadhaar:"", mobile:"", email:"", dob:"", gender:"",
+                 district:"", taluka:"", block:"", villages:[], vertical:"",
+                 bankName:"", branchName:"", bankAccount:"", ifsc:"", pan:"" });
       setVillage("");
-      setAadhaarVerified(false);
-      setDocuments({
-        profilePhoto: null,
-        aadhaarCard: null,
-        panCard: null,
-        educationalCertificates: null,
-        passBook: null
-      });
       Object.values(documentPreviews).forEach(url => { if (url) URL.revokeObjectURL(url); });
-      setDocumentPreviews({
-        profilePhoto: null,
-        aadhaarCard: null,
-        panCard: null,
-        educationalCertificates: null,
-        passBook: null
-      });
-
+      setDocuments({ profilePhoto:null, aadhaarCard:null, panCard:null, educationalCertificates:null, passBook:null });
+      setDocumentPreviews({ profilePhoto:null, aadhaarCard:null, panCard:null, educationalCertificates:null, passBook:null });
       setConfirmChecked(false);
       setSubmitted(false);
-      setFormStep(1);
-    }, 1500);
+      await fetchCRPs();
+    } catch (err) {
+      console.error("[Add CRP] Failed:", err);
+      alert(`Failed to register CRP:\n${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNextStep = () => {
-    setSubmitted(true);
-    if (!form.name || !form.aadhaar || !form.mobile || !form.dob || !form.gender) {
-      alert("Please fill all required fields");
-      return;
-    }
-    if (!aadhaarVerified) {
-      alert("Please verify Aadhaar to continue");
-      return;
-    }
+    const errors = {};
+    // ── Personal (all required by API)
+    if (!form.name.trim())                              errors.name        = "Full name is required.";
+    if (!form.aadhaar || form.aadhaar.length !== 12)    errors.aadhaar     = "Enter a valid 12-digit Aadhaar number.";
+    if (!form.mobile || !/^\d{10}$/.test(form.mobile))  errors.mobile      = "Enter a valid 10-digit mobile number.";
+    if (!form.email.trim())                             errors.email       = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+                                                        errors.email       = "Enter a valid email address.";
+    if (!form.dob)                                      errors.dob         = "Date of birth is required.";
+    if (!form.gender)                                   errors.gender      = "Please select a gender.";
+    // ── Financial (all required by API)
+    if (!form.bankName.trim())                          errors.bankName    = "Bank name is required.";
+    if (!form.branchName.trim())                        errors.branchName  = "Branch name is required.";
+    if (!form.bankAccount.trim())                       errors.bankAccount = "Account number is required.";
+    else if (!/^\d{9,18}$/.test(form.bankAccount.trim()))
+                                                        errors.bankAccount = "Account number must be 9–18 digits.";
+    if (!form.ifsc.trim())                              errors.ifsc        = "IFSC code is required.";
+    else if (!/^[A-Z]{4}[A-Z0-9]{7}$/i.test(form.ifsc.trim()))
+                                                        errors.ifsc        = "IFSC must be 11 characters (e.g. PUNB0026000).";
+    if (!form.pan.trim())                               errors.pan         = "PAN number is required.";
+    else if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(form.pan.trim()))
+                                                        errors.pan         = "Invalid PAN format (e.g. ABCDE1234F).";
+    // ── Documents (all required by API)
+    if (!documents.profilePhoto)                        errors.profilePhoto          = "Profile photo is required.";
+    if (!documents.aadhaarCard)                         errors.aadhaarCard           = "Aadhaar card image is required.";
+    if (!documents.panCard)                             errors.panCard               = "PAN card image is required.";
+    if (!documents.educationalCertificates)             errors.educationalCertificates = "Education certificate is required.";
+    if (!documents.passBook)                            errors.passBook              = "Passbook image is required.";
+
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setFormStep(2);
   };
 
-
+  const [formErrors, setFormErrors] = useState({});
+  const clearErr = (f) => setFormErrors(p => { const n={...p}; delete n[f]; return n; });
 
 
 
@@ -375,6 +407,7 @@ export default function CrpManagement() {
 
     // Financial
     bankName: "",
+    branchName: "",
     bankAccount: "",
     ifsc: "",
     pan: "",
@@ -393,7 +426,7 @@ export default function CrpManagement() {
 
   // Disable background scroll when any modal is open
   useEffect(() => {
-    if (isModalOpen || isRegisterOpen || isBulkImportOpen || isOtpModalOpen) {
+    if (isModalOpen || isRegisterOpen || isBulkImportOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -402,7 +435,7 @@ export default function CrpManagement() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isModalOpen, isRegisterOpen, isBulkImportOpen, isOtpModalOpen]);
+  }, [isModalOpen, isRegisterOpen, isBulkImportOpen]);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -691,7 +724,7 @@ export default function CrpManagement() {
                     onClick={() => {
                       setSearch("");
                       setStatus("All Status");
-                     
+
                     }}
                     className="w-full sm:w-auto text-slate-500 border border-slate-200 hover:text-slate-800 hover:bg-slate-50 rounded-xl px-5 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
@@ -891,98 +924,79 @@ export default function CrpManagement() {
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name *</p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
+                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.name ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
                         placeholder="Enter name"
                         value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, name: e.target.value }); clearErr('name'); }}
                       />
+                      {formErrors.name && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.name}</p>}
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                        Aadhaar Number *
-                      </p>
-
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={12}
-                          placeholder="000000000000"
-                          value={form.aadhaar}
-                          disabled={aadhaarVerified}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            setForm({ ...form, aadhaar: value });
-                          }}
-                          className={`w-full px-4 py-2.5 rounded-xl pr-28 text-sm outline-none transition-all
-        ${aadhaarVerified
-                              ? "bg-slate-100 border border-emerald-400 text-slate-600"
-                              : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"
-                            }`}
-                        />
-
-                        {/* Right Button */}
-                        {aadhaarVerified ? (
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-600 font-semibold text-sm">
-                            Verified
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={form.aadhaar.length !== 12}
-                            onClick={() => setIsOtpModalOpen(true)}
-                            className={`absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-sm font-semibold
-          ${form.aadhaar.length === 12
-                                ? "text-blue-500 hover:underline"
-                                : "text-slate-300 cursor-not-allowed"
-                              }`}
-                          >
-                            Verify Aadhaar
-                          </button>
-                        )}
-                      </div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Aadhaar Number *</p>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={12}
+                        placeholder="000000000000"
+                        value={form.aadhaar}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          setForm({ ...form, aadhaar: value });
+                          clearErr('aadhaar');
+                        }}
+                        className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all ${
+                          formErrors.aadhaar
+                            ? "bg-red-50 border border-red-400"
+                            : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"
+                        }`}
+                      />
+                      {formErrors.aadhaar && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.aadhaar}</p>}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile Number *</p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                        placeholder="+91"
+                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.mobile ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                        placeholder="10-digit mobile"
                         value={form.mobile}
-                        onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, mobile: e.target.value.replace(/\D/g,'') }); clearErr('mobile'); }}
                       />
+                      {formErrors.mobile && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.mobile}</p>}
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
+                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.email ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
                         placeholder="email@domain.com"
                         value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, email: e.target.value }); clearErr('email'); }}
                       />
+                      {formErrors.email && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.email}</p>}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Date of Birth *</p>
                       <input
                         type="date"
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm text-slate-600"
+                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.dob ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
                         value={form.dob}
-                        onChange={(e) => setForm({ ...form, dob: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, dob: e.target.value }); clearErr('dob'); }}
                       />
+                      {formErrors.dob && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.dob}</p>}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender *</p>
                       <select
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm text-slate-600"
+                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.gender ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
                         value={form.gender}
-                        onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, gender: e.target.value }); clearErr('gender'); }}
                       >
                         <option value="">Select Gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                       </select>
+                      {formErrors.gender && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.gender}</p>}
                     </div>
                   </div>
                 </div>
@@ -997,33 +1011,47 @@ export default function CrpManagement() {
 
                   <div className="md:col-span-2 grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Name</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Name <span className="text-red-400">*</span></p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
-                        placeholder="Bank Name"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.bankName ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                        placeholder="e.g. Punjab National Bank"
                         value={form.bankName}
-                        onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, bankName: e.target.value }); clearErr('bankName'); }}
                       />
+                      {formErrors.bankName && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.bankName}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Branch Name <span className="text-red-400">*</span></p>
+                      <input
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.branchName ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                        placeholder="e.g. Panaji Main Branch"
+                        value={form.branchName}
+                        onChange={(e) => { setForm({ ...form, branchName: e.target.value }); clearErr('branchName'); }}
+                      />
+                      {formErrors.branchName && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.branchName}</p>}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Number</p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.bankAccount ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
                         placeholder="Account Number"
                         value={form.bankAccount}
-                        onChange={(e) => setForm({ ...form, bankAccount: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, bankAccount: e.target.value.replace(/\D/g,'') }); clearErr('bankAccount'); }}
                       />
+                      {formErrors.bankAccount && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.bankAccount}</p>}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">IFSC Code</p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
-                        placeholder="IFSC Code"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.ifsc ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                        placeholder="e.g. PUNB0026000"
                         value={form.ifsc}
-                        onChange={(e) => setForm({ ...form, ifsc: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, ifsc: e.target.value.toUpperCase() }); clearErr('ifsc'); }}
                       />
+                      {formErrors.ifsc && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.ifsc}</p>}
                     </div>
 
                     <div className="space-y-1">
@@ -1040,41 +1068,25 @@ export default function CrpManagement() {
                             <Upload size={20} className="text-blue-600" />
                           )}
                         </div>
-
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">
-                            Pass Book
-                          </p>
-                          <p className="text-xs text-slate-500 truncate pr-2">
-                            {documents['passBook'] ? documents['passBook'].name : 'Bank details (Max 5MB)'}
-                          </p>
+                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">Pass Book</p>
+                          <p className="text-xs text-slate-500 truncate pr-2">{documents['passBook'] ? documents['passBook'].name : 'Bank details (Max 5MB)'}</p>
                           {docErrors['passBook'] && <p className="text-xs text-red-500 mt-1">{docErrors['passBook']}</p>}
                         </div>
-
-                        <input
-                          type="file"
-                          id="doc-upload-passBook"
-                          className="hidden"
-                          onChange={handleDocumentChange('passBook')}
-                          accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf"
-                        />
-                        <label
-                          htmlFor="doc-upload-passBook"
-                          className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
-                        >
-                          BROWSE
-                        </label>
+                        <input type="file" id="doc-upload-passBook" className="hidden" onChange={handleDocumentChange('passBook')} accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+                        <label htmlFor="doc-upload-passBook" className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
                       </div>
                     </div>
 
                     <div className="col-span-2 space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pan Card Number</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">PAN Card Number</p>
                       <input
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm outline-none"
-                        placeholder="Pan Card Number"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.pan ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                        placeholder="e.g. ABCDE1234F"
                         value={form.pan}
-                        onChange={(e) => setForm({ ...form, pan: e.target.value })}
+                        onChange={(e) => { setForm({ ...form, pan: e.target.value.toUpperCase() }); clearErr('pan'); }}
                       />
+                      {formErrors.pan && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.pan}</p>}
                     </div>
                   </div>
                 </div>
@@ -1089,13 +1101,15 @@ export default function CrpManagement() {
 
                   <div className="md:col-span-2 space-y-4">
                     {[
-                      { id: 'profilePhoto', label: 'Profile Photo', desc: 'Passport size photo (Max 5MB)' },
-                      { id: 'aadhaarCard', label: 'Aadhaar Card', desc: 'Front and back side (Max 5MB)' },
-                      { id: 'panCard', label: 'PAN Card', desc: 'Clear copy (Max 5MB)' },
-                      { id: 'educationalCertificates', label: 'Educational Certificates', desc: 'Highest qualification (Max 5MB)' }
+                      { id: 'profilePhoto', label: 'Profile Photo', desc: 'Passport size photo (Max 5MB)', required: true },
+                      { id: 'aadhaarCard',  label: 'Aadhaar Card',  desc: 'Front and back side (Max 5MB)', required: true },
+                      { id: 'panCard',      label: 'PAN Card',      desc: 'Clear copy (Max 5MB)',           required: true },
+                      { id: 'educationalCertificates', label: 'Educational Certificates', desc: 'Highest qualification (Max 5MB)', required: true }
                     ].map((doc) => (
-                      <div key={doc.id} className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
-                        <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100 text-blue-600">
+                      <div key={doc.id} className={`p-4 rounded-2xl flex items-center gap-3 border ${
+                        formErrors[doc.id] ? 'bg-red-50 border-red-300' : 'bg-blue-50/50 border-blue-100'
+                      }`}>
+                        <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100">
                           {documentPreviews[doc.id] ? (
                             documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name.toLowerCase().endsWith('.pdf') ? (
                               <FileText size={20} className="text-blue-600" />
@@ -1103,33 +1117,23 @@ export default function CrpManagement() {
                               <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
                             )
                           ) : (
-                            <Upload size={20} className="text-blue-600" />
+                            <Upload size={20} className={formErrors[doc.id] ? 'text-red-400' : 'text-blue-600'} />
                           )}
                         </div>
-
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">
-                            {doc.label}
+                          <p className={`text-[10px] font-bold uppercase tracking-widest truncate ${
+                            formErrors[doc.id] ? 'text-red-500' : 'text-blue-600'
+                          }`}>
+                            {doc.label}{doc.required && <span className="text-red-400 ml-0.5">*</span>}
                           </p>
-                          <p className="text-xs text-slate-500 truncate pr-2">
-                            {documents[doc.id] ? documents[doc.id].name : doc.desc}
-                          </p>
-                          {docErrors[doc.id] && <p className="text-xs text-red-500 mt-1">{docErrors[doc.id]}</p>}
+                          <p className="text-xs text-slate-500 truncate pr-2">{documents[doc.id] ? documents[doc.id].name : doc.desc}</p>
+                          {formErrors[doc.id] && <p className="text-xs text-red-500 mt-0.5">{formErrors[doc.id]}</p>}
+                          {docErrors[doc.id]   && <p className="text-xs text-red-500 mt-0.5">{docErrors[doc.id]}</p>}
                         </div>
-
-                        <input
-                          type="file"
-                          id={`doc-upload-${doc.id}`}
-                          className="hidden"
-                          onChange={handleDocumentChange(doc.id)}
-                          accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf"
-                        />
-                        <label
-                          htmlFor={`doc-upload-${doc.id}`}
-                          className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
-                        >
-                          BROWSE
-                        </label>
+                        <input type="file" id={`doc-upload-${doc.id}`} className="hidden"
+                          onChange={(e) => { handleDocumentChange(doc.id)(e); clearErr(doc.id); }}
+                          accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+                        <label htmlFor={`doc-upload-${doc.id}`} className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
                       </div>
                     ))}
                   </div>
@@ -1147,7 +1151,7 @@ export default function CrpManagement() {
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {[
                           { label: 'Full Name', value: form.name },
-                          { label: 'Aadhaar', value: form.aadhaar, extra: aadhaarVerified ? <span className="text-emerald-600 text-[10px] font-bold ml-1">✓ Verified</span> : null },
+                          { label: 'Aadhaar', value: form.aadhaar },
                           { label: 'Mobile', value: form.mobile },
                           { label: 'Email', value: form.email || '—' },
                           { label: 'Date of Birth', value: form.dob },
@@ -1167,6 +1171,7 @@ export default function CrpManagement() {
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {[
                           { label: 'Bank Name', value: form.bankName || '—' },
+                          { label: 'Branch Name', value: form.branchName || '—' },
                           { label: 'Account Number', value: form.bankAccount || '—' },
                           { label: 'IFSC Code', value: form.ifsc || '—' },
                           { label: 'PAN Card', value: form.pan || '—' },
@@ -1376,76 +1381,6 @@ export default function CrpManagement() {
           </div>
         )}
       </AnimatePresence>
-
-
-
-      {isOtpModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6"
-          >
-            {/* Header */}
-            <h2 className="text-xl font-bold text-slate-900 mb-2">
-              Verify Aadhaar OTP
-            </h2>
-
-            {/* Info Box */}
-            <div className="bg-emerald-50 text-emerald-700 text-sm p-3 rounded-lg mb-4">
-              UIDAI has sent a temporary OTP to your registered mobile number
-              (valid for 10 mins).
-            </div>
-
-            {/* OTP Input */}
-            <p className="text-sm text-slate-600 mb-1">
-              Please enter OTP to complete verification
-            </p>
-
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={otp}
-              onChange={(e) => {
-                setOtp(e.target.value.replace(/\D/g, ""));
-                setOtpError("");
-              }}
-              placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-2.5 rounded-xl border border-emerald-500 outline-none text-lg tracking-widest text-center"
-            />
-
-            {otpError && (
-              <p className="text-xs text-red-500 mt-1">{otpError}</p>
-            )}
-
-            {/* Submit */}
-            <button
-              className="w-full mt-4 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold hover:bg-emerald-700 transition"
-              onClick={() => {
-                if (otp === "123456") {
-                  setAadhaarVerified(true);
-                  setIsOtpModalOpen(false);
-                  setOtp("");
-                } else {
-                  setOtpError("Invalid OTP. Please try again.");
-                }
-              }}
-            >
-              Submit
-            </button>
-
-            {/* Resend */}
-            <p className="text-center text-sm text-slate-500 mt-3">
-              Didn’t get the OTP?{" "}
-              <button className="text-blue-600 font-semibold hover:underline">
-                Resend OTP
-              </button>
-            </p>
-          </motion.div>
-        </div>
-      )}
 
     </ProtectedRoute>
   );

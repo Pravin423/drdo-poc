@@ -1,0 +1,84 @@
+// src/pages/api/add-crp.js
+// Proxy — parses the browser's multipart form with formidable,
+// then re-sends it using Node's native FormData + fetch (Node 18+).
+
+import { IncomingForm } from "formidable";
+import fs from "fs";
+
+export const config = { api: { bodyParser: false } };
+
+export default function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ status: false, message: "Method not allowed" });
+  }
+
+  // ── Auth ────────────────────────────────────────────────────────────────
+  let authHeader = req.headers["authorization"];
+  if (
+    (!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) &&
+    req.cookies?.auth_token
+  ) {
+    authHeader = `Bearer ${req.cookies.auth_token}`;
+  }
+  if (!authHeader) {
+    return res.status(401).json({ status: false, message: "No authorization header" });
+  }
+
+  // ── Parse multipart ─────────────────────────────────────────────────────
+  const form = new IncomingForm({ keepExtensions: true, multiples: false });
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error("[add-crp] formidable parse error:", err);
+      return res.status(500).json({ status: false, message: "Failed to parse form data" });
+    }
+
+    try {
+      // formidable v3 wraps values in arrays
+      const get = (k) => (Array.isArray(fields[k]) ? fields[k][0] : fields[k]) ?? "";
+
+      // Use Node 18+ native FormData so native fetch handles boundaries correctly
+      const fd = new FormData();
+      fd.append("fullname",       get("fullname"));
+      fd.append("aadharnumber",   get("aadharnumber"));
+      fd.append("mobile",         get("mobile"));
+      fd.append("email",          get("email"));
+      fd.append("gender",         get("gender"));
+      fd.append("dob",            get("dob"));
+      fd.append("pan_number",     get("pan_number"));
+      fd.append("bank_name",      get("bank_name"));
+      fd.append("branch_name",    get("branch_name"));
+      fd.append("account_number", get("account_number"));
+      fd.append("ifsc",           get("ifsc"));
+
+      // File helper — convert formidable temp file → Blob → append
+      const appendFile = (fdKey, fileKey) => {
+        const f = Array.isArray(files[fileKey]) ? files[fileKey][0] : files[fileKey];
+        if (f?.filepath) {
+          const buf  = fs.readFileSync(f.filepath);
+          const blob = new Blob([buf], { type: f.mimetype ?? "application/octet-stream" });
+          fd.append(fdKey, blob, f.originalFilename ?? f.newFilename ?? fdKey);
+        }
+      };
+
+      appendFile("profile_img",      "profile_img");
+      appendFile("aadhaar_img",      "aadhaar_img");
+      appendFile("pan_img",          "pan_img");
+      appendFile("edu_certificates", "edu_certificates");
+      appendFile("passbook_img",     "passbook_img");
+
+      // ── Forward to remote API ───────────────────────────────────────────
+      const response = await fetch(
+        "https://goadrda.runtime-solutions.net/admin/api/add-crp",
+        { method: "POST", headers: { Authorization: authHeader }, body: fd }
+      );
+
+      const data = await response.json();
+      console.log("[add-crp] Remote response:", JSON.stringify(data));
+      return res.status(response.status).json(data);
+    } catch (error) {
+      console.error("[add-crp] Proxy error:", error);
+      return res.status(500).json({ status: false, message: "Proxy request failed", error: error.message });
+    }
+  });
+}
