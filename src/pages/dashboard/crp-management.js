@@ -115,7 +115,7 @@ export default function CrpManagement() {
           id: c.crp_id || c.id || c._id || c.crpId || (i + 1),
           numericId: c.id || i + 1,
           name,
-          aadhaar: c.aadhaar || c.aadhaar_number || c.aadhaarNumber || "",
+          aadhaar: c.aadhaar || c.aadhaar_number || c.aadhar_number || c.aadhaarNumber || "",
           mobile: c.mobile || c.phone || c.mobile_number || c.mobileNumber || "",
           email: c.email || c.email_address || c.emailAddress || "",
           gender: c.gender || "",
@@ -142,6 +142,50 @@ export default function CrpManagement() {
 
   const [selectedCRP, setSelectedCRP] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewCRPData, setViewCRPData] = useState(null);
+  const [isViewLoading, setIsViewLoading] = useState(false);
+
+  const handleViewClick = async (crp) => {
+    setViewModalOpen(true);
+    setIsViewLoading(true);
+    setViewCRPData(null);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/crp-details?id=${crp.numericId || crp.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      let d = result.data || result;
+      if (Array.isArray(d)) {
+        d = d[0] || {};
+      }
+      setViewCRPData({
+        id: d.crp_id || d.id || crp.id,
+        name: d.fullname || d.fullName || crp.name,
+        aadhaar: d.aadhar_number || d.aadhaar_number || d.aadhaar || crp.aadhaar || "",
+        mobile: d.mobile || crp.mobile,
+        email: d.email || crp.email,
+        gender: d.gender || crp.gender,
+        dob: d.date_of_birth || d.dob || crp.dob,
+        status: crp.status,
+        district: d.district || crp.district,
+        taluka: d.taluka || crp.taluka,
+        bankName: d.bank_name || "",
+        branchName: d.branch_name || "",
+        accountNumber: d.account_number || "",
+        ifsc: d.ifsc || d.ifsc_code || "",
+        pan: d.pan_number || d.pan || "",
+        image: d.profile || d.profile_img || crp.image,
+        signatureStatus: crp.signatureStatus,
+      });
+    } catch (err) {
+      setViewCRPData({ error: "Failed to load CRP details." });
+    } finally {
+      setIsViewLoading(false);
+    }
+  };
 
   const [open, setOpen] = useState(false);
   const [searchvill, setSearchvill] = useState("");
@@ -289,23 +333,23 @@ export default function CrpManagement() {
 
     try {
       const fd = new FormData();
-      fd.append("fullname",       form.name);
-      fd.append("aadharnumber",   form.aadhaar);
-      fd.append("mobile",         form.mobile);
-      fd.append("email",          form.email);
-      fd.append("gender",         form.gender);
-      fd.append("dob",            form.dob);
-      fd.append("pan_number",     form.pan);
-      fd.append("bank_name",      form.bankName);
-      fd.append("branch_name",    form.branchName);
+      fd.append("fullname", form.name);
+      fd.append("aadharnumber", form.aadhaar);
+      fd.append("mobile", form.mobile);
+      fd.append("email", form.email);
+      fd.append("gender", form.gender);
+      fd.append("dob", form.dob);
+      fd.append("pan_number", form.pan);
+      fd.append("bank_name", form.bankName);
+      fd.append("branch_name", form.branchName);
       fd.append("account_number", form.bankAccount);
-      fd.append("ifsc",           form.ifsc);
+      fd.append("ifsc", form.ifsc);
 
-      if (documents.profilePhoto)            fd.append("profile_img",      documents.profilePhoto);
-      if (documents.aadhaarCard)             fd.append("aadhaar_img",      documents.aadhaarCard);
-      if (documents.panCard)                 fd.append("pan_img",          documents.panCard);
+      if (documents.profilePhoto) fd.append("profile_img", documents.profilePhoto);
+      if (documents.aadhaarCard) fd.append("aadhaar_img", documents.aadhaarCard);
+      if (documents.panCard) fd.append("pan_img", documents.panCard);
       if (documents.educationalCertificates) fd.append("edu_certificates", documents.educationalCertificates);
-      if (documents.passBook)                fd.append("passbook_img",     documents.passBook);
+      if (documents.passBook) fd.append("passbook_img", documents.passBook);
 
       const token = localStorage.getItem("authToken");
       const response = await fetch("/api/add-crp", {
@@ -326,13 +370,15 @@ export default function CrpManagement() {
       setIsRegisterOpen(false);
       setFormStep(1);
       setFormErrors({});
-      setForm({ name:"", aadhaar:"", mobile:"", email:"", dob:"", gender:"",
-                 district:"", taluka:"", block:"", villages:[], vertical:"",
-                 bankName:"", branchName:"", bankAccount:"", ifsc:"", pan:"" });
+      setForm({
+        name: "", aadhaar: "", mobile: "", email: "", dob: "", gender: "",
+        district: "", taluka: "", block: "", villages: [], vertical: "",
+        bankName: "", branchName: "", bankAccount: "", ifsc: "", pan: ""
+      });
       setVillage("");
       Object.values(documentPreviews).forEach(url => { if (url) URL.revokeObjectURL(url); });
-      setDocuments({ profilePhoto:null, aadhaarCard:null, panCard:null, educationalCertificates:null, passBook:null });
-      setDocumentPreviews({ profilePhoto:null, aadhaarCard:null, panCard:null, educationalCertificates:null, passBook:null });
+      setDocuments({ profilePhoto: null, aadhaarCard: null, panCard: null, educationalCertificates: null, passBook: null });
+      setDocumentPreviews({ profilePhoto: null, aadhaarCard: null, panCard: null, educationalCertificates: null, passBook: null });
       setConfirmChecked(false);
       setSubmitted(false);
       await fetchCRPs();
@@ -347,32 +393,32 @@ export default function CrpManagement() {
   const handleNextStep = () => {
     const errors = {};
 
-    if (!form.name.trim())                              errors.name        = "Full name is required.";
-    if (!form.aadhaar || form.aadhaar.length !== 12)    errors.aadhaar     = "Enter a valid 12-digit Aadhaar number.";
-    if (!form.mobile || !/^\d{10}$/.test(form.mobile))  errors.mobile      = "Enter a valid 10-digit mobile number.";
-    if (!form.email.trim())                             errors.email       = "Email is required.";
+    if (!form.name.trim()) errors.name = "Full name is required.";
+    if (!form.aadhaar || form.aadhaar.length !== 12) errors.aadhaar = "Enter a valid 12-digit Aadhaar number.";
+    if (!form.mobile || !/^\d{10}$/.test(form.mobile)) errors.mobile = "Enter a valid 10-digit mobile number.";
+    if (!form.email.trim()) errors.email = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-                                                        errors.email       = "Enter a valid email address.";
-    if (!form.dob)                                      errors.dob         = "Date of birth is required.";
-    if (!form.gender)                                   errors.gender      = "Please select a gender.";
+      errors.email = "Enter a valid email address.";
+    if (!form.dob) errors.dob = "Date of birth is required.";
+    if (!form.gender) errors.gender = "Please select a gender.";
 
-    if (!form.bankName.trim())                          errors.bankName    = "Bank name is required.";
-    if (!form.branchName.trim())                        errors.branchName  = "Branch name is required.";
-    if (!form.bankAccount.trim())                       errors.bankAccount = "Account number is required.";
+    if (!form.bankName.trim()) errors.bankName = "Bank name is required.";
+    if (!form.branchName.trim()) errors.branchName = "Branch name is required.";
+    if (!form.bankAccount.trim()) errors.bankAccount = "Account number is required.";
     else if (!/^\d{9,18}$/.test(form.bankAccount.trim()))
-                                                        errors.bankAccount = "Account number must be 9–18 digits.";
-    if (!form.ifsc.trim())                              errors.ifsc        = "IFSC code is required.";
+      errors.bankAccount = "Account number must be 9–18 digits.";
+    if (!form.ifsc.trim()) errors.ifsc = "IFSC code is required.";
     else if (!/^[A-Z]{4}[A-Z0-9]{7}$/i.test(form.ifsc.trim()))
-                                                        errors.ifsc        = "IFSC must be 11 characters (e.g. PUNB0026000).";
-    if (!form.pan.trim())                               errors.pan         = "PAN number is required.";
+      errors.ifsc = "IFSC must be 11 characters (e.g. PUNB0026000).";
+    if (!form.pan.trim()) errors.pan = "PAN number is required.";
     else if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(form.pan.trim()))
-                                                        errors.pan         = "Invalid PAN format (e.g. ABCDE1234F).";
+      errors.pan = "Invalid PAN format (e.g. ABCDE1234F).";
 
-    if (!documents.profilePhoto)                        errors.profilePhoto          = "Profile photo is required.";
-    if (!documents.aadhaarCard)                         errors.aadhaarCard           = "Aadhaar card image is required.";
-    if (!documents.panCard)                             errors.panCard               = "PAN card image is required.";
-    if (!documents.educationalCertificates)             errors.educationalCertificates = "Education certificate is required.";
-    if (!documents.passBook)                            errors.passBook              = "Passbook image is required.";
+    if (!documents.profilePhoto) errors.profilePhoto = "Profile photo is required.";
+    if (!documents.aadhaarCard) errors.aadhaarCard = "Aadhaar card image is required.";
+    if (!documents.panCard) errors.panCard = "PAN card image is required.";
+    if (!documents.educationalCertificates) errors.educationalCertificates = "Education certificate is required.";
+    if (!documents.passBook) errors.passBook = "Passbook image is required.";
 
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
@@ -380,7 +426,7 @@ export default function CrpManagement() {
   };
 
   const [formErrors, setFormErrors] = useState({});
-  const clearErr = (f) => setFormErrors(p => { const n={...p}; delete n[f]; return n; });
+  const clearErr = (f) => setFormErrors(p => { const n = { ...p }; delete n[f]; return n; });
 
 
 
@@ -446,7 +492,7 @@ export default function CrpManagement() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden"
           >
-            
+
             <div className="flex items-center justify-between px-6 py-5 border-b">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Bulk Import CRPs</h2>
@@ -463,9 +509,9 @@ export default function CrpManagement() {
               </button>
             </div>
 
-            
+
             <div className="p-6 space-y-6">
-              
+
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <h4 className="font-semibold text-slate-800 mb-3">
                   Before you upload
@@ -479,7 +525,7 @@ export default function CrpManagement() {
                 </ul>
               </div>
 
-              
+
               <div className="flex justify-center">
                 <button
 
@@ -490,7 +536,7 @@ export default function CrpManagement() {
                 </button>
               </div>
 
-              
+
               <label className="group flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 cursor-pointer transition hover:border-slate-400 hover:bg-slate-50">
                 <UploadCloud
                   size={34}
@@ -532,7 +578,7 @@ export default function CrpManagement() {
               </label>
             </div>
 
-            
+
             <div className="flex justify-end gap-3 px-6 py-4 border-t bg-slate-50">
               <button
                 onClick={() => {
@@ -609,7 +655,7 @@ export default function CrpManagement() {
 
       <DashboardLayout>
         <div className="max-w-[1600px]  mx-auto space-y-8 p-6">
-          
+
           <motion.header
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -642,7 +688,7 @@ export default function CrpManagement() {
             </div>
           </motion.header>
 
-          
+
           <div className="grid gap-y-8 gap-x-6 md:grid-cols-2 lg:grid-cols-4 ">
             {summaryCards.map((card, index) => (
               <motion.section
@@ -670,18 +716,18 @@ export default function CrpManagement() {
             ))}
           </div>
 
-          
+
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            
+
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Filter Records</h3>
             </div>
 
             <div className="p-6">
-              
+
               <div className="flex flex-col md:flex-row items-end gap-5">
 
-                
+
                 <div className="flex-1 w-full md:w-auto">
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Search</label>
                   <div className="relative group">
@@ -697,7 +743,7 @@ export default function CrpManagement() {
                   </div>
                 </div>
 
-                
+
                 <div className="w-full md:w-48 relative">
                   <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Status</label>
                   <div className="relative">
@@ -708,16 +754,16 @@ export default function CrpManagement() {
                     >
                       {["All Status", "Active", "Inactive", "On Leave"].map(opt => <option key={opt}>{opt}</option>)}
                     </select>
-                    
+
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                       <ChevronDown size={14} />
                     </div>
                   </div>
                 </div>
 
-                
+
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
-                  
+
                   <button
                     onClick={() => {
                       setSearch("");
@@ -730,7 +776,7 @@ export default function CrpManagement() {
                     Clear All
                   </button>
 
-                  
+
                   <button
                     onClick={exportToCSV}
                     className="w-full sm:w-auto px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
@@ -744,7 +790,7 @@ export default function CrpManagement() {
             </div>
           </div>
 
-          
+
           <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px]">
@@ -802,45 +848,45 @@ export default function CrpManagement() {
                         transition={{ delay: idx * 0.05 }}
                         className="hover:bg-slate-50/70"
                       >
-                        
+
                         <td className="px-4 py-3 text-sm font-bold text-slate-500">{crp.id}</td>
 
-                        
+
                         <td className="px-4 py-3">
                           <p className="font-semibold text-slate-900 text-sm">{crp.name}</p>
                         </td>
 
-                        
+
                         <td className="px-4 py-3 text-sm text-slate-600">{crp.email}</td>
 
-                        
+
                         <td className="px-4 py-3 text-sm text-slate-700 font-medium">{crp.mobile}</td>
 
-                        
+
                         <td className="px-4 py-3 text-sm text-slate-600 capitalize">
                           {crp.gender || "—"}
                         </td>
 
-                        
+
                         <td className="px-4 py-3 text-sm text-slate-600">Community Resource Person</td>
 
-                        
+
                         <td className="px-4 py-3">
                           <StatusBadge status={crp.status} />
                         </td>
 
-                        
+
                         <td className="px-4 py-3">
                           <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${(crp.signatureStatus || "Approved") === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" : (crp.signatureStatus === "Rejected" ? "bg-red-50 text-red-700 border-red-200" : "bg-emerald-50 text-emerald-700 border-emerald-100")}`}>
                             {crp.signatureStatus || "Approved"}
                           </span>
                         </td>
 
-                        
+
                         <td className="px-4 py-3 text-right">
                           <div className="inline-flex gap-2 items-center">
                             <button
-                              onClick={() => openModal(crp)}
+                              onClick={() => handleViewClick(crp)}
                               className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
                             >
                               <Eye size={14} />
@@ -876,7 +922,7 @@ export default function CrpManagement() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white w-full max-w-4xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
-              
+
               <div className="relative h-28 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-center">
                 <div className="flex items-center gap-5">
                   <div className="p-3.5 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
@@ -898,7 +944,7 @@ export default function CrpManagement() {
                 </button>
               </div>
 
-              
+
               <div className="relative overflow-hidden">
                 <AnimatePresence mode="wait" initial={false}>
                   {formStep === 1 ? (
@@ -910,245 +956,242 @@ export default function CrpManagement() {
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-8 custom-scrollbar"
                     >
-                
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">{formStep === 1 ? '1' : '✓'}</span> Fill Details
-                  </div>
-                  <div className="flex-1 h-px bg-slate-200" />
-                  <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 2 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
-                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review & Confirm
-                  </div>
-                </div>
 
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
-                    <h3 className="text-sm font-bold text-slate-900">Personal Information</h3>
-                    <p className="text-xs text-slate-500 mt-1">Identity and contact information for the individual.</p>
-                  </div>
-                  <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name *</p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.name ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="Enter name"
-                        value={form.name}
-                        onChange={(e) => { setForm({ ...form, name: e.target.value }); clearErr('name'); }}
-                      />
-                      {formErrors.name && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.name}</p>}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Aadhaar Number *</p>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={12}
-                        placeholder="000000000000"
-                        value={form.aadhaar}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          setForm({ ...form, aadhaar: value });
-                          clearErr('aadhaar');
-                        }}
-                        className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all ${
-                          formErrors.aadhaar
-                            ? "bg-red-50 border border-red-400"
-                            : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"
-                        }`}
-                      />
-                      {formErrors.aadhaar && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.aadhaar}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile Number *</p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.mobile ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="10-digit mobile"
-                        value={form.mobile}
-                        onChange={(e) => { setForm({ ...form, mobile: e.target.value.replace(/\D/g,'') }); clearErr('mobile'); }}
-                      />
-                      {formErrors.mobile && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.mobile}</p>}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.email ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="email@domain.com"
-                        value={form.email}
-                        onChange={(e) => { setForm({ ...form, email: e.target.value }); clearErr('email'); }}
-                      />
-                      {formErrors.email && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.email}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Date of Birth *</p>
-                      <input
-                        type="date"
-                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.dob ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        value={form.dob}
-                        onChange={(e) => { setForm({ ...form, dob: e.target.value }); clearErr('dob'); }}
-                      />
-                      {formErrors.dob && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.dob}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender *</p>
-                      <select
-                        className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.gender ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        value={form.gender}
-                        onChange={(e) => { setForm({ ...form, gender: e.target.value }); clearErr('gender'); }}
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                      </select>
-                      {formErrors.gender && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.gender}</p>}
-                    </div>
-                  </div>
-                </div>
-
-
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
-                    <h3 className="text-sm font-bold text-slate-900">Financial Information</h3>
-                    <p className="text-xs text-slate-500 mt-1">Banking and payment details.</p>
-                  </div>
-
-                  <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Name <span className="text-red-400">*</span></p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.bankName ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="e.g. Punjab National Bank"
-                        value={form.bankName}
-                        onChange={(e) => { setForm({ ...form, bankName: e.target.value }); clearErr('bankName'); }}
-                      />
-                      {formErrors.bankName && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.bankName}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Branch Name <span className="text-red-400">*</span></p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.branchName ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="e.g. Panaji Main Branch"
-                        value={form.branchName}
-                        onChange={(e) => { setForm({ ...form, branchName: e.target.value }); clearErr('branchName'); }}
-                      />
-                      {formErrors.branchName && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.branchName}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Number</p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.bankAccount ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="Account Number"
-                        value={form.bankAccount}
-                        onChange={(e) => { setForm({ ...form, bankAccount: e.target.value.replace(/\D/g,'') }); clearErr('bankAccount'); }}
-                      />
-                      {formErrors.bankAccount && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.bankAccount}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">IFSC Code</p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.ifsc ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="e.g. PUNB0026000"
-                        value={form.ifsc}
-                        onChange={(e) => { setForm({ ...form, ifsc: e.target.value.toUpperCase() }); clearErr('ifsc'); }}
-                      />
-                      {formErrors.ifsc && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.ifsc}</p>}
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pass Book</p>
-                      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
-                        <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100 text-blue-600">
-                          {documentPreviews['passBook'] ? (
-                            documents['passBook']?.type === 'application/pdf' || documents['passBook']?.name.toLowerCase().endsWith('.pdf') ? (
-                              <FileText size={20} className="text-blue-600" />
-                            ) : (
-                              <img src={documentPreviews['passBook']} alt="preview" className="w-full h-full object-cover" />
-                            )
-                          ) : (
-                            <Upload size={20} className="text-blue-600" />
-                          )}
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                          <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">{formStep === 1 ? '1' : '✓'}</span> Fill Details
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">Pass Book</p>
-                          <p className="text-xs text-slate-500 truncate pr-2">{documents['passBook'] ? documents['passBook'].name : 'Bank details (Max 5MB)'}</p>
-                          {docErrors['passBook'] && <p className="text-xs text-red-500 mt-1">{docErrors['passBook']}</p>}
+                        <div className="flex-1 h-px bg-slate-200" />  
+                        <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 2 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
+                          <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review & Confirm
                         </div>
-                        <input type="file" id="doc-upload-passBook" className="hidden" onChange={handleDocumentChange('passBook')} accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
-                        <label htmlFor="doc-upload-passBook" className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
                       </div>
-                    </div>
 
-                    <div className="col-span-2 space-y-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">PAN Card Number</p>
-                      <input
-                        className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.pan ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
-                        placeholder="e.g. ABCDE1234F"
-                        value={form.pan}
-                        onChange={(e) => { setForm({ ...form, pan: e.target.value.toUpperCase() }); clearErr('pan'); }}
-                      />
-                      {formErrors.pan && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.pan}</p>}
-                    </div>
-                  </div>
-                </div>
 
-                <hr className="border-slate-100" />
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
-                    <h3 className="text-sm font-bold text-slate-900">Document Upload</h3>
-                    <p className="text-xs text-slate-500 mt-1">Verification documents.</p>
-                  </div>
-
-                  <div className="md:col-span-2 space-y-4">
-                    {[
-                      { id: 'profilePhoto', label: 'Profile Photo', desc: 'Passport size photo (Max 5MB)', required: true },
-                      { id: 'aadhaarCard',  label: 'Aadhaar Card',  desc: 'Front and back side (Max 5MB)', required: true },
-                      { id: 'panCard',      label: 'PAN Card',      desc: 'Clear copy (Max 5MB)',           required: true },
-                      { id: 'educationalCertificates', label: 'Educational Certificates', desc: 'Highest qualification (Max 5MB)', required: true }
-                    ].map((doc) => (
-                      <div key={doc.id} className={`p-4 rounded-2xl flex items-center gap-3 border ${
-                        formErrors[doc.id] ? 'bg-red-50 border-red-300' : 'bg-blue-50/50 border-blue-100'
-                      }`}>
-                        <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100">
-                          {documentPreviews[doc.id] ? (
-                            documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name.toLowerCase().endsWith('.pdf') ? (
-                              <FileText size={20} className="text-blue-600" />
-                            ) : (
-                              <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
-                            )
-                          ) : (
-                            <Upload size={20} className={formErrors[doc.id] ? 'text-red-400' : 'text-blue-600'} />
-                          )}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                          <h3 className="text-sm font-bold text-slate-900">Personal Information</h3>
+                          <p className="text-xs text-slate-500 mt-1">Identity and contact information for the individual.</p>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-[10px] font-bold uppercase tracking-widest truncate ${
-                            formErrors[doc.id] ? 'text-red-500' : 'text-blue-600'
-                          }`}>
-                            {doc.label}{doc.required && <span className="text-red-400 ml-0.5">*</span>}
-                          </p>
-                          <p className="text-xs text-slate-500 truncate pr-2">{documents[doc.id] ? documents[doc.id].name : doc.desc}</p>
-                          {formErrors[doc.id] && <p className="text-xs text-red-500 mt-0.5">{formErrors[doc.id]}</p>}
-                          {docErrors[doc.id]   && <p className="text-xs text-red-500 mt-0.5">{docErrors[doc.id]}</p>}
+                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name *</p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.name ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="Enter name"
+                              value={form.name}
+                              onChange={(e) => { setForm({ ...form, name: e.target.value }); clearErr('name'); }}
+                            />
+                            {formErrors.name && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.name}</p>}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Aadhaar Number *</p>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={12}
+                              placeholder="000000000000"
+                              value={form.aadhaar}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, "");
+                                setForm({ ...form, aadhaar: value });
+                                clearErr('aadhaar');
+                              }}
+                              className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all ${formErrors.aadhaar
+                                ? "bg-red-50 border border-red-400"
+                                : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"
+                                }`}
+                            />
+                            {formErrors.aadhaar && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.aadhaar}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile Number *</p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.mobile ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="10-digit mobile"
+                              value={form.mobile}
+                              onChange={(e) => { setForm({ ...form, mobile: e.target.value.replace(/\D/g, '') }); clearErr('mobile'); }}
+                            />
+                            {formErrors.mobile && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.mobile}</p>}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.email ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="email@domain.com"
+                              value={form.email}
+                              onChange={(e) => { setForm({ ...form, email: e.target.value }); clearErr('email'); }}
+                            />
+                            {formErrors.email && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.email}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Date of Birth *</p>
+                            <input
+                              type="date"
+                              className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.dob ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              value={form.dob}
+                              onChange={(e) => { setForm({ ...form, dob: e.target.value }); clearErr('dob'); }}
+                            />
+                            {formErrors.dob && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.dob}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender *</p>
+                            <select
+                              className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.gender ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              value={form.gender}
+                              onChange={(e) => { setForm({ ...form, gender: e.target.value }); clearErr('gender'); }}
+                            >
+                              <option value="">Select Gender</option>
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                            </select>
+                            {formErrors.gender && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.gender}</p>}
+                          </div>
                         </div>
-                        <input type="file" id={`doc-upload-${doc.id}`} className="hidden"
-                          onChange={(e) => { handleDocumentChange(doc.id)(e); clearErr(doc.id); }}
-                          accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
-                        <label htmlFor={`doc-upload-${doc.id}`} className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                          <h3 className="text-sm font-bold text-slate-900">Financial Information</h3>
+                          <p className="text-xs text-slate-500 mt-1">Banking and payment details.</p>
+                        </div>
+
+                        <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Name <span className="text-red-400">*</span></p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.bankName ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="e.g. Punjab National Bank"
+                              value={form.bankName}
+                              onChange={(e) => { setForm({ ...form, bankName: e.target.value }); clearErr('bankName'); }}
+                            />
+                            {formErrors.bankName && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.bankName}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Branch Name <span className="text-red-400">*</span></p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.branchName ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="e.g. Panaji Main Branch"
+                              value={form.branchName}
+                              onChange={(e) => { setForm({ ...form, branchName: e.target.value }); clearErr('branchName'); }}
+                            />
+                            {formErrors.branchName && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.branchName}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Number</p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.bankAccount ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="Account Number"
+                              value={form.bankAccount}
+                              onChange={(e) => { setForm({ ...form, bankAccount: e.target.value.replace(/\D/g, '') }); clearErr('bankAccount'); }}
+                            />
+                            {formErrors.bankAccount && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.bankAccount}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">IFSC Code</p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.ifsc ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="e.g. PUNB0026000"
+                              value={form.ifsc}
+                              onChange={(e) => { setForm({ ...form, ifsc: e.target.value.toUpperCase() }); clearErr('ifsc'); }}
+                            />
+                            {formErrors.ifsc && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.ifsc}</p>}
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pass Book</p>
+                            <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
+                              <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100 text-blue-600">
+                                {documentPreviews['passBook'] ? (
+                                  documents['passBook']?.type === 'application/pdf' || documents['passBook']?.name.toLowerCase().endsWith('.pdf') ? (
+                                    <FileText size={20} className="text-blue-600" />
+                                  ) : (
+                                    <img src={documentPreviews['passBook']} alt="preview" className="w-full h-full object-cover" />
+                                  )
+                                ) : (
+                                  <Upload size={20} className="text-blue-600" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">Pass Book</p>
+                                <p className="text-xs text-slate-500 truncate pr-2">{documents['passBook'] ? documents['passBook'].name : 'Bank details (Max 5MB)'}</p>
+                                {docErrors['passBook'] && <p className="text-xs text-red-500 mt-1">{docErrors['passBook']}</p>}
+                              </div>
+                              <input type="file" id="doc-upload-passBook" className="hidden" onChange={handleDocumentChange('passBook')} accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+                              <label htmlFor="doc-upload-passBook" className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
+                            </div>
+                          </div>
+
+                          <div className="col-span-2 space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">PAN Card Number</p>
+                            <input
+                              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.pan ? 'bg-red-50 border-red-400' : 'bg-slate-50 border-slate-100 focus:border-blue-500'}`}
+                              placeholder="e.g. ABCDE1234F"
+                              value={form.pan}
+                              onChange={(e) => { setForm({ ...form, pan: e.target.value.toUpperCase() }); clearErr('pan'); }}
+                            />
+                            {formErrors.pan && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.pan}</p>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="border-slate-100" />
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                          <h3 className="text-sm font-bold text-slate-900">Document Upload</h3>
+                          <p className="text-xs text-slate-500 mt-1">Verification documents.</p>
+                        </div>
+
+                        <div className="md:col-span-2 space-y-4">
+                          {[
+                            { id: 'profilePhoto', label: 'Profile Photo', desc: 'Passport size photo (Max 5MB)', required: true },
+                            { id: 'aadhaarCard', label: 'Aadhaar Card', desc: 'Front and back side (Max 5MB)', required: true },
+                            { id: 'panCard', label: 'PAN Card', desc: 'Clear copy (Max 5MB)', required: true },
+                            { id: 'educationalCertificates', label: 'Educational Certificates', desc: 'Highest qualification (Max 5MB)', required: true }
+                          ].map((doc) => (
+                            <div key={doc.id} className={`p-4 rounded-2xl flex items-center gap-3 border ${formErrors[doc.id] ? 'bg-red-50 border-red-300' : 'bg-blue-50/50 border-blue-100'
+                              }`}>
+                              <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100">
+                                {documentPreviews[doc.id] ? (
+                                  documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name.toLowerCase().endsWith('.pdf') ? (
+                                    <FileText size={20} className="text-blue-600" />
+                                  ) : (
+                                    <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
+                                  )
+                                ) : (
+                                  <Upload size={20} className={formErrors[doc.id] ? 'text-red-400' : 'text-blue-600'} />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-[10px] font-bold uppercase tracking-widest truncate ${formErrors[doc.id] ? 'text-red-500' : 'text-blue-600'
+                                  }`}>
+                                  {doc.label}{doc.required && <span className="text-red-400 ml-0.5">*</span>}
+                                </p>
+                                <p className="text-xs text-slate-500 truncate pr-2">{documents[doc.id] ? documents[doc.id].name : doc.desc}</p>
+                                {formErrors[doc.id] && <p className="text-xs text-red-500 mt-0.5">{formErrors[doc.id]}</p>}
+                                {docErrors[doc.id] && <p className="text-xs text-red-500 mt-0.5">{docErrors[doc.id]}</p>}
+                              </div>
+                              <input type="file" id={`doc-upload-${doc.id}`} className="hidden"
+                                onChange={(e) => { handleDocumentChange(doc.id)(e); clearErr(doc.id); }}
+                                accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+                              <label htmlFor={`doc-upload-${doc.id}`} className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
                     </motion.div>
                   ) : (
-                    
+
                     <motion.div
                       key="step2"
                       initial={{ opacity: 0, x: 32 }}
@@ -1158,120 +1201,120 @@ export default function CrpManagement() {
                       className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-6 custom-scrollbar"
                     >
 
-                
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
-                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-emerald-100">✓</span> Fill Details
-                  </div>
-                  <div className="flex-1 h-px bg-emerald-200" />
-                  <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-slate-900 text-white border-slate-900">
-                    <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review &amp; Confirm
-                  </div>
-                </div>
 
-                
-                <div className="rounded-2xl bg-blue-50 border border-blue-100 px-5 py-4 flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-xl text-blue-600"><Eye size={18} /></div>
-                  <div>
-                    <p className="text-sm font-bold text-blue-800">Review before submitting</p>
-                    <p className="text-xs text-blue-500 mt-0.5">Please verify all information is accurate. You can go back to edit.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">                    
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {[
-                          { label: 'Full Name', value: form.name },
-                          { label: 'Aadhaar', value: form.aadhaar },
-                          { label: 'Mobile', value: form.mobile },
-                          { label: 'Email', value: form.email || '—' },
-                          { label: 'Date of Birth', value: form.dob },
-                          { label: 'Gender', value: form.gender },
-                        ].map(item => (
-                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
-                            <p className="text-sm font-bold text-slate-800 truncate">{item.value}{item.extra}</p>
-                          </div>
-                        ))}
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                          <span className="w-5 h-5 flex items-center justify-center rounded-full bg-emerald-100">✓</span> Fill Details
+                        </div>
+                        <div className="flex-1 h-px bg-emerald-200" />
+                        <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-slate-900 text-white border-slate-900">
+                          <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review &amp; Confirm
+                        </div>
                       </div>
-                    </div>
 
-                    
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Information</p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {[
-                          { label: 'Bank Name', value: form.bankName || '—' },
-                          { label: 'Branch Name', value: form.branchName || '—' },
-                          { label: 'Account Number', value: form.bankAccount || '—' },
-                          { label: 'IFSC Code', value: form.ifsc || '—' },
-                          { label: 'PAN Card', value: form.pan || '—' },
-                        ].map(item => (
-                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
-                            <p className="text-sm font-bold text-slate-800 truncate">{item.value}</p>
-                          </div>
-                        ))}
+
+                      <div className="rounded-2xl bg-blue-50 border border-blue-100 px-5 py-4 flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-xl text-blue-600"><Eye size={18} /></div>
+                        <div>
+                          <p className="text-sm font-bold text-blue-800">Review before submitting</p>
+                          <p className="text-xs text-blue-500 mt-0.5">Please verify all information is accurate. You can go back to edit.</p>
+                        </div>
                       </div>
-                    </div>
 
-                    
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Uploaded Documents</p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {[
-                          { id: 'profilePhoto', label: 'Profile Photo' },
-                          { id: 'aadhaarCard', label: 'Aadhaar Card' },
-                          { id: 'panCard', label: 'PAN Card' },
-                          { id: 'educationalCertificates', label: 'Edu. Certificates' },
-                          { id: 'passBook', label: 'Pass Book' },
-                        ].map(doc => (
-                          <div key={doc.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center gap-2 text-center">
-                            <div className="w-14 h-14 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center shadow-sm">
-                              {documentPreviews[doc.id] ? (
-                                documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name?.toLowerCase().endsWith('.pdf') ? (
-                                  <FileText size={24} className="text-blue-500" />
-                                ) : (
-                                  <img src={documentPreviews[doc.id]} alt={doc.label} className="w-full h-full object-cover" />
-                                )
-                              ) : (
-                                <Upload size={20} className="text-slate-300" />
-                              )}
-                            </div>
-                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{doc.label}</p>
-                            <p className="text-[10px] text-slate-400 truncate w-full">
-                              {documents[doc.id] ? <span className="text-emerald-600 font-semibold">✓ Uploaded</span> : <span className="text-slate-300">Not uploaded</span>}
-                            </p>
+                      <div className="space-y-6">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                              { label: 'Full Name', value: form.name },
+                              { label: 'Aadhaar', value: form.aadhaar },
+                              { label: 'Mobile', value: form.mobile },
+                              { label: 'Email', value: form.email || '—' },
+                              { label: 'Date of Birth', value: form.dob },
+                              { label: 'Gender', value: form.gender },
+                            ].map(item => (
+                              <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                                <p className="text-sm font-bold text-slate-800 truncate">{item.value}{item.extra}</p>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+
+
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Information</p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                              { label: 'Bank Name', value: form.bankName || '—' },
+                              { label: 'Branch Name', value: form.branchName || '—' },
+                              { label: 'Account Number', value: form.bankAccount || '—' },
+                              { label: 'IFSC Code', value: form.ifsc || '—' },
+                              { label: 'PAN Card', value: form.pan || '—' },
+                            ].map(item => (
+                              <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                                <p className="text-sm font-bold text-slate-800 truncate">{item.value}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Uploaded Documents</p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {[
+                              { id: 'profilePhoto', label: 'Profile Photo' },
+                              { id: 'aadhaarCard', label: 'Aadhaar Card' },
+                              { id: 'panCard', label: 'PAN Card' },
+                              { id: 'educationalCertificates', label: 'Edu. Certificates' },
+                              { id: 'passBook', label: 'Pass Book' },
+                            ].map(doc => (
+                              <div key={doc.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center gap-2 text-center">
+                                <div className="w-14 h-14 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                                  {documentPreviews[doc.id] ? (
+                                    documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name?.toLowerCase().endsWith('.pdf') ? (
+                                      <FileText size={24} className="text-blue-500" />
+                                    ) : (
+                                      <img src={documentPreviews[doc.id]} alt={doc.label} className="w-full h-full object-cover" />
+                                    )
+                                  ) : (
+                                    <Upload size={20} className="text-slate-300" />
+                                  )}
+                                </div>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{doc.label}</p>
+                                <p className="text-[10px] text-slate-400 truncate w-full">
+                                  {documents[doc.id] ? <span className="text-emerald-600 font-semibold">✓ Uploaded</span> : <span className="text-slate-300">Not uploaded</span>}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+
+                        <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={confirmChecked}
+                              onChange={(e) => setConfirmChecked(e.target.checked)}
+                              className="mt-1 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                            />
+                            <span className="text-xs text-amber-800 leading-relaxed font-medium">
+                              I confirm that all the information provided above is accurate and complete. I understand that any discrepancies may lead to the rejection of this registration.
+                            </span>
+                          </label>
+                        </div>
+
                       </div>
-                    </div>
-
-                    
-                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={confirmChecked}
-                          onChange={(e) => setConfirmChecked(e.target.checked)}
-                          className="mt-1 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
-                        />
-                        <span className="text-xs text-amber-800 leading-relaxed font-medium">
-                          I confirm that all the information provided above is accurate and complete. I understand that any discrepancies may lead to the rejection of this registration.
-                        </span>
-                      </label>
-                    </div>
-
-                </div>
 
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              
+
               <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center gap-3">
                 <button
                   onClick={() => {
@@ -1317,7 +1360,7 @@ export default function CrpManagement() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white w-full max-w-3xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
             >
-              
+
               <div className="relative h-32 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-end">
                 <button
                   onClick={closeModal}
@@ -1349,16 +1392,16 @@ export default function CrpManagement() {
                 </div>
               </div>
 
-              
+
               <div className="pt-20 px-8 pb-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
 
-                
+
                 <div className="flex gap-6 border-b border-slate-100 sticky top-0 bg-white z-10">
                   <button className="pb-3 border-b-2 border-slate-900 text-sm font-bold text-slate-900">Overview</button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  
+
                   <div className="md:col-span-2 grid grid-cols-2 gap-4">
                     {[
                       { label: "Phone", value: selectedCRP.mobile, icon: <Activity size={14} /> },
@@ -1377,7 +1420,7 @@ export default function CrpManagement() {
                     ))}
                   </div>
 
-                  
+
                   <div className="space-y-4">
                     <div className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100">
                       <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Coverage</p>
@@ -1399,7 +1442,7 @@ export default function CrpManagement() {
                 </div>
               </div>
 
-              
+
               <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center">
                 <div className="flex gap-3">
                   <button
@@ -1415,6 +1458,114 @@ export default function CrpManagement() {
           </div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {viewModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+              onClick={() => setViewModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ type: "spring", duration: 0.4, bounce: 0.25 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden relative z-10 border border-slate-100"
+            >
+              <div className="relative h-24 bg-gradient-to-r from-slate-800 to-slate-900 px-6 flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
+                  <Eye className="text-white" size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">CRP Details</h3>
+                  <p className="text-slate-400 text-xs mt-0.5">Full profile information</p>
+                </div>
+                <button onClick={() => setViewModalOpen(false)}
+                  className="absolute top-5 right-5 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {isViewLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-700 mb-4" />
+                    <p className="text-sm font-semibold">Loading CRP details...</p>
+                  </div>
+                ) : viewCRPData?.error ? (
+                  <div className="text-center py-10">
+                    <p className="text-red-500 font-medium text-sm">{viewCRPData.error}</p>
+                  </div>
+                ) : viewCRPData && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <img src={viewCRPData.image || `https://i.pravatar.cc/80?u=${viewCRPData.id}`}
+                        alt={viewCRPData.name}
+                        className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md" />
+                      <div>
+                        <p className="text-lg font-bold text-slate-900">{viewCRPData.name}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">CRP ID: {viewCRPData.id}</p>
+                        <div className="flex gap-2 mt-2">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${viewCRPData.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                            {viewCRPData.status || "—"}
+                          </span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${viewCRPData.signatureStatus === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" : "bg-emerald-50 text-emerald-700 border-emerald-100"}`}>
+                            {viewCRPData.signatureStatus || "Approved"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { label: "Aadhaar", value: viewCRPData.aadhaar || "—" },
+                          { label: "Mobile", value: viewCRPData.mobile || "—" },
+                          { label: "Email", value: viewCRPData.email || "—" },
+                          { label: "Gender", value: viewCRPData.gender || "—" },
+                          { label: "DOB", value: viewCRPData.dob || "—" },
+                        ].map(item => (
+                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                            <p className="text-sm font-semibold text-slate-800 truncate">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Information</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { label: "Bank Name", value: viewCRPData.bankName || "—" },
+                          { label: "Branch Name", value: viewCRPData.branchName || "—" },
+                          { label: "Acct. Number", value: viewCRPData.accountNumber || "—" },
+                          { label: "IFSC", value: viewCRPData.ifsc || "—" },
+                          { label: "PAN", value: viewCRPData.pan || "—" },
+                        ].map(item => (
+                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                            <p className="text-sm font-semibold text-slate-800 truncate">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onClick={() => setViewModalOpen(false)}
+                  className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors">
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
 
     </ProtectedRoute>
   );

@@ -73,21 +73,21 @@ export const SIDEBAR_CONFIG = {
     },
   ],
 
-  supervisor: [
+  "supervisor": [
     {
       section: "DASHBOARD",
       items: [{ name: "Supervisor Panel", path: "/dashboard/supervisor" }],
     },
   ],
 
-  finance: [
+  "finance": [
     {
       section: "FINANCE",
       items: [{ name: "Finance Dashboard", path: "/dashboard/finance" }],
     },
   ],
 
-  crp: [
+  "crp": [
     {
       section: "CRP DASHBOARD",
       items: [{ name: "My Dashboard", path: "/dashboard/crp" }],
