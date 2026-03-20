@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Search, Users, User, UserPlus, Phone, Aperture, UploadCloud, Eye, Edit, Activity, Zap, MapPin, Map, Filter, ChevronDown } from "lucide-react";
+import { Plus, X, Search, Users, User, UserPlus, Phone, Aperture, UploadCloud, Eye, Edit, Trash2, Activity, Zap, MapPin, Map, Filter, ChevronDown } from "lucide-react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
@@ -1004,15 +1004,33 @@ export default function SHGRepository() {
                                     </span>
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  {(member.mobile_no || member.mobile || member.member_mobile) ? (
-                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 group-hover:bg-white text-slate-700 rounded-xl text-xs font-semibold border border-slate-100 transition-colors shadow-sm">
-                                      <Phone size={12} className="text-blue-500" />
-                                      {member.mobile_no || member.mobile || member.member_mobile}
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">—</span>
-                                  )}
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    {(member.mobile_no || member.mobile || member.member_mobile) ? (
+                                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 group-hover:bg-white text-slate-700 rounded-xl text-xs font-semibold border border-slate-100 transition-colors shadow-sm">
+                                        <Phone size={12} className="text-blue-500" />
+                                        {member.mobile_no || member.mobile || member.member_mobile}
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">—</span>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Action Buttons */}
+                                  <div className="flex items-center gap-1.5">
+                                    <button 
+                                      className="p-2 bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                                      title="Edit member"
+                                    >
+                                      <Edit size={14} />
+                                    </button>
+                                    <button 
+                                      className="p-2 bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                                      title="Delete member"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
                                 </div>
                               </motion.div>
                             );
