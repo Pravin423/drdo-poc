@@ -152,6 +152,7 @@ export default function CrpManagement() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewCRPData, setViewCRPData] = useState(null);
   const [isViewLoading, setIsViewLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const handleViewClick = async (crp) => {
     setViewModalOpen(true);
@@ -476,7 +477,7 @@ export default function CrpManagement() {
 
 
   useEffect(() => {
-    if (isModalOpen || isRegisterOpen || isBulkImportOpen) {
+    if (isModalOpen || isRegisterOpen || isBulkImportOpen || viewModalOpen || previewImage) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -485,7 +486,7 @@ export default function CrpManagement() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isModalOpen, isRegisterOpen, isBulkImportOpen]);
+  }, [isModalOpen, isRegisterOpen, isBulkImportOpen, viewModalOpen, previewImage]);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -1380,7 +1381,8 @@ export default function CrpManagement() {
                     <img
                       src={selectedCRP.image}
                       alt={selectedCRP.name}
-                      className="w-32 h-32 rounded-3xl object-cover border-4 border-white shadow-xl bg-white"
+                      onClick={() => setPreviewImage(selectedCRP.image)}
+                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl bg-white cursor-pointer hover:scale-105 transition-transform"
                     />
                     <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-white w-8 h-8 rounded-full" />
                   </div>
@@ -1507,7 +1509,8 @@ export default function CrpManagement() {
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                       <img src={viewCRPData.image || `https://i.pravatar.cc/80?u=${viewCRPData.id}`}
                         alt={viewCRPData.name}
-                        className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md" />
+                        onClick={() => setPreviewImage(viewCRPData.image || `https://i.pravatar.cc/80?u=${viewCRPData.id}`)}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md cursor-pointer hover:scale-105 transition-transform" />
                       <div>
                         <p className="text-lg font-bold text-slate-900">{viewCRPData.name}</p>
                         <p className="text-xs text-slate-500 mt-0.5">CRP ID: {viewCRPData.id}</p>
@@ -1567,6 +1570,36 @@ export default function CrpManagement() {
                   Close
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {previewImage && (
+          <div 
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm cursor-pointer"
+            onClick={() => setPreviewImage(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
+              className="relative max-w-4xl max-h-[90vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img 
+                src={previewImage} 
+                alt="Profile Preview" 
+                className="max-w-[85vw] max-h-[85vh] aspect-square object-cover rounded-full shadow-2xl border-4 border-white" 
+              />
+              <button 
+                onClick={() => setPreviewImage(null)}
+                className="absolute -top-4 -right-4 p-2 bg-white text-slate-900 rounded-full shadow-lg hover:bg-slate-100 transition-colors z-[100000]"
+              >
+                <X size={20} />
+              </button>
             </motion.div>
           </div>
         )}
