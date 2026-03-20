@@ -197,7 +197,7 @@ export default function SHGRepository() {
                 <thead className="bg-slate-50/60">
                   <tr>
                     {["ID", "SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Status", "Action"].map((h) => (
-                      <th key={h} className={`px-4 py-3 text-xs font-semibold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
+                      <th key={h} className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
                         {h}
                       </th>
                     ))}
@@ -224,25 +224,29 @@ export default function SHGRepository() {
                       </td>
                     </tr>
                   ) : (
-                    filteredSHGs.map((shg) => (
-                      <tr key={shg.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-4 py-4">
-                          <span className="font-bold text-slate-500">{shg.id}</span>
+                    filteredSHGs.map((shg, idx) => (
+                      <motion.tr 
+                        key={shg.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="hover:bg-slate-50/70 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-sm font-bold text-slate-500">{shg.id}</td>
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-slate-900 text-sm">{shg.name}</p>
                         </td>
-                        <td className="px-4 py-4">
-                          <span className="font-semibold text-slate-900">{shg.name}</span>
-                        </td>
-                        <td className="px-4 py-4 font-medium text-slate-700">{shg.contactPerson}</td>
-                        <td className="px-4 py-4 text-slate-600">{shg.mobile}</td>
-                        <td className="px-4 py-4 text-slate-600">{shg.district}</td>
-                        <td className="px-4 py-4 text-slate-600">{shg.taluka}</td>
-                        <td className="px-4 py-4 text-slate-600">{shg.village}</td>
-                        <td className="px-4 py-4 text-slate-600">
-                          <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${shg.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                        <td className="px-4 py-3 text-sm text-slate-700 font-medium">{shg.contactPerson}</td>
+                        <td className="px-4 py-3 text-sm text-slate-700 font-medium">{shg.mobile}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{shg.district}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{shg.taluka}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{shg.village}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${shg.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
                             {shg.status}
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-right">
+                        <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
                              <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                                <Eye size={16} />
@@ -252,7 +256,7 @@ export default function SHGRepository() {
                              </button>
                           </div>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))
                   )}
                 </tbody>
