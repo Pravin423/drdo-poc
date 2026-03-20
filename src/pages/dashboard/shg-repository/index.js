@@ -20,8 +20,11 @@ export default function SHGRepository() {
 
       setShgs(arr.map((s, i) => {
         let statusStr = "Active";
-        if (s.status === 0 || s.status === "Inactive") statusStr = "Inactive";
-        if (s.status === 2 || s.status === "Deleted") statusStr = "Deleted";
+        if (s.status === 1 || s.status === "1" || s.status === "Inactive" || s.status === "Deactive") {
+          statusStr = "Inactive";
+        } else if (s.status === 2 || s.status === "2" || s.status === "Deleted") {
+          statusStr = "Deleted";
+        }
 
         return {
           id: s.shg_id || s.id || `SHG${i + 1}`,
@@ -58,6 +61,9 @@ export default function SHGRepository() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewSHGData, setViewSHGData] = useState(null);
   const [isViewLoading, setIsViewLoading] = useState(false);
+
+  const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
+  const [editId, setEditId] = useState(null);
 
   const handleViewClick = async (shg) => {
     setIsViewModalOpen(true);
@@ -99,7 +105,36 @@ export default function SHGRepository() {
     district: "",
     taluka: "",
     village: "",
+    status: 0, // 0 For active, 1 for Deactive
   });
+
+  const handleEditClick = async (shg) => {
+    setModalMode("edit");
+    setEditId(shg.id);
+    setIsModalOpen(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/shg-details?id=${shg.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      let d = result.data || result;
+      if (Array.isArray(d)) {
+        d = d[0] || {};
+      }
+      setFormData({
+        shgName: d.shg_name || d.name || d.shgName || shg.name,
+        contactPersonName: d.contact_person_name || d.contactPerson || shg.contactPerson,
+        contactPersonMobile: d.contact_person_mobile || d.mobile || d.mobile_number || shg.mobile,
+        district: d.district_id || d.district || "",
+        taluka: d.taluka_id || d.taluka || "",
+        village: d.village_id || d.village || "",
+        status: (d.status === "Active" || shg.status === "Active" || d.status === 0 || d.status === "0") ? 0 : 1,
+      });
+    } catch (err) {
+      console.error("View SHG error for edit:", err);
+    }
+  };
 
   useEffect(() => {
     fetchSHGs();
@@ -208,7 +243,13 @@ export default function SHGRepository() {
         village: Number(formData.village) || 141,
       };
 
-      const res = await fetch("/api/add-shg", {
+      let url = "/api/add-shg";
+      if (modalMode === "edit") {
+        payload.status = Number(formData.status);
+        url = `/api/shg-update?id=${editId}`;
+      }
+
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -219,14 +260,13 @@ export default function SHGRepository() {
       const result = await res.json();
 
       if (!res.ok || result?.status === false) {
-        throw new Error(result?.message || "Failed to create SHG");
+        throw new Error(result?.message || `Failed to ${modalMode} SHG`);
       }
 
       setIsModalOpen(false);
       setFormData({
-        shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: ""
+        shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: "", status: 0
       });
-      // Refresh the table!
       fetchSHGs();
     } catch (err) {
       console.error("Submission error:", err);
@@ -247,7 +287,7 @@ export default function SHGRepository() {
   const labelClasses = "text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1";
 
   const totalSHGs = shgs.length;
-  const activeSHGs = shgs.length;
+  const activeSHGs = shgs.filter(s => s.status === "Active").length;
   const villagesCovered = new Set(shgs.map(s => s.village)).size;
 
   const summaryCards = [
@@ -296,7 +336,11 @@ export default function SHGRepository() {
                 Bulk Import
               </button>
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  setModalMode("add");
+                  setFormData({ shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: "", status: 0 });
+                  setIsModalOpen(true);
+                }}
                 className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center gap-2 text-sm"
               >
                 <Plus size={18} />
@@ -542,7 +586,7 @@ export default function SHGRepository() {
                             <button onClick={() => handleViewClick(shg)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                               <Eye size={16} />
                             </button>
-                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <button onClick={() => handleEditClick(shg)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                               <Edit size={16} />
                             </button>
                           </div>
@@ -575,8 +619,8 @@ export default function SHGRepository() {
                     <Aperture className="text-white" size={24} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white drop-shadow-sm">Create SHG</h2>
-                    <p className="text-slate-400 text-xs font-medium mt-0.5">Register a new Self Help Group</p>
+                    <h2 className="text-2xl font-bold text-white drop-shadow-sm">{modalMode === "edit" ? "Edit SHG" : "Create SHG"}</h2>
+                    <p className="text-slate-400 text-xs font-medium mt-0.5">{modalMode === "edit" ? "Update details of the Self Help Group" : "Register a new Self Help Group"}</p>
                   </div>
                 </div>
 
@@ -717,6 +761,25 @@ export default function SHGRepository() {
                             ))}
                           </select>
                         </div>
+                        
+                        {modalMode === "edit" && (
+                          <div className="space-y-1">
+                            <p className={labelClasses}>
+                              Status <span className="text-red-400">*</span>
+                            </p>
+                            <select
+                              name="status"
+                              value={formData.status}
+                              onChange={handleChange}
+                              required
+                              className={inputClasses}
+                            >
+                              <option value={0}>Active</option>
+                              <option value={1}>Deactive</option>
+                            </select>
+                          </div>
+                        )}
+                        
                       </div>
                     </div>
 
