@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Search, Users, Aperture, UploadCloud, Eye, Edit, Activity, Zap, MapPin, Map, Filter, ChevronDown } from "lucide-react";
+import { Plus, X, Search, Users, User, Phone, Aperture, UploadCloud, Eye, Edit, Activity, Zap, MapPin, Map, Filter, ChevronDown } from "lucide-react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
@@ -50,7 +50,7 @@ export default function SHGRepository() {
   const [selectedTaluka, setSelectedTaluka] = useState(null);
   const [districts, setDistricts] = useState([]);
   const [talukasOptions, setTalukasOptions] = useState([]);
-  
+
   const [talukas, setTalukas] = useState([]);
   const [villages, setVillages] = useState([]);
 
@@ -88,6 +88,8 @@ export default function SHGRepository() {
         taluka: d.taluka || d.taluka_name || shg.taluka,
         village: d.village || d.village_name || shg.village,
         status: shg.status,
+        memberCount: d.member_count !== undefined ? d.member_count : (result.data?.member_count || 0),
+        shgMembers: result.shg_member || [],
         timestamp: d.created_at || d.timestamp || d.time || "N/A",
       });
     } catch (err) {
@@ -142,12 +144,12 @@ export default function SHGRepository() {
       try {
         const token = localStorage.getItem("authToken");
         const res = await fetch("/api/districts", { headers: { Authorization: `Bearer ${token}` } });
-        if(res.ok) {
-           const result = await res.json();
-           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-           setDistricts(data.map(d => ({ id: d.id || d._id || d.district_id, name: d.name || d.district || d.districtName })));
+        if (res.ok) {
+          const result = await res.json();
+          const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+          setDistricts(data.map(d => ({ id: d.id || d._id || d.district_id, name: d.name || d.district || d.districtName })));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     loadDistricts();
   }, []);
@@ -158,12 +160,12 @@ export default function SHGRepository() {
         const token = localStorage.getItem("authToken");
         const url = selectedDistrict ? `/api/talukas?district_id=${selectedDistrict.id}` : "/api/talukas";
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-        if(res.ok) {
-           const result = await res.json();
-           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-           setTalukasOptions(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
+        if (res.ok) {
+          const result = await res.json();
+          const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+          setTalukasOptions(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     loadTalukas();
   }, [selectedDistrict]);
@@ -177,12 +179,12 @@ export default function SHGRepository() {
       try {
         const token = localStorage.getItem("authToken");
         const res = await fetch(`/api/talukas?district_id=${formData.district}`, { headers: { Authorization: `Bearer ${token}` } });
-        if(res.ok) {
-           const result = await res.json();
-           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-           setTalukas(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
+        if (res.ok) {
+          const result = await res.json();
+          const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+          setTalukas(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     loadFormTalukas();
   }, [formData.district]);
@@ -196,12 +198,12 @@ export default function SHGRepository() {
       try {
         const token = localStorage.getItem("authToken");
         const res = await fetch(`/api/villages?taluka_id=${formData.taluka}`, { headers: { Authorization: `Bearer ${token}` } });
-        if(res.ok) {
-           const result = await res.json();
-           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-           setVillages(data.map(v => ({ id: v.id || v._id || v.village_id || v.villageId, name: v.name || v.village || v.villageName })));
+        if (res.ok) {
+          const result = await res.json();
+          const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+          setVillages(data.map(v => ({ id: v.id || v._id || v.village_id || v.villageId, name: v.name || v.village || v.villageName })));
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     loadVillages();
   }, [formData.taluka]);
@@ -398,128 +400,128 @@ export default function SHGRepository() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                    {selectedDistrict && (
+                  {selectedDistrict && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold"
+                    >
+                      <MapPin size={12} />
+                      {selectedDistrict.name}
+                      <button
+                        onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); }}
+                        className="ml-0.5 text-blue-500 hover:text-blue-800 transition-colors"
+                        title="Clear district filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {selectedTaluka && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-semibold"
+                    >
+                      <Map size={12} />
+                      {selectedTaluka.name}
+                      <button
+                        onClick={() => setSelectedTaluka(null)}
+                        className="ml-0.5 text-emerald-500 hover:text-emerald-800 transition-colors"
+                        title="Clear taluka filter"
+                      >
+                        <X size={12} />
+                      </button>
+                    </motion.div>
+                  )}
+
+                  <div ref={filterRef} className="relative z-10 ml-auto sm:ml-0">
+                    <button
+                      onClick={() => setFilterOpen(prev => !prev)}
+                      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shadow-sm ${selectedDistrict || selectedTaluka
+                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                        }`}
+                    >
+                      <Filter size={16} />
+                      Filters
+                      <ChevronDown size={14} className={`transition-transform duration-200 ${filterOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    <AnimatePresence>
+                      {filterOpen && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold"
+                          initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 top-full mt-2 w-[520px] bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden p-4 grid grid-cols-2 gap-4 origin-top-right z-50"
                         >
-                            <MapPin size={12} />
-                            {selectedDistrict.name}
-                            <button
-                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); }}
-                                className="ml-0.5 text-blue-500 hover:text-blue-800 transition-colors"
-                                title="Clear district filter"
-                            >
-                                <X size={12} />
-                            </button>
-                        </motion.div>
-                    )}
-
-                    {selectedTaluka && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-semibold"
-                        >
-                            <Map size={12} />
-                            {selectedTaluka.name}
-                            <button
-                                onClick={() => setSelectedTaluka(null)}
-                                className="ml-0.5 text-emerald-500 hover:text-emerald-800 transition-colors"
-                                title="Clear taluka filter"
-                            >
-                                <X size={12} />
-                            </button>
-                        </motion.div>
-                    )}
-
-                    <div ref={filterRef} className="relative z-10 ml-auto sm:ml-0">
-                        <button
-                            onClick={() => setFilterOpen(prev => !prev)}
-                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shadow-sm ${selectedDistrict || selectedTaluka
-                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                                }`}
-                        >
-                            <Filter size={16} />
-                            Filters
-                            <ChevronDown size={14} className={`transition-transform duration-200 ${filterOpen ? "rotate-180" : ""}`} />
-                        </button>
-
-                        <AnimatePresence>
-                            {filterOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="absolute right-0 top-full mt-2 w-[520px] bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden p-4 grid grid-cols-2 gap-4 origin-top-right z-50"
+                          <div>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">1. Select District</h4>
+                            <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                              <button
+                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); setFilterOpen(false); }}
+                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedDistrict
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "text-slate-700 hover:bg-slate-50"
+                                  }`}
+                              >
+                                All Districts
+                                {!selectedDistrict && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                              </button>
+                              {districts.map(district => (
+                                <button
+                                  key={district.id}
+                                  onClick={() => { setSelectedDistrict(district); setSelectedTaluka(null); }}
+                                  className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedDistrict?.id === district.id
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-slate-700 hover:bg-slate-50"
+                                    }`}
                                 >
-                                    <div>
-                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">1. Select District</h4>
-                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                                            <button
-                                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); setFilterOpen(false); }}
-                                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedDistrict
-                                                        ? "bg-blue-50 text-blue-700"
-                                                        : "text-slate-700 hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                All Districts
-                                                {!selectedDistrict && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
-                                            </button>
-                                            {districts.map(district => (
-                                                <button
-                                                    key={district.id}
-                                                    onClick={() => { setSelectedDistrict(district); setSelectedTaluka(null); }}
-                                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedDistrict?.id === district.id
-                                                            ? "bg-blue-50 text-blue-700"
-                                                            : "text-slate-700 hover:bg-slate-50"
-                                                        }`}
-                                                >
-                                                    {district.name}
-                                                    {selectedDistrict?.id === district.id && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="border-l border-slate-100 pl-4">
-                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">2. Select Taluka</h4>
-                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                                            <button
-                                                onClick={() => { setSelectedTaluka(null); setFilterOpen(false); }}
-                                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedTaluka
-                                                        ? "bg-emerald-50 text-emerald-700"
-                                                        : "text-slate-700 hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                All Talukas
-                                                {!selectedTaluka && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
-                                            </button>
-                                            {talukasOptions
-                                                .map(taluka => (
-                                                <button
-                                                    key={taluka.id}
-                                                    onClick={() => { setSelectedTaluka(taluka); setFilterOpen(false); }}
-                                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedTaluka?.id === taluka.id
-                                                            ? "bg-emerald-50 text-emerald-700"
-                                                            : "text-slate-700 hover:bg-slate-50"
-                                                        }`}
-                                                >
-                                                    {taluka.name}
-                                                    {selectedTaluka?.id === taluka.id && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                                  {district.name}
+                                  {selectedDistrict?.id === district.id && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="border-l border-slate-100 pl-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">2. Select Taluka</h4>
+                            <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                              <button
+                                onClick={() => { setSelectedTaluka(null); setFilterOpen(false); }}
+                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedTaluka
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "text-slate-700 hover:bg-slate-50"
+                                  }`}
+                              >
+                                All Talukas
+                                {!selectedTaluka && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                              </button>
+                              {talukasOptions
+                                .map(taluka => (
+                                  <button
+                                    key={taluka.id}
+                                    onClick={() => { setSelectedTaluka(taluka); setFilterOpen(false); }}
+                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedTaluka?.id === taluka.id
+                                      ? "bg-emerald-50 text-emerald-700"
+                                      : "text-slate-700 hover:bg-slate-50"
+                                      }`}
+                                  >
+                                    {taluka.name}
+                                    {selectedTaluka?.id === taluka.id && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
             </div>
@@ -761,7 +763,7 @@ export default function SHGRepository() {
                             ))}
                           </select>
                         </div>
-                        
+
                         {modalMode === "edit" && (
                           <div className="space-y-1">
                             <p className={labelClasses}>
@@ -779,7 +781,7 @@ export default function SHGRepository() {
                             </select>
                           </div>
                         )}
-                        
+
                       </div>
                     </div>
 
@@ -849,18 +851,24 @@ export default function SHGRepository() {
                   </div>
                 ) : viewSHGData && (
                   <div className="space-y-6">
-                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="w-16 h-16 rounded-full bg-white border-2 border-slate-100 shadow-md flex items-center justify-center">
-                        <Users size={32} className="text-slate-300" />
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-slate-900">{viewSHGData.shgName}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">SHG ID: {viewSHGData.id}</p>
-                        <div className="flex gap-2 mt-2">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${viewSHGData.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-                            {viewSHGData.status || "—"}
-                          </span>
+                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-white border-2 border-slate-100 shadow-md flex items-center justify-center">
+                          <Users size={32} className="text-slate-300" />
                         </div>
+                        <div>
+                          <p className="text-lg font-bold text-slate-900">{viewSHGData.shgName}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">SHG ID: {viewSHGData.id}</p>
+                          <div className="flex gap-2 mt-2">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${viewSHGData.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                              {viewSHGData.status || "—"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right pr-4">
+                        <p className="text-3xl font-black text-slate-800">{viewSHGData.memberCount}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Members</p>
                       </div>
                     </div>
 
@@ -895,6 +903,53 @@ export default function SHGRepository() {
                         ))}
                       </div>
                     </div>
+
+                    {viewSHGData.shgMembers && viewSHGData.shgMembers.length > 0 && (
+                      <div className="mt-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SHG Members</p>
+                          <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full">{viewSHGData.shgMembers.length} Members</span>
+                        </div>
+                        <div className="space-y-3">
+                          {viewSHGData.shgMembers.map((member, idx) => {
+                            const designation = member.designation || member.role || "Member";
+                            const isLeader = designation.toLowerCase().includes("president") || designation.toLowerCase().includes("leader") || designation.toLowerCase().includes("secretary");
+                            
+                            return (
+                              <motion.div 
+                                key={member.id || idx}
+                                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05, type: 'spring', stiffness: 300, damping: 20 }}
+                                className="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm cursor-pointer transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/30"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors">
+                                    <User size={20} />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors">{member.member_name || member.name || "—"}</h4>
+                                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${isLeader ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                      {designation}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  {(member.mobile_no || member.mobile || member.member_mobile) ? (
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 group-hover:bg-white text-slate-700 rounded-xl text-xs font-semibold border border-slate-100 transition-colors shadow-sm">
+                                      <Phone size={12} className="text-blue-500" />
+                                      {member.mobile_no || member.mobile || member.member_mobile}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">—</span>
+                                  )}
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
