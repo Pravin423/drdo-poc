@@ -4,14 +4,46 @@ import { Plus, X, Search, Users, Aperture, UploadCloud, Eye, Edit, Activity, Zap
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
-const MOCK_SHGS = [
-  { id: "SHG001", name: "Saraswati Women SHG", contactPerson: "Priya Naik", mobile: "9876543210", district: "North Goa", taluka: "Tiswadi", village: "Panaji" },
-  { id: "SHG002", name: "Lakshmi Rural SHG", contactPerson: "Anita Desai", mobile: "8765432109", district: "South Goa", taluka: "Salcete", village: "Margao" },
-  { id: "SHG003", name: "Durga Mahila Mandal", contactPerson: "Sunita Parsekar", mobile: "7654321098", district: "North Goa", taluka: "Pernem", village: "Arambol" },
-];
-
 export default function SHGRepository() {
-  const [shgs, setShgs] = useState(MOCK_SHGS);
+  const [shgs, setShgs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchSHGs = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch("/api/shg-list", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      const arr = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+      
+      setShgs(arr.map((s, i) => {
+        let statusStr = "Active";
+        if (s.status === 0 || s.status === "Inactive") statusStr = "Inactive";
+        if (s.status === 2 || s.status === "Deleted") statusStr = "Deleted";
+        
+        return {
+          id: s.shg_id || s.id || `SHG${i+1}`,
+          name: s.shg_name || s.name || "-",
+          contactPerson: s.contact_person_name || s.contactPerson || "-",
+          mobile: s.contact_person_mobile || s.mobile || s.mobile_number || s.contact_number || "-",
+          district: s.district || s.district_name || "-",
+          taluka: s.taluka || s.taluka_name || "-",
+          village: s.village || s.village_name || "-",
+          status: statusStr
+        };
+      }));
+    } catch (err) {
+      console.error("Failed to fetch SHGs:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSHGs();
+  }, []);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -164,7 +196,7 @@ export default function SHGRepository() {
               <table className="w-full min-w-[800px]">
                 <thead className="bg-slate-50/60">
                   <tr>
-                    {["SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Status", "Action"].map((h) => (
+                    {["ID", "SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Status", "Action"].map((h) => (
                       <th key={h} className={`px-4 py-3 text-xs font-semibold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
                         {h}
                       </th>
@@ -172,9 +204,19 @@ export default function SHGRepository() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredSHGs.length === 0 ? (
+                  {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        {Array.from({ length: 9 }).map((_, j) => (
+                          <td key={j} className="px-4 py-4">
+                            <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : filteredSHGs.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-16 text-center">
+                      <td colSpan={9} className="px-4 py-16 text-center">
                         <div className="flex flex-col items-center gap-3 text-slate-400">
                           <Users size={36} className="opacity-30" />
                           <p className="text-sm font-semibold">No SHGs found</p>
@@ -185,8 +227,10 @@ export default function SHGRepository() {
                     filteredSHGs.map((shg) => (
                       <tr key={shg.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-4">
-                          <div className="font-semibold text-slate-900">{shg.name}</div>
-                          <div className="text-xs text-slate-500">{shg.id}</div>
+                          <span className="font-bold text-slate-500">{shg.id}</span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span className="font-semibold text-slate-900">{shg.name}</span>
                         </td>
                         <td className="px-4 py-4 font-medium text-slate-700">{shg.contactPerson}</td>
                         <td className="px-4 py-4 text-slate-600">{shg.mobile}</td>
@@ -194,7 +238,9 @@ export default function SHGRepository() {
                         <td className="px-4 py-4 text-slate-600">{shg.taluka}</td>
                         <td className="px-4 py-4 text-slate-600">{shg.village}</td>
                         <td className="px-4 py-4 text-slate-600">
-                          <span className="bg-emerald-50 text-emerald-700 border-emerald-100 px-3 py-1 rounded-full text-[11px] font-bold border">Active</span>
+                          <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${shg.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                            {shg.status}
+                          </span>
                         </td>
                         <td className="px-4 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
