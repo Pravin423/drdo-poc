@@ -34,7 +34,8 @@ export default function SHGRepository() {
           district: s.district || s.district_name || "-",
           taluka: s.taluka || s.taluka_name || "-",
           village: s.village || s.village_name || "-",
-          status: statusStr
+          status: statusStr,
+          memberCount: s.member_count ?? 0,
         };
       }));
     } catch (err) {
@@ -689,7 +690,7 @@ export default function SHGRepository() {
               <table className="w-full min-w-[800px]">
                 <thead className="bg-slate-50/60">
                   <tr>
-                    {["ID", "SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Status", "Action"].map((h) => (
+                    {["ID", "SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Members", "Status", "Action"].map((h) => (
                       <th key={h} className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
                         {h}
                       </th>
@@ -700,7 +701,7 @@ export default function SHGRepository() {
                   {isLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <tr key={i} className="animate-pulse">
-                        {Array.from({ length: 9 }).map((_, j) => (
+                      {Array.from({ length: 10 }).map((_, j) => (
                           <td key={j} className="px-4 py-4">
                             <div className="h-4 bg-slate-100 rounded-lg w-3/4" />
                           </td>
@@ -709,7 +710,7 @@ export default function SHGRepository() {
                     ))
                   ) : filteredSHGs.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-4 py-16 text-center">
+                      <td colSpan={10} className="px-4 py-16 text-center">
                         <div className="flex flex-col items-center gap-3 text-slate-400">
                           <Users size={36} className="opacity-30" />
                           <p className="text-sm font-semibold">No SHGs found</p>
@@ -734,6 +735,12 @@ export default function SHGRepository() {
                         <td className="px-4 py-3 text-sm text-slate-600">{shg.district}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{shg.taluka}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">{shg.village}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            <Users size={14} className="text-slate-400 shrink-0" />
+                            <span className="text-sm font-bold text-slate-700">{shg.memberCount ?? 0}</span>
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-sm text-slate-600">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${shg.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
                             {shg.status}
