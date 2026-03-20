@@ -22,6 +22,7 @@ import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import { exportToExcel } from "../../lib/exportToExcel";
+import { useRouter } from "next/router";
 
 
 
@@ -204,8 +205,16 @@ export default function CrpManagement() {
 
 
 
+  const router = useRouter();
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  
+  useEffect(() => {
+    if (router.query?.add === "true") {
+      setIsRegisterOpen(true);
+    }
+  }, [router.query]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [formStep, setFormStep] = useState(1);

@@ -20,7 +20,13 @@ export const SIDEBAR_CONFIG = {
     {
       section: "CRP OPERATIONS",
       items: [
-        { name: "CRP Management", path: "/dashboard/crp-management" },
+        {
+          name: "CRP Management",
+          subItems: [
+            { name: "CRP List", path: "/dashboard/crp-management" },
+            { name: "CRP SHGs Mapping", path: "/dashboard/crp-management/crp-shg-mapping" },
+          ],
+        },
         { name: "Attendance Management", path: "/dashboard/attandence" },
         { name: "Task Assignment", path: "/dashboard/task-assignment" },
       ],
