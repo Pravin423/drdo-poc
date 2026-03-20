@@ -72,6 +72,60 @@ export default function SHGRepository() {
     { id: Date.now(), member_name: "", mobile_no: "", designation: "" }
   ]);
 
+  const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false);
+  const [isUpdatingMember, setIsUpdatingMember] = useState(false);
+  const [editMemberData, setEditMemberData] = useState({ id: null, member_name: "", mobile_no: "", designation: "" });
+
+  const handleEditMemberClick = (member) => {
+    setEditMemberData({
+      id: member.id,
+      member_name: member.member_name || member.name || "",
+      mobile_no: member.mobile_no || member.mobile || member.member_mobile || "",
+      designation: member.designation || member.role || "Member",
+    });
+    setIsEditMemberModalOpen(true);
+  };
+
+  const handleEditMemberSubmit = async (e) => {
+    e.preventDefault();
+    setIsUpdatingMember(true);
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const payload = {
+        shg_member_id: editMemberData.id,
+        shg_member_name: editMemberData.member_name,
+        shg_member_mobile: editMemberData.mobile_no,
+        shg_member_designation: editMemberData.designation,
+      };
+
+      const res = await fetch("/api/edit-shg-member", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status === false) {
+        throw new Error(data.message || "Failed to update member");
+      }
+
+      setIsEditMemberModalOpen(false);
+      // Refresh the view modal's member list
+      if (viewSHGData) {
+        handleViewClick({ id: viewSHGData.id });
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update member");
+    } finally {
+      setIsUpdatingMember(false);
+    }
+  };
+
   const handleAddMemberClick = (shg) => {
     setAddMemberSHG(shg);
     setAddMembersList([{ id: Date.now(), member_name: "", mobile_no: "", designation: "" }]);
@@ -129,6 +183,41 @@ export default function SHGRepository() {
       alert(err.message || "Failed to add SHG members");
     } finally {
       setIsAddingMember(false);
+    }
+  };
+
+  const [memberToDelete, setMemberToDelete] = useState(null);
+  const [isDeletingMember, setIsDeletingMember] = useState(false);
+
+  const handleDeleteMember = (member) => {
+    setMemberToDelete(member);
+  };
+
+  const confirmDeleteMember = async () => {
+    if (!memberToDelete) return;
+    setIsDeletingMember(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/delete-shg-member?id=${memberToDelete.id}`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status === false) {
+        throw new Error(data.message || "Failed to delete member");
+      }
+
+      setMemberToDelete(null);
+      // Refresh the view modal's member list
+      if (viewSHGData) {
+        handleViewClick({ id: viewSHGData.id });
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete member");
+    } finally {
+      setIsDeletingMember(false);
     }
   };
 
@@ -1019,12 +1108,16 @@ export default function SHGRepository() {
                                   {/* Action Buttons */}
                                   <div className="flex items-center gap-1.5">
                                     <button 
+                                      type="button"
+                                      onClick={() => handleEditMemberClick(member)}
                                       className="p-2 bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-200"
                                       title="Edit member"
                                     >
                                       <Edit size={14} />
                                     </button>
                                     <button 
+                                      type="button"
+                                      onClick={() => handleDeleteMember(member)}
                                       className="p-2 bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-200"
                                       title="Delete member"
                                     >
@@ -1221,6 +1314,191 @@ export default function SHGRepository() {
                       )}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit SHG Member Modal */}
+      <AnimatePresence>
+        {isEditMemberModalOpen && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 py-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden"
+            >
+              {/* Header */}
+              <div className="relative h-28 bg-gradient-to-r from-slate-800 to-slate-900 px-6 flex items-center gap-4 overflow-hidden">
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-5 rounded-full blur-xl"></div>
+                <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-white font-black text-xl shrink-0">
+                  {editMemberData.member_name ? editMemberData.member_name.charAt(0).toUpperCase() : <User size={24} />}
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-white">Edit Member</h2>
+                  <p className="text-slate-400 text-xs mt-0.5 truncate">{editMemberData.member_name || "Member Details"}</p>
+                </div>
+                <button
+                  onClick={() => setIsEditMemberModalOpen(false)}
+                  className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Form Body */}
+              <div className="p-6 bg-slate-50/50">
+                <form id="edit-member-form" onSubmit={handleEditMemberSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Member Name <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <User size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={editMemberData.member_name}
+                        onChange={(e) => setEditMemberData(prev => ({ ...prev, member_name: e.target.value }))}
+                        placeholder="Full Name"
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-900 font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Mobile Number <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <Phone size={16} />
+                      </div>
+                      <input
+                        type="tel"
+                        value={editMemberData.mobile_no}
+                        onChange={(e) => setEditMemberData(prev => ({ ...prev, mobile_no: e.target.value }))}
+                        placeholder="10-digit number"
+                        maxLength={10}
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-900 font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Designation <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <Activity size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={editMemberData.designation}
+                        onChange={(e) => setEditMemberData(prev => ({ ...prev, designation: e.target.value }))}
+                        placeholder="Role (e.g., President)"
+                        required
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-900 font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditMemberModalOpen(false)}
+                  className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 font-semibold text-sm rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="edit-member-form"
+                  disabled={isUpdatingMember}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isUpdatingMember ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Edit size={15} />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {memberToDelete && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
+            >
+              {/* Red danger header */}
+              <div className="bg-red-50 px-6 pt-6 pb-5 flex flex-col items-center text-center">
+                <div className="w-14 h-14 bg-red-100 border border-red-200 rounded-full flex items-center justify-center mb-4">
+                  <Trash2 size={26} className="text-red-600" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Delete Member</h3>
+                <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-slate-700">
+                    {memberToDelete.member_name || memberToDelete.name || "this member"}
+                  </span>?
+                  <br />
+                  <span className="text-xs text-red-500 font-medium">This action cannot be undone.</span>
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="px-6 py-4 flex gap-3 border-t border-slate-100 bg-white">
+                <button
+                  type="button"
+                  onClick={() => setMemberToDelete(null)}
+                  className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteMember}
+                  disabled={isDeletingMember}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-md shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDeletingMember ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={15} />
+                      Yes, Delete
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </div>
