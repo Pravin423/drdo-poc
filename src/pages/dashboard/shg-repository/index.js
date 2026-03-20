@@ -536,8 +536,8 @@ export default function SHGRepository() {
           </div>
 
           {/* Filter Bar */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm relative z-20">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center rounded-t-2xl">
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Filter Records</h3>
             </div>
             <div className="p-6">
