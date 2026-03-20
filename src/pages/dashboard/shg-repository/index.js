@@ -55,6 +55,43 @@ export default function SHGRepository() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewSHGData, setViewSHGData] = useState(null);
+  const [isViewLoading, setIsViewLoading] = useState(false);
+
+  const handleViewClick = async (shg) => {
+    setIsViewModalOpen(true);
+    setIsViewLoading(true);
+    setViewSHGData(null);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/shg-details?id=${shg.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      let d = result.data || result;
+      if (Array.isArray(d)) {
+        d = d[0] || {};
+      }
+      setViewSHGData({
+        id: shg.id,
+        shgName: d.shg_name || d.name || d.shgName || shg.name,
+        contactPersonName: d.contact_person_name || d.contactPerson || shg.contactPerson,
+        contactPersonMobile: d.contact_person_mobile || d.mobile || d.mobile_number || shg.mobile,
+        district: d.district || d.district_name || shg.district,
+        taluka: d.taluka || d.taluka_name || shg.taluka,
+        village: d.village || d.village_name || shg.village,
+        status: shg.status,
+        timestamp: d.created_at || d.timestamp || d.time || "N/A",
+      });
+    } catch (err) {
+      console.error("View SHG error:", err);
+      setViewSHGData({ error: "Failed to load SHG details." });
+    } finally {
+      setIsViewLoading(false);
+    }
+  };
+
   const [formData, setFormData] = useState({
     shgName: "",
     contactPersonName: "",
@@ -222,7 +259,7 @@ export default function SHGRepository() {
 
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (isModalOpen) {
+    if (isModalOpen || isViewModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -230,7 +267,7 @@ export default function SHGRepository() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isModalOpen]);
+  }, [isModalOpen, isViewModalOpen]);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -502,7 +539,7 @@ export default function SHGRepository() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <button onClick={() => handleViewClick(shg)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                               <Eye size={16} />
                             </button>
                             <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -704,6 +741,107 @@ export default function SHGRepository() {
                 </div>
               </div>
 
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* View SHG Modal */}
+      <AnimatePresence>
+        {isViewModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+              onClick={() => setIsViewModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ type: "spring", duration: 0.4, bounce: 0.25 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden relative z-10 border border-slate-100"
+            >
+              <div className="relative h-24 bg-gradient-to-r from-slate-800 to-slate-900 px-6 flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
+                  <Eye className="text-white" size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">SHG Details</h3>
+                  <p className="text-slate-400 text-xs mt-0.5">Full profile information</p>
+                </div>
+                <button onClick={() => setIsViewModalOpen(false)}
+                  className="absolute top-5 right-5 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {isViewLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-700 mb-4" />
+                    <p className="text-sm font-semibold">Loading SHG details...</p>
+                  </div>
+                ) : viewSHGData?.error ? (
+                  <div className="text-center py-10">
+                    <p className="text-red-500 font-medium text-sm">{viewSHGData.error}</p>
+                  </div>
+                ) : viewSHGData && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="w-16 h-16 rounded-full bg-white border-2 border-slate-100 shadow-md flex items-center justify-center">
+                        <Users size={32} className="text-slate-300" />
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-slate-900">{viewSHGData.shgName}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">SHG ID: {viewSHGData.id}</p>
+                        <div className="flex gap-2 mt-2">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${viewSHGData.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                            {viewSHGData.status || "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Contact Information</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { label: "Contact Person", value: viewSHGData.contactPersonName || "—" },
+                          { label: "Mobile", value: viewSHGData.contactPersonMobile || "—" },
+                          { label: "Created At", value: viewSHGData.timestamp && viewSHGData.timestamp !== "N/A" ? new Date(viewSHGData.timestamp).toLocaleDateString() : "—" },
+                        ].map(item => (
+                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                            <p className="text-sm font-semibold text-slate-800 truncate">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Location Information</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {[
+                          { label: "District", value: viewSHGData.district || "—" },
+                          { label: "Taluka", value: viewSHGData.taluka || "—" },
+                          { label: "Village", value: viewSHGData.village || "—" },
+                        ].map(item => (
+                          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
+                            <p className="text-sm font-semibold text-slate-800 truncate">{item.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onClick={() => setIsViewModalOpen(false)}
+                  className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors">
+                  Close
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
