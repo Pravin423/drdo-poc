@@ -9,6 +9,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   User,
+  Aperture,
 } from "lucide-react";
 import { useState, createContext, useContext } from "react";
 import { useRouter } from "next/router";
@@ -45,6 +46,14 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
   const icon =
     item.name === "Goa Location" ? (
       <MapPin
+        size={16}
+        className={`shrink-0 ${isActive || isSubItemActive
+          ? "text-tech-blue-400"
+          : "text-blue-200 group-hover:text-blue-100"
+          }`}
+      />
+    ) : item.name === "SHG Repository" ? (
+      <Aperture
         size={16}
         className={`shrink-0 ${isActive || isSubItemActive
           ? "text-tech-blue-400"

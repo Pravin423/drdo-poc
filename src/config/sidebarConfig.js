@@ -26,6 +26,12 @@ export const SIDEBAR_CONFIG = {
       ],
     },
     {
+      section: "SHG MANAGEMENT",
+      items: [
+        { name: "SHG Repository", path: "/dashboard/shg-repository" },
+      ],
+    },
+    {
       section: "FINANCIAL MANAGEMENT",
       items: [{ name: "Honorarium Calculation", path: "/dashboard/honorarium" }],
     },
