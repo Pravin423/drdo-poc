@@ -165,7 +165,7 @@ export default function SHGRepository() {
                 <thead className="bg-slate-50/60">
                   <tr>
                     {["SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Status", "Action"].map((h) => (
-                      <th key={h} className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
+                      <th key={h} className={`px-4 py-3 text-xs font-semibold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
                         {h}
                       </th>
                     ))}
@@ -185,7 +185,7 @@ export default function SHGRepository() {
                     filteredSHGs.map((shg) => (
                       <tr key={shg.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-4">
-                          <div className="font-bold text-slate-900">{shg.name}</div>
+                          <div className="font-semibold text-slate-900">{shg.name}</div>
                           <div className="text-xs text-slate-500">{shg.id}</div>
                         </td>
                         <td className="px-4 py-4 font-medium text-slate-700">{shg.contactPerson}</td>
