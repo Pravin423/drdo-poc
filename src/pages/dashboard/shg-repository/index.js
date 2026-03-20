@@ -129,18 +129,21 @@ export default function SHGRepository() {
 
   const handleAddMemberClick = (shg) => {
     setAddMemberSHG(shg);
-    setAddMembersList([{ id: Date.now(), member_name: "", mobile_no: "", designation: "" }]);
+    setAddMembersList([{ id: Date.now(), member_name: "", mobile_no: "", designation: "", errors: {} }]);
     setIsAddMemberModalOpen(true);
   };
 
   const handleMemberChange = (index, field, value) => {
     const list = [...addMembersList];
     list[index][field] = value;
+    if (list[index].errors) {
+      list[index].errors[field] = null;
+    }
     setAddMembersList(list);
   };
 
   const addMemberRow = () => {
-    setAddMembersList([...addMembersList, { id: Date.now() + Math.random(), member_name: "", mobile_no: "", designation: "" }]);
+    setAddMembersList([...addMembersList, { id: Date.now() + Math.random(), member_name: "", mobile_no: "", designation: "", errors: {} }]);
   };
 
   const removeMemberRow = (index) => {
@@ -152,6 +155,31 @@ export default function SHGRepository() {
   const handleAddMemberSubmit = async (e) => {
     e.preventDefault();
     if (addMembersList.length === 0) return;
+
+    let hasErrors = false;
+    const newMembersList = addMembersList.map((m) => ({ ...m, errors: {} }));
+
+    for (let i = 0; i < newMembersList.length; i++) {
+      const member = newMembersList[i];
+      if (!member.member_name.trim()) {
+        member.errors.member_name = "Name is required";
+        hasErrors = true;
+      }
+      if (!member.mobile_no || !/^\d{10}$/.test(member.mobile_no)) {
+        member.errors.mobile_no = "10-digit mobile required";
+        hasErrors = true;
+      }
+      if (!member.designation.trim()) {
+        member.errors.designation = "Designation is required";
+        hasErrors = true;
+      }
+    }
+
+    if (hasErrors) {
+      setAddMembersList(newMembersList);
+      return;
+    }
+
     setIsAddingMember(true);
     try {
       const token = localStorage.getItem("authToken");
@@ -1071,12 +1099,32 @@ export default function SHGRepository() {
                       </div>
                     </div>
 
-                    {viewSHGData.shgMembers && viewSHGData.shgMembers.length > 0 && (
-                      <div className="mt-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SHG Members</p>
-                          <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full">{viewSHGData.shgMembers.length} Members</span>
+                    <div className="mt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SHG Members</p>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full">{(viewSHGData.shgMembers || []).length} Members</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsViewModalOpen(false);
+                              handleAddMemberClick({ id: viewSHGData.id, name: viewSHGData.shgName });
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+                          >
+                            <UserPlus size={14} /> Add Member
+                          </button>
                         </div>
+                      </div>
+                      
+                      {(!viewSHGData.shgMembers || viewSHGData.shgMembers.length === 0) ? (
+                        <div className="p-6 text-center border border-slate-100 rounded-2xl bg-slate-50/50">
+                          <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-sm border border-slate-100 mb-3">
+                             <Users size={20} className="text-slate-300" />
+                          </div>
+                          <p className="text-sm font-semibold text-slate-500 block">No members added yet.</p>
+                        </div>
+                      ) : (
                         <div className="space-y-3">
                           {viewSHGData.shgMembers.map((member, idx) => {
                             const designation = member.designation || member.role || "Member";
@@ -1137,8 +1185,8 @@ export default function SHGRepository() {
                             );
                           })}
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1216,10 +1264,10 @@ export default function SHGRepository() {
                               value={member.member_name}
                               onChange={(e) => handleMemberChange(idx, "member_name", e.target.value)}
                               placeholder="Full Name"
-                              required
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-900 font-medium focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:font-normal"
+                              className={`w-full bg-slate-50/50 border ${member.errors?.member_name ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-lg pl-10 pr-3 py-2 text-sm text-slate-900 font-medium focus:bg-white focus:ring-2 outline-none transition-all placeholder:font-normal`}
                             />
                           </div>
+                          {member.errors?.member_name && <p className="text-xs text-red-500 mt-1 ml-1">{member.errors.member_name}</p>}
                         </div>
                         
                         <div className="space-y-1">
@@ -1234,10 +1282,10 @@ export default function SHGRepository() {
                               onChange={(e) => handleMemberChange(idx, "mobile_no", e.target.value)}
                               placeholder="10-digit number"
                               maxLength={10}
-                              required
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-900 font-medium focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:font-normal"
+                              className={`w-full bg-slate-50/50 border ${member.errors?.mobile_no ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-lg pl-10 pr-3 py-2 text-sm text-slate-900 font-medium focus:bg-white focus:ring-2 outline-none transition-all placeholder:font-normal`}
                             />
                           </div>
+                          {member.errors?.mobile_no && <p className="text-xs text-red-500 mt-1 ml-1">{member.errors.mobile_no}</p>}
                         </div>
 
                         <div className="space-y-1">
@@ -1251,10 +1299,10 @@ export default function SHGRepository() {
                               value={member.designation}
                               onChange={(e) => handleMemberChange(idx, "designation", e.target.value)}
                               placeholder="Role (e.g., President)"
-                              required
-                              className="w-full bg-slate-50/50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-900 font-medium focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:font-normal"
+                              className={`w-full bg-slate-50/50 border ${member.errors?.designation ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-100'} rounded-lg pl-10 pr-3 py-2 text-sm text-slate-900 font-medium focus:bg-white focus:ring-2 outline-none transition-all placeholder:font-normal`}
                             />
                           </div>
+                          {member.errors?.designation && <p className="text-xs text-red-500 mt-1 ml-1">{member.errors.designation}</p>}
                         </div>
 
                         <div className="flex justify-end md:justify-center md:pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
