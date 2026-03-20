@@ -720,7 +720,7 @@ export default function SHGRepository() {
                 <thead className="bg-slate-50/60">
                   <tr>
                     {["ID", "SHG Name", "Contact Person", "Mobile", "District", "Taluka", "Village", "Members", "Status", "Action"].map((h) => (
-                      <th key={h} className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Action" ? "text-right" : "text-left"}`}>
+                      <th key={h} className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase ${h === "Action" ? "text-center" : "text-left"}`}>
                         {h}
                       </th>
                     ))}
@@ -775,8 +775,8 @@ export default function SHGRepository() {
                             {shg.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
                             <button onClick={() => handleAddMemberClick(shg)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Add Member">
                               <UserPlus size={16} />
                             </button>
