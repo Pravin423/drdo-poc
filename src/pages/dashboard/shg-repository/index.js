@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Search, Users, Aperture, UploadCloud, Eye, Edit, Activity, Zap, MapPin } from "lucide-react";
+import { Plus, X, Search, Users, Aperture, UploadCloud, Eye, Edit, Activity, Zap, MapPin, Map, Filter, ChevronDown } from "lucide-react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
@@ -17,14 +17,14 @@ export default function SHGRepository() {
       });
       const result = await res.json();
       const arr = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-      
+
       setShgs(arr.map((s, i) => {
         let statusStr = "Active";
         if (s.status === 0 || s.status === "Inactive") statusStr = "Inactive";
         if (s.status === 2 || s.status === "Deleted") statusStr = "Deleted";
-        
+
         return {
-          id: s.shg_id || s.id || `SHG${i+1}`,
+          id: s.shg_id || s.id || `SHG${i + 1}`,
           name: s.shg_name || s.name || "-",
           contactPerson: s.contact_person_name || s.contactPerson || "-",
           mobile: s.contact_person_mobile || s.mobile || s.mobile_number || s.contact_number || "-",
@@ -41,11 +41,20 @@ export default function SHGRepository() {
     }
   };
 
-  useEffect(() => {
-    fetchSHGs();
-  }, []);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedTaluka, setSelectedTaluka] = useState(null);
+  const [districts, setDistricts] = useState([]);
+  const [talukasOptions, setTalukasOptions] = useState([]);
+  
+  const [talukas, setTalukas] = useState([]);
+  const [villages, setVillages] = useState([]);
+
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     shgName: "",
     contactPersonName: "",
@@ -55,32 +64,149 @@ export default function SHGRepository() {
     village: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newShg = {
-      id: `SHG00${shgs.length + 1}`,
-      name: formData.shgName,
-      contactPerson: formData.contactPersonName,
-      mobile: formData.contactPersonMobile,
-      district: formData.district,
-      taluka: formData.taluka,
-      village: formData.village,
+  useEffect(() => {
+    fetchSHGs();
+    const loadDistricts = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("/api/districts", { headers: { Authorization: `Bearer ${token}` } });
+        if(res.ok) {
+           const result = await res.json();
+           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+           setDistricts(data.map(d => ({ id: d.id || d._id || d.district_id, name: d.name || d.district || d.districtName })));
+        }
+      } catch (err) {}
     };
-    setShgs([newShg, ...shgs]);
-    setIsModalOpen(false);
-    setFormData({
-      shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: ""
+    loadDistricts();
+  }, []);
+
+  useEffect(() => {
+    const loadTalukas = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const url = selectedDistrict ? `/api/talukas?district_id=${selectedDistrict.id}` : "/api/talukas";
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if(res.ok) {
+           const result = await res.json();
+           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+           setTalukasOptions(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
+        }
+      } catch (err) {}
+    };
+    loadTalukas();
+  }, [selectedDistrict]);
+
+  useEffect(() => {
+    if (!formData.district) {
+      setTalukas([]);
+      return;
+    }
+    const loadFormTalukas = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch(`/api/talukas?district_id=${formData.district}`, { headers: { Authorization: `Bearer ${token}` } });
+        if(res.ok) {
+           const result = await res.json();
+           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+           setTalukas(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
+        }
+      } catch (err) {}
+    };
+    loadFormTalukas();
+  }, [formData.district]);
+
+  useEffect(() => {
+    if (!formData.taluka) {
+      setVillages([]);
+      return;
+    }
+    const loadVillages = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch(`/api/villages?taluka_id=${formData.taluka}`, { headers: { Authorization: `Bearer ${token}` } });
+        if(res.ok) {
+           const result = await res.json();
+           const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+           setVillages(data.map(v => ({ id: v.id || v._id || v.village_id || v.villageId, name: v.name || v.village || v.villageName })));
+        }
+      } catch (err) {}
+    };
+    loadVillages();
+  }, [formData.taluka]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => {
+      const nextData = { ...prev, [name]: value };
+      if (name === "district") {
+        nextData.taluka = "";
+        nextData.village = "";
+      } else if (name === "taluka") {
+        nextData.village = "";
+      }
+      return nextData;
     });
   };
 
-  const filteredSHGs = shgs.filter(shg => 
-    shg.name.toLowerCase().includes(search.toLowerCase()) ||
-    shg.contactPerson.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        shgname: formData.shgName,
+        contactpersonname: formData.contactPersonName,
+        contactpersonmobile: formData.contactPersonMobile,
+        district: Number(formData.district) || 1,
+        taluka: Number(formData.taluka) || 6,
+        village: Number(formData.village) || 141,
+      };
+
+      const token = localStorage.getItem("authToken");
+      const res = await fetch("/api/add-shg", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result?.status === false) {
+        throw new Error(result?.message || "Failed to create SHG");
+      }
+
+      setIsModalOpen(false);
+      setFormData({
+        shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: ""
+      });
+      // Refresh the table!
+      fetchSHGs();
+    } catch (err) {
+      console.error("Submission error:", err);
+      alert(err.message || "Failed to submit form");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredSHGs = shgs.filter(shg => {
+    const matchSearch = shg.name.toLowerCase().includes(search.toLowerCase()) || shg.contactPerson.toLowerCase().includes(search.toLowerCase());
+    const matchDistrict = !selectedDistrict || (shg.district && shg.district === selectedDistrict.name);
+    const matchTaluka = !selectedTaluka || (shg.taluka && shg.taluka === selectedTaluka.name);
+    return matchSearch && matchDistrict && matchTaluka;
+  });
 
   const inputClasses = "w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm bg-slate-50 border-slate-100 focus:border-blue-500";
   const labelClasses = "text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1";
@@ -126,7 +252,7 @@ export default function SHGRepository() {
                 Manage, monitor, and register Self Help Groups across Goa.
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <button
                 className="bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-bold border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm"
@@ -176,16 +302,146 @@ export default function SHGRepository() {
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Filter Records</h3>
             </div>
             <div className="p-6">
-              <div className="w-full md:w-96 relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Search size={16} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+              <div className="flex flex-col md:flex-row items-end gap-5">
+                <div className="flex-1 w-full md:w-auto">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Search</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Search size={16} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    </div>
+                    <input
+                      placeholder="Search Name or Contact Person..."
+                      className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none bg-slate-50/30 focus:bg-white"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <input
-                  placeholder="Search SHG or Contact Person..."
-                  className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none bg-slate-50/30 focus:bg-white"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    {selectedDistrict && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold"
+                        >
+                            <MapPin size={12} />
+                            {selectedDistrict.name}
+                            <button
+                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); }}
+                                className="ml-0.5 text-blue-500 hover:text-blue-800 transition-colors"
+                                title="Clear district filter"
+                            >
+                                <X size={12} />
+                            </button>
+                        </motion.div>
+                    )}
+
+                    {selectedTaluka && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-semibold"
+                        >
+                            <Map size={12} />
+                            {selectedTaluka.name}
+                            <button
+                                onClick={() => setSelectedTaluka(null)}
+                                className="ml-0.5 text-emerald-500 hover:text-emerald-800 transition-colors"
+                                title="Clear taluka filter"
+                            >
+                                <X size={12} />
+                            </button>
+                        </motion.div>
+                    )}
+
+                    <div ref={filterRef} className="relative z-10 ml-auto sm:ml-0">
+                        <button
+                            onClick={() => setFilterOpen(prev => !prev)}
+                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all shadow-sm ${selectedDistrict || selectedTaluka
+                                    ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                }`}
+                        >
+                            <Filter size={16} />
+                            Filters
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${filterOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {filterOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute right-0 top-full mt-2 w-[520px] bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden p-4 grid grid-cols-2 gap-4 origin-top-right z-50"
+                                >
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">1. Select District</h4>
+                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                            <button
+                                                onClick={() => { setSelectedDistrict(null); setSelectedTaluka(null); setFilterOpen(false); }}
+                                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedDistrict
+                                                        ? "bg-blue-50 text-blue-700"
+                                                        : "text-slate-700 hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                All Districts
+                                                {!selectedDistrict && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                            </button>
+                                            {districts.map(district => (
+                                                <button
+                                                    key={district.id}
+                                                    onClick={() => { setSelectedDistrict(district); setSelectedTaluka(null); }}
+                                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedDistrict?.id === district.id
+                                                            ? "bg-blue-50 text-blue-700"
+                                                            : "text-slate-700 hover:bg-slate-50"
+                                                        }`}
+                                                >
+                                                    {district.name}
+                                                    {selectedDistrict?.id === district.id && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="border-l border-slate-100 pl-4">
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 px-2">2. Select Taluka</h4>
+                                        <div className="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                            <button
+                                                onClick={() => { setSelectedTaluka(null); setFilterOpen(false); }}
+                                                className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${!selectedTaluka
+                                                        ? "bg-emerald-50 text-emerald-700"
+                                                        : "text-slate-700 hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                All Talukas
+                                                {!selectedTaluka && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                                            </button>
+                                            {talukasOptions
+                                                .map(taluka => (
+                                                <button
+                                                    key={taluka.id}
+                                                    onClick={() => { setSelectedTaluka(taluka); setFilterOpen(false); }}
+                                                    className={`w-full text-left px-3 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-between ${selectedTaluka?.id === taluka.id
+                                                            ? "bg-emerald-50 text-emerald-700"
+                                                            : "text-slate-700 hover:bg-slate-50"
+                                                        }`}
+                                                >
+                                                    {taluka.name}
+                                                    {selectedTaluka?.id === taluka.id && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
               </div>
             </div>
           </div>
@@ -225,7 +481,7 @@ export default function SHGRepository() {
                     </tr>
                   ) : (
                     filteredSHGs.map((shg, idx) => (
-                      <motion.tr 
+                      <motion.tr
                         key={shg.id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -248,12 +504,12 @@ export default function SHGRepository() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-2">
-                             <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                               <Eye size={16} />
-                             </button>
-                             <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                               <Edit size={16} />
-                             </button>
+                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                              <Eye size={16} />
+                            </button>
+                            <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                              <Edit size={16} />
+                            </button>
                           </div>
                         </td>
                       </motion.tr>
@@ -288,7 +544,7 @@ export default function SHGRepository() {
                     <p className="text-slate-400 text-xs font-medium mt-0.5">Register a new Self Help Group</p>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
@@ -300,7 +556,7 @@ export default function SHGRepository() {
               <div className="relative overflow-hidden">
                 <div className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 custom-scrollbar">
                   <form onSubmit={handleSubmit} className="space-y-8">
-                    
+
                     {/* Group 1: General Info */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="md:col-span-1">
@@ -308,7 +564,7 @@ export default function SHGRepository() {
                         <p className="text-xs text-slate-500 mt-1">Core details and contact individual for the Self Help Group.</p>
                       </div>
                       <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        
+
                         <div className="space-y-1">
                           <p className={labelClasses}>
                             SHG Name <span className="text-red-400">*</span>
@@ -380,9 +636,10 @@ export default function SHGRepository() {
                             required
                             className={inputClasses}
                           >
-                            <option value="" disabled>Choose...</option>
-                            <option value="North Goa">North Goa</option>
-                            <option value="South Goa">South Goa</option>
+                            <option value="" disabled>Choose District...</option>
+                            {districts.map(d => (
+                              <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
                           </select>
                         </div>
 
@@ -397,11 +654,13 @@ export default function SHGRepository() {
                             value={formData.taluka}
                             onChange={handleChange}
                             required
-                            className={inputClasses}
+                            disabled={!formData.district || talukas.length === 0}
+                            className={`${inputClasses} disabled:opacity-50`}
                           >
-                            <option value="" disabled>Choose...</option>
-                            <option value="Taluka 1">Taluka 1</option>
-                            <option value="Taluka 2">Taluka 2</option>
+                            <option value="" disabled>Choose Taluka...</option>
+                            {talukas.map(t => (
+                              <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
                           </select>
                         </div>
 
@@ -414,11 +673,13 @@ export default function SHGRepository() {
                             value={formData.village}
                             onChange={handleChange}
                             required
-                            className={inputClasses}
+                            disabled={!formData.taluka || villages.length === 0}
+                            className={`${inputClasses} disabled:opacity-50`}
                           >
-                            <option value="" disabled>Choose...</option>
-                            <option value="Village 1">Village 1</option>
-                            <option value="Village 2">Village 2</option>
+                            <option value="" disabled>Choose Village...</option>
+                            {villages.map(v => (
+                              <option key={v.id} value={v.id}>{v.name}</option>
+                            ))}
                           </select>
                         </div>
                       </div>
@@ -434,9 +695,10 @@ export default function SHGRepository() {
                       </button>
                       <button
                         type="submit"
-                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-blue-500/30"
+                        disabled={isSubmitting}
+                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Submit
+                        {isSubmitting ? "Submitting..." : "Submit"}
                       </button>
                     </div>
 
