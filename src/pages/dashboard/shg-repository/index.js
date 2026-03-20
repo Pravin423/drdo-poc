@@ -448,12 +448,13 @@ export default function SHGRepository() {
   const totalSHGs = shgs.length;
   const activeSHGs = shgs.filter(s => s.status === "Active").length;
   const villagesCovered = new Set(shgs.map(s => s.village)).size;
+  const totalMembers = shgs.reduce((acc, shg) => acc + Number(shg.memberCount || 0), 0);
 
   const summaryCards = [
     { label: "Total SHGs", value: totalSHGs, icon: Users, accent: "bg-blue-50 text-blue-600 border-blue-100" },
     { label: "Active SHGs", value: activeSHGs, icon: Activity, accent: "bg-emerald-50 text-emerald-600 border-emerald-100" },
     { label: "Villages Covered", value: villagesCovered, icon: MapPin, accent: "bg-orange-50 text-orange-600 border-orange-100" },
-    { label: "New This Month", value: "0", icon: Zap, accent: "bg-purple-50 text-purple-600 border-purple-100" },
+    { label: "Total Members", value: totalMembers, icon: UserPlus, accent: "bg-purple-50 text-purple-600 border-purple-100" },
   ];
 
   // Lock body scroll when modal is open
