@@ -32,11 +32,12 @@ const StatusBadge = ({ status }) => {
     Inactive: "bg-slate-100 text-slate-600 border-slate-200",
     "On Leave": "bg-amber-50 text-amber-700 border-amber-100",
     Blacklisted: "bg-red-50 text-red-700 border-red-100",
+    Deleted: "bg-red-50 text-red-700 border-red-100",
   };
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-[11px] font-bold border ${styles[status]}`}
+      className={`px-3 py-1 rounded-full text-[11px] font-bold border ${styles[status] || "bg-slate-100 text-slate-600 border-slate-200"}`}
     >
       {status}
     </span>
@@ -101,11 +102,16 @@ export default function CrpManagement() {
 
 
         const rawStatus = c.status;
-        const status = rawStatus === 1 || rawStatus === "1" || rawStatus === "Active"
-          ? "Active"
-          : rawStatus === 0 || rawStatus === "0" || rawStatus === "Inactive"
-            ? "Inactive"
-            : typeof rawStatus === "string" ? rawStatus : "Active";
+        let status = "Active";
+        if (rawStatus === 0 || rawStatus === "0" || rawStatus === "Active") {
+          status = "Active";
+        } else if (rawStatus === 1 || rawStatus === "1" || rawStatus === "Inactive" || rawStatus === "Deactive") {
+          status = "Inactive";
+        } else if (rawStatus === 2 || rawStatus === "2" || rawStatus === "Deleted") {
+          status = "Deleted";
+        } else if (typeof rawStatus === "string") {
+          status = rawStatus;
+        }
 
 
         const sigRaw = c.signature_status ?? c.signatureStatus;
@@ -752,7 +758,7 @@ export default function CrpManagement() {
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
                     >
-                      {["All Status", "Active", "Inactive", "On Leave"].map(opt => <option key={opt}>{opt}</option>)}
+                      {["All Status", "Active", "Inactive", "Deleted"].map(opt => <option key={opt}>{opt}</option>)}
                     </select>
 
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
@@ -961,7 +967,7 @@ export default function CrpManagement() {
                         <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
                           <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">{formStep === 1 ? '1' : '✓'}</span> Fill Details
                         </div>
-                        <div className="flex-1 h-px bg-slate-200" />  
+                        <div className="flex-1 h-px bg-slate-200" />
                         <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 2 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                           <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review & Confirm
                         </div>
