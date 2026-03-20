@@ -171,12 +171,10 @@ export default function SHGRepository() {
         village: Number(formData.village) || 141,
       };
 
-      const token = localStorage.getItem("authToken");
       const res = await fetch("/api/add-shg", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
       });
