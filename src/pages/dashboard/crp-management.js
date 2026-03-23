@@ -1,20 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, MapPin, X } from "lucide-react";
-import { Download } from "lucide-react";
-
-import { X } from "lucide-react";
-
-import {
-  Eye,
-  Edit,
-  MoreHorizontal,
-  Search,
-  RefreshCw,
-  UploadCloud,
-  ChevronDown,
-  UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap
+import { 
+  Users, MapPin, X, Download, Eye, Edit, MoreHorizontal, Search, RefreshCw, 
+  UploadCloud, ChevronDown, UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap 
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -195,12 +184,54 @@ export default function CrpManagement() {
     }
   };
 
+  const handleEditClick = async (crp) => {
+    setIsEditMode(true);
+    setEditingId(crp.numericId || crp.id);
+    setIsViewLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/crp-details?id=${crp.numericId || crp.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await res.json();
+      let d = result.data || result;
+      if (Array.isArray(d)) {
+        d = d[0] || {};
+      }
+
+      setForm({
+        name: d.fullname || d.fullName || crp.name || "",
+        aadhaar: d.aadhar_number || d.aadhaar_number || d.aadhaar || crp.aadhaar || "",
+        mobile: d.mobile || crp.mobile || "",
+        email: d.email || crp.email || "",
+        gender: d.gender || crp.gender || "",
+        dob: d.date_of_birth || d.dob || crp.dob || "",
+        bankName: d.bank_name || "",
+        branchName: d.branch_name || "",
+        bankAccount: d.account_number || "",
+        ifsc: d.ifsc || d.ifsc_code || "",
+        pan: d.pan_number || d.pan || "",
+        district: d.district || "",
+        taluka: d.taluka || "",
+        block: d.block || "",
+        villages: d.villages ? (Array.isArray(d.villages) ? d.villages : d.villages.split(",")) : [],
+        vertical: d.vertical || "",
+      });
+      setIsRegisterOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load CRP details for editing.");
+    } finally {
+      setIsViewLoading(false);
+    }
+  };
+
   const [open, setOpen] = useState(false);
   const [searchvill, setSearchvill] = useState("");
   const [village, setVillage] = useState("");
 
   const filteredVillages = goaVillages.filter(v =>
-    v.toLowerCase().includes(searchvill.toLowerCase())
+    (v || "").toLowerCase().includes((searchvill || "").toLowerCase())
   );
 
 
@@ -208,7 +239,9 @@ export default function CrpManagement() {
   const router = useRouter();
 
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
   useEffect(() => {
     if (router.query?.add === "true") {
       setIsRegisterOpen(true);
@@ -236,7 +269,7 @@ export default function CrpManagement() {
 
   const filteredCRPs = crpList.filter((crp) => {
     const matchSearch =
-      (crp.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (crp.name || "").toLowerCase().includes((search || "").toLowerCase()) ||
       String(crp.aadhaar ?? "").includes(search) ||
       String(crp.mobile ?? "").includes(search)
 
@@ -359,7 +392,12 @@ export default function CrpManagement() {
       fd.append("bank_name", form.bankName);
       fd.append("branch_name", form.branchName);
       fd.append("account_number", form.bankAccount);
-      fd.append("ifsc", form.ifsc);
+      // use ifsc_code for update, ifsc for add — proxy handles the correct key
+      if (isEditMode) {
+        fd.append("ifsc_code", form.ifsc);
+      } else {
+        fd.append("ifsc", form.ifsc);
+      }
 
       if (documents.profilePhoto) fd.append("profile_img", documents.profilePhoto);
       if (documents.aadhaarCard) fd.append("aadhaar_img", documents.aadhaarCard);
@@ -367,10 +405,14 @@ export default function CrpManagement() {
       if (documents.educationalCertificates) fd.append("edu_certificates", documents.educationalCertificates);
       if (documents.passBook) fd.append("passbook_img", documents.passBook);
 
-      const token = localStorage.getItem("authToken");
-      const response = await fetch("/api/add-crp", {
+      let url = "/api/add-crp";
+      if (isEditMode && editingId) {
+        url = `/api/crp-update?id=${editingId}`;
+      }
+
+      const response = await fetch(url, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {},   // auth is handled server-side via cookies
         body: fd,
       });
 
@@ -384,6 +426,8 @@ export default function CrpManagement() {
 
 
       setIsRegisterOpen(false);
+      setIsEditMode(false);
+      setEditingId(null);
       setFormStep(1);
       setFormErrors({});
       setForm({
@@ -399,8 +443,8 @@ export default function CrpManagement() {
       setSubmitted(false);
       await fetchCRPs();
     } catch (err) {
-      console.error("[Add CRP] Failed:", err);
-      alert(`Failed to register CRP:\n${err.message}`);
+      console.error("[CRP Update/Add] Failed:", err);
+      alert(`Failed to ${isEditMode ? 'update' : 'register'} CRP:\n${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -430,11 +474,13 @@ export default function CrpManagement() {
     else if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(form.pan.trim()))
       errors.pan = "Invalid PAN format (e.g. ABCDE1234F).";
 
-    if (!documents.profilePhoto) errors.profilePhoto = "Profile photo is required.";
-    if (!documents.aadhaarCard) errors.aadhaarCard = "Aadhaar card image is required.";
-    if (!documents.panCard) errors.panCard = "PAN card image is required.";
-    if (!documents.educationalCertificates) errors.educationalCertificates = "Education certificate is required.";
-    if (!documents.passBook) errors.passBook = "Passbook image is required.";
+    if (!isEditMode) {
+      if (!documents.profilePhoto) errors.profilePhoto = "Profile photo is required.";
+      if (!documents.aadhaarCard) errors.aadhaarCard = "Aadhaar card image is required.";
+      if (!documents.panCard) errors.panCard = "PAN card image is required.";
+      if (!documents.educationalCertificates) errors.educationalCertificates = "Education certificate is required.";
+      if (!documents.passBook) errors.passBook = "Passbook image is required.";
+    }
 
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
@@ -907,7 +953,10 @@ export default function CrpManagement() {
                             >
                               <Eye size={14} />
                             </button>
-                            <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors">
+                            <button
+                              onClick={() => handleEditClick(crp)}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors"
+                            >
                               <Edit size={14} />
                             </button>
                             <button className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors">
@@ -946,9 +995,11 @@ export default function CrpManagement() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white drop-shadow-sm">
-                      Register New CRP
+                      {isEditMode ? "Edit CRP Profile" : "Register New CRP"}
                     </h2>
-                    <p className="text-slate-400 text-xs font-medium mt-0.5">Onboard a new Community Resource Person to the platform</p>
+                    <p className="text-slate-400 text-xs font-medium mt-0.5">
+                      {isEditMode ? "Update the details of an existing Community Resource Person" : "Onboard a new Community Resource Person to the platform"}
+                    </p>
                   </div>
                 </div>
 
@@ -1178,7 +1229,7 @@ export default function CrpManagement() {
                               }`}>
                               <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100">
                                 {documentPreviews[doc.id] ? (
-                                  documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name.toLowerCase().endsWith('.pdf') ? (
+                                  documents[doc.id]?.type === 'application/pdf' || documents[doc.id]?.name?.toLowerCase().endsWith('.pdf') ? (
                                     <FileText size={20} className="text-blue-600" />
                                   ) : (
                                     <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
@@ -1339,6 +1390,8 @@ export default function CrpManagement() {
                       setConfirmChecked(false);
                     } else {
                       setIsRegisterOpen(false);
+                      setIsEditMode(false);
+                      setEditingId(null);
                     }
                   }}
                   className="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all shadow-sm"
@@ -1359,7 +1412,7 @@ export default function CrpManagement() {
                     className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${confirmChecked && !isSubmitting ? 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95' : 'bg-slate-300 text-white cursor-not-allowed'
                       }`}
                   >
-                    {isSubmitting ? 'Processing...' : '✓ Confirm & Register CRP'}
+                    {isSubmitting ? 'Processing...' : (isEditMode ? '✓ Confirm & Update CRP' : '✓ Confirm & Register CRP')}
                   </button>
                 )}
               </div>
@@ -1586,7 +1639,7 @@ export default function CrpManagement() {
 
       <AnimatePresence>
         {previewImage && (
-          <div 
+          <div
             className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm cursor-pointer"
             onClick={() => setPreviewImage(null)}
           >
@@ -1598,12 +1651,12 @@ export default function CrpManagement() {
               className="relative max-w-4xl max-h-[90vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <img 
-                src={previewImage} 
-                alt="Profile Preview" 
-                className="max-w-[85vw] max-h-[85vh] aspect-square object-cover rounded-full shadow-2xl border-4 border-white" 
+              <img
+                src={previewImage}
+                alt="Profile Preview"
+                className="max-w-[85vw] max-h-[85vh] aspect-square object-cover rounded-full shadow-2xl border-4 border-white"
               />
-              <button 
+              <button
                 onClick={() => setPreviewImage(null)}
                 className="absolute -top-4 -right-4 p-2 bg-white text-slate-900 rounded-full shadow-lg hover:bg-slate-100 transition-colors z-[100000]"
               >
