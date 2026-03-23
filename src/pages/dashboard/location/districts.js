@@ -1,20 +1,4 @@
-import {
-    MapPin,
-    Search,
-    Plus,
-    Filter,
-    Download,
-    Edit2,
-    Trash2,
-    ChevronLeft,
-    ChevronRight,
-    TrendingUp,
-    Users,
-    Map,
-    Eye,
-    X,
-    Save
-} from "lucide-react";
+import { MapPin, Search, Plus, Filter, Download, Edit2, Trash2, ChevronLeft, ChevronRight, TrendingUp, Users, Map, Eye, X, Save, Edit } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
@@ -455,10 +439,10 @@ export default function DistrictsManagement() {
                                                                 <Eye size={16} />
                                                             </button>
                                                             <button onClick={() => handleEditClick(district)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit District">
-                                                                <Edit2 size={16} />
+                                                                <Edit size={16} />
                                                             </button>
                                                             <button onClick={() => handleDeleteClick(district.id)} className="p-1.5 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete District">
-                                                                <Trash2 size={16} />
+                                                                <X size={16} />
                                                             </button>
                                                         </div>
                                                     </td>

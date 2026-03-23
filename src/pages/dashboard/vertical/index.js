@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { Edit, Trash2, Search, Plus, Download, X, Eye } from "lucide-react";
+import { Edit, Trash2, Search, Plus, Download, X, Eye, Tag, Hash, Calendar, User, Activity, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function VerticalManagement() {
@@ -30,7 +30,7 @@ export default function VerticalManagement() {
                 start: v.start_date || v.startDate || v.start || "—",
                 end: v.end_date || v.endDate || v.end || "—",
                 createdBy: v.created_by || v.createdBy || v.created_by_name || "—",
-                status: v.status !== undefined ? v.status : true,
+                status: v.status === 0 ? true : (v.status === 1 ? false : true),
                 raw: v
             }));
             setVerticals(mapped);
@@ -51,6 +51,79 @@ export default function VerticalManagement() {
     const [addFormData, setAddFormData] = useState({ name: "", code: "", start: "", end: "", desc: "" });
     const [addFormError, setAddFormError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // View Modal
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [viewData, setViewData] = useState(null);
+
+    const handleViewClick = (vertical) => {
+        setViewData(vertical);
+        setViewModalOpen(true);
+    };
+    
+    // Edit Modal
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [editFormData, setEditFormData] = useState({ id: "", name: "", code: "", start: "", end: "", desc: "" });
+    const [editFormError, setEditFormError] = useState("");
+    const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+
+    const handleEditClick = (vertical) => {
+        setEditFormData({ 
+            id: vertical.id, 
+            name: vertical.name !== "—" ? vertical.name : "", 
+            code: vertical.code !== "—" ? vertical.code : "", 
+            start: vertical.start !== "—" ? vertical.start : "", 
+            end: vertical.end !== "—" ? vertical.end : "", 
+            desc: vertical.desc !== "—" ? vertical.desc : "" 
+        });
+        setEditFormError("");
+        setEditModalOpen(true);
+    };
+
+    const confirmEdit = async () => {
+        setEditFormError("");
+        if (!editFormData.name.trim() || !editFormData.code.trim() || !editFormData.start || !editFormData.end || !editFormData.desc.trim()) {
+            setEditFormError("Please fill out all required fields.");
+            return;
+        }
+
+        setIsEditSubmitting(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/vertical-update", {
+                method: "POST",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    vertical_id: editFormData.id,
+                    vertical_name: editFormData.name,
+                    vertical_code: editFormData.code,
+                    start_date: editFormData.start,
+                    end_date: editFormData.end,
+                    description: editFormData.desc
+                })
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status !== false && result.status !== 0) {
+                setEditModalOpen(false);
+                fetchVerticals();
+            } else {
+                let errorMsg = result.message || result.error;
+                if (!errorMsg && result.errors) {
+                    errorMsg = Object.values(result.errors).flat().join(" | ");
+                }
+                setEditFormError(errorMsg || "Failed to update vertical");
+            }
+        } catch (error) {
+            console.error("Error updating vertical:", error);
+            setEditFormError("An error occurred. Please try again.");
+        } finally {
+            setIsEditSubmitting(false);
+        }
+    };
     
     const handleAddClick = () => {
         setAddFormData({ name: "", code: "", start: "", end: "", desc: "" });
@@ -231,11 +304,14 @@ export default function VerticalManagement() {
                                             </td>
                                             <td className="px-4 py-4 text-right whitespace-nowrap">
                                                 <div className="inline-flex gap-2 items-center">
-                                                    <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-200 transition-colors" title="Edit Vertical">
+                                                    <button onClick={() => handleViewClick(v)} className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors" title="View Vertical">
+                                                        <Eye size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleEditClick(v)} className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-200 transition-colors" title="Edit Vertical">
                                                         <Edit size={14} />
                                                     </button>
-                                                    <button className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors" title="Delete Vertical">
-                                                        <Trash2 size={14} />
+                                                    <button className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Delete Vertical">
+                                                        <X size={14} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -296,6 +372,136 @@ export default function VerticalManagement() {
                                     Submit
                                 </button>
                                 <button onClick={() => setAddModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-white bg-[#6c757d] hover:bg-slate-600 rounded-xl shadow-sm transition-colors">
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Edit Modal */}
+            <AnimatePresence>
+                {editModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setEditModalOpen(false)} />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} className="bg-white rounded-2xl shadow-xl w-full max-w-2xl relative z-10 overflow-hidden">
+                            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center text-slate-800">
+                                <h3 className="font-bold text-lg">Edit Vertical</h3>
+                                <button onClick={() => setEditModalOpen(false)} className="bg-slate-50 hover:bg-slate-100 p-2 rounded-full transition-colors text-slate-400">
+                                    <X size={16}/>
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Vertical Name <span className="text-red-500">*</span></label>
+                                        <input type="text" value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Vertical Code <span className="text-red-500">*</span></label>
+                                        <input type="text" value={editFormData.code} onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Start Date <span className="text-red-500">*</span></label>
+                                        <input type="date" value={editFormData.start} onChange={(e) => setEditFormData({ ...editFormData, start: e.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                                    </div>
+                                    <div className="w-full">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">End Date <span className="text-red-500">*</span></label>
+                                        <input type="date" value={editFormData.end} onChange={(e) => setEditFormData({ ...editFormData, end: e.target.value })} className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                                    </div>
+                                </div>
+                                <div className="w-full">
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Description <span className="text-red-500">*</span></label>
+                                    <textarea value={editFormData.desc} onChange={(e) => setEditFormData({ ...editFormData, desc: e.target.value })} placeholder="Enter description here..." className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-28 resize-none" />
+                                </div>
+                                <AnimatePresence>
+                                    {editFormError && (
+                                        <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="text-sm text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100 font-medium">{editFormError}</motion.p>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                                <button onClick={confirmEdit} disabled={isEditSubmitting} className="px-5 py-2.5 text-sm font-bold text-white bg-[#0d6efd] hover:bg-blue-600 rounded-xl shadow-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2">
+                                    {isEditSubmitting ? <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : null}
+                                    Update
+                                </button>
+                                <button onClick={() => setEditModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-white bg-[#6c757d] hover:bg-slate-600 rounded-xl shadow-sm transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* View Modal */}
+            <AnimatePresence>
+                {viewModalOpen && viewData && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setViewModalOpen(false)} />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative z-10 overflow-hidden border border-slate-100">
+                            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center text-slate-800 bg-white relative overflow-hidden">
+                                {/* Decorative abstract shape */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-0 opacity-50 transform translate-x-10 -translate-y-10" />
+                                <h3 className="font-extrabold text-xl flex items-center gap-2.5 relative z-10 text-slate-800">
+                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                                        <Eye size={20} className="stroke-[2.5]" />
+                                    </div>
+                                    Vertical Details
+                                </h3>
+                                <button onClick={() => setViewModalOpen(false)} className="bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-all text-slate-500 hover:text-slate-800 relative z-10 active:scale-95">
+                                    <X size={16} className="stroke-[2.5]"/>
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-4 bg-slate-50/50">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-blue-300 hover:shadow-md transition-all group">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors">
+                                            <Tag size={14} className="text-blue-500" /> Vertical Name
+                                        </div>
+                                        <p className="font-bold text-slate-800 text-base">{viewData.name}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-purple-300 hover:shadow-md transition-all group">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-purple-500 transition-colors">
+                                            <Hash size={14} className="text-purple-500" /> Vertical Code
+                                        </div>
+                                        <p className="font-bold text-slate-800 text-base">{viewData.code}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-emerald-300 hover:shadow-md transition-all group">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-emerald-500 transition-colors">
+                                            <Calendar size={14} className="text-emerald-500" /> Start Date
+                                        </div>
+                                        <p className="font-bold text-slate-800 text-base">{viewData.start}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-rose-300 hover:shadow-md transition-all group">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-rose-500 transition-colors">
+                                            <Calendar size={14} className="text-rose-500" /> End Date
+                                        </div>
+                                        <p className="font-bold text-slate-800 text-base">{viewData.end}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-amber-300 hover:shadow-md transition-all group">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-amber-500 transition-colors">
+                                            <User size={14} className="text-amber-500" /> Created By
+                                        </div>
+                                        <p className="font-bold text-slate-800 text-base">{viewData.createdBy}</p>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-indigo-300 hover:shadow-md transition-all group">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-indigo-500 transition-colors">
+                                            <Activity size={14} className="text-indigo-500" /> Status
+                                        </div>
+                                        <div><StatusBadge status={viewData.status} /></div>
+                                    </div>
+                                </div>
+                                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-cyan-300 hover:shadow-md transition-all group">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-hover:text-cyan-500 transition-colors">
+                                        <FileText size={14} className="text-cyan-500" /> Description
+                                    </div>
+                                    <p className="font-medium text-slate-700 leading-relaxed text-sm whitespace-pre-wrap">{viewData.desc || "No description provided."}</p>
+                                </div>
+                            </div>
+                            <div className="px-6 py-4 bg-white border-t border-slate-100 flex justify-end">
+                                <button onClick={() => setViewModalOpen(false)} className="px-6 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-800 rounded-xl shadow-sm transition-all active:scale-95">
                                     Close
                                 </button>
                             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, MapPin } from "lucide-react";
+import { Users, MapPin, X } from "lucide-react";
 import { Download } from "lucide-react";
 
 import { X } from "lucide-react";
@@ -907,7 +907,7 @@ export default function CrpManagement() {
                             >
                               <Eye size={14} />
                             </button>
-                            <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-200 transition-colors">
+                            <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors">
                               <Edit size={14} />
                             </button>
                             <button className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors">

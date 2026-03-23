@@ -342,7 +342,7 @@ export default function CreateForm() {
                               className="w-9 h-9 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                               title="Delete Field"
                             >
-                              <Trash2 size={18} />
+                              <X size={18} />
                             </button>
                           )}
                         </div>

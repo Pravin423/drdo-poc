@@ -1,25 +1,4 @@
-import {
-  Users,
-  Search,
-  Plus,
-  Filter,
-  Download,
-  Upload,
-  Edit2,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  UserCheck,
-  UserX,
-  X,
-  Save,
-  Eye,
-  EyeOff,
-  FileText,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+import { Users, Search, Plus, Filter, Download, Upload, Edit2, Trash2, ChevronLeft, ChevronRight, Shield, UserCheck, UserX, X, Save, Eye, EyeOff, FileText, AlertCircle, CheckCircle2, Edit } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
@@ -401,10 +380,10 @@ export default function UserList() {
                         <td className="px-3 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button onClick={() => openEdit(u)} className="p-1 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit User">
-                              <Edit2 size={14} />
+                              <Edit size={14} />
                             </button>
                             <button onClick={() => openDelete(u)} className="p-1 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete User">
-                              <Trash2 size={14} />
+                              <X size={14} />
                             </button>
                           </div>
                         </td>

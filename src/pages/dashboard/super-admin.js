@@ -603,7 +603,7 @@ export default function SuperAdmin() {
                         <span className="text-xs font-medium text-slate-500">{item.time}</span>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <button className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg transition-all hover:border-blue-400 hover:text-blue-600 shadow-sm">
+                        <button className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
                           <Eye size={14} /> VIEW
                         </button>
 

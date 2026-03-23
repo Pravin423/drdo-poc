@@ -1013,7 +1013,7 @@ const RateMasterTab = memo(function RateMasterTab({
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition">
+                    <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors">
                       <Edit size={16} className="text-slate-600" />
                     </button>
                     <button className="p-2 hover:bg-slate-100 rounded-lg transition">
@@ -1536,7 +1536,7 @@ const ApprovalsTab = memo(function ApprovalsTab({ data }) {
                       <History size={16} />
                       History
                     </button>
-                    <button className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+                    <button className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
                       <Eye size={16} />
                       Review & Action
                     </button>
@@ -1729,7 +1729,7 @@ const PaymentsTab = memo(function PaymentsTab({
                 </p>
               </div>
               <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                <button className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
                   <Eye size={16} />
                   View Details
                 </button>

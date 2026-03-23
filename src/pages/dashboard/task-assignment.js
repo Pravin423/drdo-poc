@@ -2,35 +2,7 @@
 
 import { useState, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ClipboardList,
-  Activity,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  Download,
-  Users,
-  FileText,
-  RefreshCw,
-  Filter,
-  Search,
-  ChevronDown,
-  Plus,
-  X,
-  ListTodo,
-  Edit,
-  Trash2,
-  Calendar,
-  Image as ImageIcon,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  MapPin,
-  User,
-  CheckCircle2,
-  XCircle,
-  Info,
-} from "lucide-react";
+import { ClipboardList, Activity, CheckCircle, AlertCircle, TrendingUp, Download, Users, FileText, RefreshCw, Filter, Search, ChevronDown, Plus, X, ListTodo, Edit, Trash2, Calendar, Image as ImageIcon, ArrowUpRight, ArrowDownRight, Clock, MapPin, User, CheckCircle2, XCircle, Info } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 
@@ -824,7 +796,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask }) {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors">
                   <Edit className="w-4 h-4" />
                   Edit
                 </button>
@@ -832,7 +804,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask }) {
                   onClick={() => onDeleteTask(task.id)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <X className="w-4 h-4" />
                   Delete
                 </button>
                 <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">

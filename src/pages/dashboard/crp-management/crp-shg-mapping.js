@@ -278,8 +278,8 @@ export default function CRPSHGMapping() {
                            <button onClick={() => handleEditClick(mapping)} className="p-1.5 text-blue-500 bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors shadow-sm" title="Edit">
                              <Edit size={16} />
                            </button>
-                           <button className="p-1.5 text-red-500 bg-white border border-red-200 rounded hover:bg-red-50 transition-colors shadow-sm" title="Delete">
-                             <Trash2 size={16} />
+                           <button className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-100 transition-colors" title="Delete">
+                             <X size={16} />
                            </button>
                         </td>
                       </tr>

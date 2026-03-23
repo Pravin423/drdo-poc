@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Plus, Search, Eye, Trash2, Edit2 } from "lucide-react";
+import { FileText, Plus, Search, Eye, Trash2, Edit2, X, Edit } from "lucide-react";
 
 
 
@@ -205,10 +205,10 @@ export default function AllForms() {
                           <Eye size={15} />
                         </button>
                         <button onClick={() => router.push(`/dashboard/activity-forms/create?id=${form.id}`)} className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors" title="Edit">
-                          <Edit2 size={15} />
+                          <Edit size={15} />
                         </button>
                         <button onClick={() => handleDeleteClick(form.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">
-                          <Trash2 size={15} />
+                          <X size={15} />
                         </button>
                       </div>
                     </td>

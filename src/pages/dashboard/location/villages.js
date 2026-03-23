@@ -1,27 +1,4 @@
-import {
-    MapPin,
-    Search,
-    Plus,
-    Filter,
-    Download,
-    Upload,
-    Edit2,
-    Trash2,
-    ChevronLeft,
-    ChevronRight,
-    TrendingUp,
-    Users,
-    Map,
-    X,
-    Save,
-    Home,
-    FileText,
-    CheckCircle2,
-    AlertCircle,
-    FileUp,
-    ChevronDown,
-    Eye,
-} from "lucide-react";
+import { MapPin, Search, Plus, Filter, Download, Upload, Edit2, Trash2, ChevronLeft, ChevronRight, TrendingUp, Users, Map, X, Save, Home, FileText, CheckCircle2, AlertCircle, FileUp, ChevronDown, Eye, Edit } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProtectedRoute from "../../../components/ProtectedRoute";
@@ -725,10 +702,10 @@ export default function VillagesManagement() {
                                                                 <Eye size={16} />
                                                             </button>
                                                             <button onClick={() => handleEditClick(village)} className="p-1.5 text-slate-400 cursor-pointer hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Village">
-                                                                <Edit2 size={16} />
+                                                                <Edit size={16} />
                                                             </button>
                                                             <button onClick={() => handleDeleteClick(village.id)} className="p-1.5 text-slate-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Village">
-                                                                <Trash2 size={16} />
+                                                                <X size={16} />
                                                             </button>
                                                         </div>
                                                     </td>

@@ -1177,7 +1177,7 @@ export default function SHGRepository() {
                                       className="p-2 bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-200"
                                       title="Delete member"
                                     >
-                                      <Trash2 size={14} />
+                                      <X size={14} />
                                     </button>
                                   </div>
                                 </div>
@@ -1475,7 +1475,7 @@ export default function SHGRepository() {
                   type="submit"
                   form="edit-member-form"
                   disabled={isUpdatingMember}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors"
                 >
                   {isUpdatingMember ? (
                     <>
@@ -1538,7 +1538,7 @@ export default function SHGRepository() {
                   type="button"
                   onClick={confirmDeleteMember}
                   disabled={isDeletingMember}
-                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-xl transition-colors shadow-md shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="p-1.5 rounded-lg border border-red-100 bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
                 >
                   {isDeletingMember ? (
                     <>
@@ -1550,7 +1550,7 @@ export default function SHGRepository() {
                     </>
                   ) : (
                     <>
-                      <Trash2 size={15} />
+                      <X size={15} />
                       Yes, Delete
                     </>
                   )}
