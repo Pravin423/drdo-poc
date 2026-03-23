@@ -20,70 +20,118 @@ export default function CRPSHGMapping() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    mappingId: "",
+    crpuser: "",
+    shggroup: "",
+    status: 0
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const fetchMappings = async () => {
     setIsLoading(true);
-    // Placeholder fetching logic
-    setTimeout(() => {
-      setMappings([
-        {
-          id: 1,
-          name: "Tejas Gupta",
-          email: "tejas.runtime@gmail.com",
-          mobile: "8483473844",
-          shgName: "Maa Bhavani SHG",
-          village: "South Goa",
-          taluka: "Mormugao",
-          district: "Dabolim",
-          status: "Active"
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch("/api/crp-shg-list", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        {
-          id: 2,
-          name: "Santosh",
-          email: "santosh@runtime-solutions.com",
-          mobile: "7208188960",
-          shgName: "Mata Rani SHG",
-          village: "North Goa",
-          taluka: "Pernem",
-          district: "Poroscodem",
-          status: "Active"
-        },
-        {
-          id: 3,
-          name: "Kiran",
-          email: "kiran@runtime-solutions.com",
-          mobile: "8296887994",
-          shgName: "Savitri SHG",
-          village: "North Goa",
-          taluka: "Tiswadi",
-          district: "Gancim",
-          status: "Active"
-        }
-      ]);
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch mappings");
+
+      const result = await res.json();
+      
+      const mappingsList = Array.isArray(result.data) ? result.data : [];
+      setMappings(mappingsList.map((mapping, idx) => ({
+        id: mapping.id || mapping.shg_mapping_id || mapping.mapping_id || idx + 1,
+        crpId: mapping.user_id || mapping.crpuser || "",
+        shgId: mapping.shg_id || mapping.shggroup || "",
+        name: mapping.fullname || mapping.crp_name || mapping.name || "N/A",
+        email: mapping.email || mapping.crp_email || "N/A",
+        mobile: mapping.mobile || mapping.crp_mobile || "N/A",
+        shgName: mapping.shg_name || mapping.shgName || "N/A",
+        village: mapping.village || mapping.shg_village || "N/A",
+        taluka: mapping.taluka || mapping.shg_taluka || "N/A",
+        district: mapping.district || mapping.shg_district || "N/A",
+        status: mapping.status === 0 || mapping.status === "0" || mapping.status === "Active" ? "Active" : "Inactive",
+      })));
+
+      const crpData = Array.isArray(result.crp_list) ? result.crp_list : [];
+      setCrps(crpData);
+
+      const shgData = Array.isArray(result.shglist) ? result.shglist : [];
+      setShgs(shgData);
+
+    } catch (err) {
+      console.error("[CRP-SHG Mapping] Fetch error:", err);
+      setMappings([]);
+      setCrps([]);
+      setShgs([]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   useEffect(() => {
     fetchMappings();
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const [crpRes, shgRes] = await Promise.all([
-          fetch("/api/crp-employee", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("/api/shg-list", { headers: { Authorization: `Bearer ${token}` } })
-        ]);
-
-        const crpData = await crpRes.json();
-        const shgData = await shgRes.json();
-
-        setCrps(Array.isArray(crpData.data) ? crpData.data : (Array.isArray(crpData) ? crpData : []));
-        setShgs(Array.isArray(shgData.data) ? shgData.data : (Array.isArray(shgData) ? shgData : []));
-      } catch (err) {
-        console.error("Failed to fetch dropdown data:", err);
-      }
-    };
-    fetchData();
   }, []);
+
+  const handleEditClick = (mapping) => {
+    setEditFormData({
+      mappingId: mapping.id,
+      crpuser: mapping.crpId,
+      shggroup: mapping.shgId,
+      status: mapping.status === "Active" ? 0 : 1
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateMapping = async () => {
+    if (!editFormData.crpuser || !editFormData.shggroup) {
+      alert("Please select both CRP and SHG");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const payload = {
+        mapping_id: editFormData.mappingId,
+        crpuser: Number(editFormData.crpuser),
+        shggroup: Number(editFormData.shggroup),
+        status: Number(editFormData.status)
+      };
+
+      const res = await fetch("/api/edit-crp-shg-mapping", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === false) {
+           console.warn(data.message);
+        }
+      }
+
+      alert("Mapping updated successfully!");
+      setIsEditModalOpen(false);
+      fetchMappings();
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while updating the mapping");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleSaveMapping = async () => {
     if (!formData.crpuser || !formData.shggroup) {
@@ -161,20 +209,20 @@ export default function CRPSHGMapping() {
           </motion.header>
 
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-               <div className="relative group w-full sm:w-80">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <Search size={16} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <div className="px-6 py-5 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+               <div className="relative group w-full sm:w-[320px]">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search size={18} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <input
                     placeholder="Search CRP..."
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none bg-slate-50/30 focus:bg-white"
+                    className="w-full border border-slate-200 rounded-2xl pl-11 pr-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none bg-white font-medium text-slate-700"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
                </div>
                <div className="flex gap-3 w-full sm:w-auto">
-                 <button className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 flex items-center gap-2">
+                 <button onClick={() => { setSearch(""); fetchMappings(); }} className="px-5 py-2.5 border border-slate-200 text-slate-700 bg-white rounded-2xl text-sm font-semibold hover:bg-slate-50 flex items-center gap-2 transition-colors">
                    <RefreshCw size={16} /> Refresh
                  </button>
                </div>
@@ -182,18 +230,27 @@ export default function CRPSHGMapping() {
 
             <div className="overflow-x-auto min-h-[400px]">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-bold whitespace-nowrap">
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">ID ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">Name ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">Email ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">Mobile ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">SHGs Name ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">Village ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">Taluka ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">District ↑↓</th>
-                    <th className="p-4 cursor-pointer hover:bg-slate-100 transition">Status ↑↓</th>
-                    <th className="p-4 text-center cursor-pointer hover:bg-slate-100 transition">Action ↑↓</th>
+                <thead className="bg-slate-50/60 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-bold whitespace-nowrap">
+                  <tr>
+                    {[
+                      "ID",
+                      "Name",
+                      "Email",
+                      "Mobile",
+                      "SHGs Name",
+                      "Village",
+                      "Taluka",
+                      "District",
+                      "Status",
+                      "Action"
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className={`px-4 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider ${h === "Action" ? "text-center" : "text-left"}`}
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -218,7 +275,7 @@ export default function CRPSHGMapping() {
                           </span>
                         </td>
                         <td className="p-4 text-center flex items-center justify-center gap-2">
-                           <button className="p-1.5 text-blue-500 bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors shadow-sm" title="Edit">
+                           <button onClick={() => handleEditClick(mapping)} className="p-1.5 text-blue-500 bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors shadow-sm" title="Edit">
                              <Edit size={16} />
                            </button>
                            <button className="p-1.5 text-red-500 bg-white border border-red-200 rounded hover:bg-red-50 transition-colors shadow-sm" title="Delete">
@@ -343,6 +400,115 @@ export default function CRPSHGMapping() {
                   className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? "Saving..." : "Save Mapping"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white w-full max-w-2xl rounded-xl shadow-2xl border border-slate-200 overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <h2 className="text-xl font-bold text-slate-700">Edit SHG Mapping</h2>
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Select CRP</label>
+                  <div className="relative">
+                    <select
+                      value={editFormData.crpuser}
+                      onChange={(e) => setEditFormData({ ...editFormData, crpuser: e.target.value })}
+                      className="w-full border border-slate-200 text-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none bg-white cursor-pointer hover:border-slate-300"
+                    >
+                      <option value="">Select CRP</option>
+                      {crps.map((crp) => {
+                        const display = crp.fullname || crp.fullName || crp.name || crp.full_name || crp.employeeName || `CRP ${crp.crp_id || crp.id}`;
+                        const crpId = crp.crp_id || crp.id || crp._id;
+                        return (
+                          <option key={crpId} value={crpId}>
+                            {display}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Select SHG</label>
+                  <div className="relative">
+                    <select
+                      value={editFormData.shggroup}
+                      onChange={(e) => setEditFormData({ ...editFormData, shggroup: e.target.value })}
+                      className="w-full border border-slate-200 text-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none bg-white cursor-pointer hover:border-slate-300"
+                    >
+                      <option value="">Select SHG</option>
+                      {shgs.map((shg) => {
+                        const display = shg.shg_name || shg.name || shg.shgName || `SHG ${shg.shg_id || shg.id}`;
+                        const shgId = shg.shg_id || shg.id || shg._id;
+                        return (
+                          <option key={shgId} value={shgId}>
+                            {display}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Status</label>
+                  <div className="relative">
+                    <select
+                      value={editFormData.status}
+                      onChange={(e) => setEditFormData({ ...editFormData, status: Number(e.target.value) })}
+                      className="w-full border border-slate-200 text-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none bg-white cursor-pointer hover:border-slate-300"
+                    >
+                      <option value={0}>Active</option>
+                      <option value={1}>Inactive</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-white">
+                <button
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2 text-sm font-medium text-white bg-slate-500 hover:bg-slate-600 rounded-lg transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleUpdateMapping}
+                  disabled={isUpdating}
+                  className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdating ? "Saving..." : "Update Mapping"}
                 </button>
               </div>
             </motion.div>
