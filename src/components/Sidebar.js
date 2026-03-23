@@ -10,6 +10,7 @@ import {
   PanelLeftOpen,
   User,
   Aperture,
+  AlignJustify,
 } from "lucide-react";
 import { useState, createContext, useContext } from "react";
 import { useRouter } from "next/router";
@@ -52,6 +53,10 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
           : "text-blue-200 group-hover:text-blue-100"
           }`}
       />
+    ) : item.name === "Verticals" ? (
+      <div className={`shrink-0 flex items-center justify-center rounded-full w-[22px] h-[22px] ${isActive ? "bg-blue-600 text-white" : "text-blue-200 bg-white/10 group-hover:text-white"}`}>
+        <AlignJustify size={13} strokeWidth={2.5} />
+      </div>
     ) : item.name === "SHG Repository" ? (
       <Aperture
         size={16}

@@ -17,6 +17,7 @@ export const SIDEBAR_CONFIG = {
         },
       ],
     },
+    
     {
       section: "CRP OPERATIONS",
       items: [
@@ -36,6 +37,12 @@ export const SIDEBAR_CONFIG = {
       items: [
         { name: "SHG Repository", path: "/dashboard/shg-repository" },
       ],
+    },
+    {
+      section: "VERTICAL MANAGEMENT",
+      items: [
+        { name: "Verticals", path: "/dashboard/vertical" },
+      ]
     },
     {
       section: "FINANCIAL MANAGEMENT",

@@ -1,0 +1,14 @@
+{
+  "requestBody": {
+    "vertical_name": "test123",
+    "vertical_code": "test123",
+    "start_date": "2026-03-23",
+    "end_date": "2026-03-31",
+    "description": "f"
+  },
+  "responseStatus": 200,
+  "responseData": {
+    "status": 1,
+    "message": "Vertical Data is inserted"
+  }
+}

@@ -62,13 +62,30 @@ export default function AllForms() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (formToDelete) {
-      // Mock delete for now, replace with API call when implemented
-      const filtered = forms.filter((f) => f.id !== formToDelete);
-      setForms(filtered);
-      setDeleteConfirmOpen(false);
-      setFormToDelete(null);
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`/api/activity-form-delete?id=${formToDelete}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete the form");
+        }
+
+        const filtered = forms.filter((f) => f.id !== formToDelete);
+        setForms(filtered);
+      } catch (error) {
+        console.error("Error deleting form:", error);
+      } finally {
+        setDeleteConfirmOpen(false);
+        setFormToDelete(null);
+      }
     }
   };
 
