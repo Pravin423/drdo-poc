@@ -537,27 +537,6 @@ export default function TaskAssignment() {
               ))}
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex p-1.5 bg-slate-200/50 rounded-2xl w-fit backdrop-blur-sm border border-slate-200/50">
-              {tabs.filter(t => t.id !== "createTask").map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300
-                      ${activeTab === tab.id
-                        ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200"
-                        : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
-                      }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
             {/* Content Area with Animation */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -589,134 +568,8 @@ export default function TaskAssignment() {
 
 /* ---------------- OVERVIEW TAB ---------------- */
 const OverviewTab = memo(function OverviewTab({ tasks, onDeleteTask, setActiveTab }) {
-  const [filters, setFilters] = useState({
-    search: "",
-    vertical: "all",
-    status: "all",
-    priority: "all",
-    taskType: "all",
-    fromDate: "",
-    toDate: "",
-  });
-
   return (
     <>
-      {/* Filter Section */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Filter size={20} className="text-slate-700" />
-              <h2 className="text-lg font-bold text-slate-900">Filter Tasks</h2>
-            </div>
-            <p className="text-sm text-slate-500">Refine your task view</p>
-          </div>
-          <button className="text-sm text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1">
-            <RefreshCw size={14} />
-            Reset
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div className="relative">
-            <select
-              value={filters.vertical}
-              onChange={(e) => setFilters({ ...filters, vertical: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-            >
-              <option value="all">All Verticals</option>
-              <option>Self Help Groups (SHG)</option>
-              <option>MGNREGA</option>
-              <option>Health & Nutrition</option>
-              <option>Education & Skill Development</option>
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          </div>
-
-          <div className="relative">
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-            >
-              <option value="all">All Status</option>
-              <option>active</option>
-              <option>Overdue</option>
-              <option>completed</option>
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          </div>
-
-          <div className="relative">
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-            >
-              <option value="all">All Priority</option>
-              <option>HIGH</option>
-              <option>MEDIUM</option>
-              <option>LOW</option>
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1  md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="relative">
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Select Task Type</label>
-
-            <select
-              value={filters.taskType}
-              onChange={(e) => setFilters({ ...filters, taskType: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-            >
-              <option value="all">All Task Types</option>
-              <option>Regular</option>
-              <option>Monitoring</option>
-              <option>Survey</option>
-              <option>Training</option>
-            </select>
-            <ChevronDown className="absolute right-2.5 top-3/4 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">From Date</label>
-            <input
-              type="date"
-              value={filters.fromDate}
-              onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">To Date</label>
-            <input
-              type="date"
-              value={filters.toDate}
-              onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <button className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors mt-6">
-            <Search size={16} />
-            Apply Filters
-          </button>
-        </div>
-      </div>
 
       {/* Active Tasks List */}
       <ActiveTasksList tasks={tasks} onDeleteTask={onDeleteTask} setActiveTab={setActiveTab} />
@@ -744,13 +597,13 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
   }, [displayTasks, currentPage, itemsPerPage]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mt-6">
       {/* Header Panel */}
-      <div className="p-6 border-b border-slate-200 flex flex-col lg:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+      <div className="px-6 py-5 bg-white border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
           <span>Show</span>
           <select
-            className="border border-slate-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="border border-slate-200 bg-slate-50 text-slate-800 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
             value={itemsPerPage}
             onChange={(e) => {
               setItemsPerPage(Number(e.target.value));
@@ -764,12 +617,12 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
           <span>entries</span>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-center justify-end gap-4 w-full lg:w-auto">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">Search:</span>
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-5 w-full lg:w-auto">
+          <div className="relative group flex items-center gap-3">
+            <span className="text-sm font-semibold text-slate-600">Search:</span>
             <input
               type="text"
-              className="border border-slate-200 rounded-md px-3 py-1.5 min-w-[200px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="border border-slate-200 rounded-xl px-4 py-2 min-w-[240px] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-slate-50/30 focus:bg-white"
               value={localSearch}
               onChange={(e) => {
                 setLocalSearch(e.target.value);
@@ -777,7 +630,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
               }}
             />
           </div>
-          <button onClick={() => setActiveTab("createTask")} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#1a2e7a] rounded-lg hover:bg-[#11205c] transition-colors whitespace-nowrap">
+          <button onClick={() => setActiveTab("createTask")} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors whitespace-nowrap shadow-sm">
             <Plus size={16} /> Assign Task
           </button>
         </div>
@@ -786,78 +639,79 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
       {/* Main Table Layer */}
       <div className="w-full min-h-[400px]">
         <div className="overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', willChange: 'transform' }}>
-          <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap md:whitespace-normal">
-            <thead className="bg-slate-50/60">
+          <table className="w-full min-w-[1000px] text-left border-collapse">
+            <thead className="bg-[#fafcff]/60">
               <tr>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center w-12">#</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[25%]">Task Name</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[10%]">Task Type</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Vertical</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Activity Form</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Assigned To</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Date Range</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-24">Honorarium</th>
-                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-24 text-center">Status</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase w-20">ID</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Task Name</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Task Type</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Vertical</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Activity Form</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Assigned To</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Date Range</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Honorarium</th>
+                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {paginatedTasks.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-8 text-center text-slate-500 text-sm">No tasks found.</td>
+                  <td colSpan="9" className="p-16 text-center text-slate-400 text-sm font-medium">No tasks found.</td>
                 </tr>
               ) : (
-                paginatedTasks.map((task) => (
-                  <tr key={task.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="px-4 py-3 text-center text-sm font-bold text-slate-500">{task.id}</td>
+                paginatedTasks.map((task, index) => (
+                  <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
+                    <td className="px-5 py-4 text-sm font-bold text-slate-500 align-middle">
+                      {String(task.id).startsWith("TASK") ? `TSK00${index + 1}` : task.id}
+                    </td>
                     
-                    <td className="px-4 py-3 max-w-[240px]">
-                      <h4 className="font-semibold text-slate-900 text-sm truncate">{task.title}</h4>
-                      <p className="text-slate-500 text-[12px] mt-0.5 truncate">{task.description}</p>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <TaskTypeBadge type={task.taskType} />
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {task.vertical}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <ActivityFormBadge formName={task.activityForm} />
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {task.assignedTo && task.assignedTo.length > 0 ? (
-                        <div className="flex flex-col gap-0.5">
-                          {task.assignedTo.length === 1 ? (
-                            <>
-                              <span className="text-sm font-semibold text-slate-900 leading-tight">{task.assignedTo[0].name}</span>
-                              {task.assignedTo[0].crpId && <span className="text-slate-500 text-[12px] leading-tight">{task.assignedTo[0].crpId}</span>}
-                            </>
-                          ) : (
-                            <span className="text-sm font-semibold text-slate-900 leading-tight block truncate w-full max-w-[120px]">
-                              {task.assignedTo.map(a => a.name).join(", ")}
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-slate-600 text-sm">—</span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3 text-slate-600 min-w-[120px] whitespace-normal">
-                      <div className="flex flex-col text-[13px] leading-tight text-sm">
-                        <span>{task.startDate}</span>
-                        <span>to {task.endDate}</span>
+                    <td className="px-5 py-4 align-middle">
+                      <div className="flex flex-col max-w-[240px]">
+                        <span className="font-bold text-slate-900 text-sm break-words">{task.title}</span>
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {task.honorarium}
+                    <td className="px-5 py-4 align-middle">
+                      <TaskTypeBadge type={task.taskType} />
                     </td>
 
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-5 py-4 text-sm text-slate-600 max-w-[160px] break-words align-middle">
+                      {task.vertical}
+                    </td>
+
+                    <td className="px-5 py-4 align-middle font-medium text-slate-800">
+                      {task.activityForm ? <ActivityFormBadge formName={task.activityForm} /> : <span className="text-slate-300 font-bold">—</span>}
+                    </td>
+
+                    <td className="px-5 py-4 align-middle">
+                      {task.assignedTo && task.assignedTo.length > 0 ? (
+                        <div className="flex flex-col gap-0.5">
+                          {task.assignedTo.map((a, i) => {
+                            const name = typeof a === 'string' ? a : a.name;
+                            return (
+                              <div key={i} className="mb-0 flex items-center">
+                                <span className="text-sm font-semibold text-slate-800 leading-tight">{name}{i < task.assignedTo.length - 1 && ','}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-slate-300 font-bold">—</span>
+                      )}
+                    </td>
+
+                    <td className="px-5 py-4 text-slate-600 whitespace-nowrap align-middle">
+                      <div className="flex flex-col text-[13px] leading-tight font-medium">
+                        <span className="text-slate-700">{task.startDate}</span>
+                        <span className="text-slate-500">to {task.endDate}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-4 text-sm font-bold text-slate-700 align-middle">
+                      {task.honorarium || ""}
+                    </td>
+
+                    <td className="px-5 py-4 text-center align-middle">
                       <StatusBadge status={task.status} />
                     </td>
                   </tr>
