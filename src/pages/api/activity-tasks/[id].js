@@ -1,4 +1,6 @@
 export default async function handler(req, res) {
+  const { id } = req.query;
+
   let authHeader = req.headers["authorization"];
   if ((!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) && req.cookies?.auth_token) {
     authHeader = `Bearer ${req.cookies.auth_token}`;
@@ -22,13 +24,16 @@ export default async function handler(req, res) {
       fetchOptions.body = JSON.stringify(req.body);
     }
 
-    const response = await fetch("https://goadrda.runtime-solutions.net/admin/api/activity-tasks", fetchOptions);
+    const response = await fetch(
+      `https://goadrda.runtime-solutions.net/admin/api/activity-tasks/${id}`,
+      fetchOptions
+    );
 
     const data = await response.json();
 
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error("Activity tasks proxy fetch error:", error);
+    console.error("Activity task [id] proxy error:", error);
     return res.status(500).json({ status: false, message: "Proxy request failed", error: error.message });
   }
 }

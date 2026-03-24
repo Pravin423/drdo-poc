@@ -7,15 +7,25 @@ import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 
 /* ---------------- MOCK DATA ---------------- */
-const INITIAL_MOCK_TASKS = []; // We will load from API now
 
 
-
-
-/* Helper function to generate unique task ID */
-const generateTaskId = () => {
-  return `TASK${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
+/* Initial form state (outside component to stay stable) */
+const INITIAL_FORM_STATE = {
+  taskName: "",
+  taskType: "SPECIAL",
+  startDate: "",
+  endDate: "",
+  honorariumAmount: "",
+  activityForm: "",
+  latitude: "",
+  longitude: "",
+  radius: "",
+  assignToCrp: "",
+  vertical_id: "",
+  taskDescription: ""
 };
+
+
 
 
 /* Helper function to format date */
@@ -25,11 +35,6 @@ const formatDateForDisplay = (dateString) => {
   return date.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
 };
 
-/* Helper function to parse assigned CRPs from the select value */
-const parseAssignedCRPs = (crpString) => {
-  if (!crpString) return [];
-  return [crpString.split(" - ")[0]]; // Extract just the name from "Name - Location"
-};
 
 /* Helper function to count CRPs */
 const countCRPs = (assignedTo) => {
@@ -156,22 +161,11 @@ const ProgressBar = ({ percentage }) => {
 
 /* ---------------- MAIN PAGE COMPONENT ---------------- */
 export default function TaskAssignment() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
-    taskTitle: "",
-    vertical: "",
-    taskType: "",
-    priority: "",
-    startDate: "",
-    endDate: "",
-    enableAutoAssignment: false,
-    assignedCRPs: "",
-    description: "",
-    deliverables: "",
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
   const fetchTasks = async () => {
     try {
@@ -218,12 +212,6 @@ export default function TaskAssignment() {
     fetchTasks();
   }, []);
 
-  const tabs = [
-    { id: "overview", label: "Overview", icon: ListTodo },
-    { id: "createTask", label: "Create Task", icon: Plus },
-    { id: "verification", label: "Verification Queue", icon: FileText },
-  ];
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -232,60 +220,74 @@ export default function TaskAssignment() {
     }));
   };
 
-  const handleCreateTask = () => {
-    // Validate required fields
-    if (!formData.taskTitle || !formData.vertical || !formData.taskType || !formData.priority || !formData.startDate || !formData.endDate || !formData.assignedCRPs) {
+  const handleCreateTask = async () => {
+    if (!formData.taskName || !formData.taskType || !formData.startDate || !formData.endDate || !formData.activityForm || !formData.latitude || !formData.longitude || !formData.radius || !formData.taskDescription) {
       alert("Please fill in all required fields marked with *");
       return;
     }
 
-    // Parse the assigned CRPs
-    const assignedToArray = parseAssignedCRPs(formData.assignedCRPs);
+    try {
+      setLoading(true);
+      const isSpecial = formData.taskType === "SPECIAL";
+      
+      const payload = {
+        task_name: formData.taskName,
+        task_description: formData.taskDescription,
+        task_type: formData.taskType.toLowerCase(),
+        form_id: Number(formData.activityForm),
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        honorarium_amount: Number(formData.honorariumAmount) || 0,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        radius: Number(formData.radius),
+      };
 
-    // Create new task object
-    const newTask = {
-      id: generateTaskId(),
-      title: formData.taskTitle,
-      vertical: formData.vertical,
-      assignedTo: assignedToArray,
-      crpCount: countCRPs(assignedToArray),
-      progress: 0, // New tasks start at 0% progress
-      startDate: formatDateForDisplay(formData.startDate),
-      endDate: formatDateForDisplay(formData.endDate),
-      status: "active", // New tasks are active
-      priority: formData.priority.toUpperCase().split(" ")[0], // Extract "HIGH", "MEDIUM", or "LOW"
-      taskType: formData.taskType.split(" ")[0], // Take first word for brevity
-      description: formData.description,
-      deliverables: formData.deliverables,
-      daysLeft: 1, // You can calculate this properly if needed
-    };
+      if (!isSpecial) {
+        if (!formData.vertical_id) {
+          alert("Vertical is required for Regular tasks.");
+          setLoading(false);
+          return;
+        }
+        payload.vertical_id = Number(formData.vertical_id);
+      } else {
+        if (!formData.assignToCrp) {
+          alert("Assign to CRP is required for Special tasks.");
+          setLoading(false);
+          return;
+        }
+        payload.assigned_to = Number(formData.assignToCrp);
+      }
 
-    // Add the new task to the tasks array
-    setTasks((prevTasks) => [newTask, ...prevTasks]);
+      const res = await fetch("/api/activity-tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      const result = await res.json();
+      
+      if (!res.ok || result.status === false) {
+        throw new Error(result.message || "Failed to create task");
+      }
 
-    // Log for debugging
-    console.log("Creating task:", newTask);
-
-    // Reset form
-    handleClearForm();
-
-    // Switch to overview tab to see the new task
-    setActiveTab("overview");
+      // Clean up and refresh the data
+      handleClearForm();
+      setIsAssignModalOpen(false);
+      fetchTasks(); // Background reload
+      
+    } catch (error) {
+      console.error("Error creating task:", error);
+      alert(error.message || "Failed to assign task. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClearForm = () => {
-    setFormData({
-      taskTitle: "",
-      vertical: "",
-      taskType: "",
-      priority: "",
-      startDate: "",
-      endDate: "",
-      enableAutoAssignment: false,
-      assignedCRPs: "",
-      description: "",
-      deliverables: "",
-    });
+    setFormData(INITIAL_FORM_STATE);
   };
 
   const handleDeleteTask = (taskId) => {
@@ -293,9 +295,10 @@ export default function TaskAssignment() {
   };
 
   const stats = useMemo(() => {
-    const completed = tasks.filter((t) => t.status === "completed").length;
-    const active = tasks.filter((t) => t.status === "active").length;
-    const overdue = tasks.filter((t) => t.status === "Overdue").length;
+    const normTask = (val) => (val || "").toLowerCase();
+    const completed = tasks.filter((t) => normTask(t.status) === "completed").length;
+    const active = tasks.filter((t) => normTask(t.status) === "active").length;
+    const overdue = tasks.filter((t) => normTask(t.status) === "overdue").length;
     const avgProgress = tasks.length > 0 ? Math.round(tasks.reduce((sum, t) => sum + t.progress, 0) / tasks.length) : 0;
 
     return [
@@ -393,45 +396,39 @@ export default function TaskAssignment() {
             {/* Content Area with Animation */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={activeTab}
+                key="tasks-table"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                {activeTab === "overview" && <OverviewTab tasks={tasks} onDeleteTask={handleDeleteTask} setActiveTab={setActiveTab} />}
-                {activeTab === "createTask" && (
-                  <CreateTaskTab
-                    formData={formData}
-                    handleInputChange={handleInputChange}
-                    handleCreateTask={handleCreateTask}
-                    handleClearForm={handleClearForm}
-                  />
-                )}
-                {activeTab === "verification" && <VerificationTab />}
+                <ActiveTasksList tasks={tasks} loading={loading} onDeleteTask={handleDeleteTask} onOpenAssignModal={() => setIsAssignModalOpen(true)} />
               </motion.div>
             </AnimatePresence>
+
           </div>
         </div>
       </DashboardLayout>
+
+      {/* Create Task Modal Overlay (Outside Layout) */}
+      <AnimatePresence>
+        {isAssignModalOpen && (
+          <CreateTaskModal
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleCreateTask={handleCreateTask}
+            handleClearForm={handleClearForm}
+            onClose={() => setIsAssignModalOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </ProtectedRoute>
   );
 }
 
-/* ---------------- OVERVIEW TAB ---------------- */
-const OverviewTab = memo(function OverviewTab({ tasks, onDeleteTask, setActiveTab }) {
-  return (
-    <>
-
-      {/* Active Tasks List */}
-      <ActiveTasksList tasks={tasks} onDeleteTask={onDeleteTask} setActiveTab={setActiveTab} />
-    </>
-  );
-});
-
 /* ---------------- ACTIVE TASKS LIST ---------------- */
-const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, setActiveTab }) {
+const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDeleteTask, onOpenAssignModal }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [localSearch, setLocalSearch] = useState("");
@@ -483,7 +480,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
               }}
             />
           </div>
-          <button onClick={() => setActiveTab("createTask")} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors whitespace-nowrap shadow-sm">
+          <button onClick={onOpenAssignModal} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors whitespace-nowrap shadow-sm">
             <Plus size={16} /> Assign Task
           </button>
         </div>
@@ -507,9 +504,19 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {paginatedTasks.length === 0 ? (
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    {Array.from({ length: 9 }).map((__, j) => (
+                      <td key={j} className="px-6 py-5">
+                        <div className="h-4 bg-slate-100 rounded w-3/4"></div>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : paginatedTasks.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-1 text-center text-slate-400 text-sm font-medium">No tasks found.</td>
+                  <td colSpan="9" className="py-16 text-center text-slate-400 text-sm font-medium">No tasks found.</td>
                 </tr>
               ) : (
                 paginatedTasks.map((task, index) => (
@@ -606,53 +613,93 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
   );
 });
 
-/* ---------------- CREATE TASK TAB ---------------- */
-const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange, handleCreateTask, handleClearForm }) {
+/* ---------------- CREATE TASK MODAL ---------------- */
+const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputChange, handleCreateTask, handleClearForm, onClose }) {
+  const [taskCreationData, setTaskCreationData] = useState({ forms: [], crps: [], verticals: [] });
+  const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "unset"; };
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setDataLoading(true);
+        const res = await fetch("/api/activity-form-list");
+        const result = await res.json();
+        const d = result?.data || {};
+        setTaskCreationData({
+          forms: Array.isArray(d.forms) ? d.forms : [],
+          crps: Array.isArray(d.crps) ? d.crps : [],
+          verticals: Array.isArray(d.verticals) ? d.verticals : [],
+        });
+      } catch (err) {
+        console.error("Failed to fetch task creation data", err);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-      <div className="flex items-start gap-3 mb-6">
-
-        <div className="flex-1">
-          <h2 className="text-xl font-bold text-slate-900">Create New Task</h2>
-          <p className="text-sm text-slate-600">Assign tasks to CRPs with timeline and deliverables</p>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 20 }}
+        transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+      >
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50 z-10 shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-slate-700">Assign New Activity Task</h2>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+            <X size={20} />
+          </button>
         </div>
-      </div>
 
-      <div className="space-y-5">
+        <div className="p-6 overflow-y-auto space-y-6 flex-1">
         {/* Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Task Title <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Task Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              name="taskTitle"
-              value={formData.taskTitle}
+              name="taskName"
+              value={formData.taskName}
               onChange={handleInputChange}
-              placeholder="Enter task title"
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              placeholder="e.g. Field Survey"
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Vertical <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Task Type <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
-                name="vertical"
-                value={formData.vertical}
+                name="taskType"
+                value={formData.taskType}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
               >
-                <option value="">Select vertical</option>
-                <option>Self Help Groups (SHG)</option>
-                <option>MGNREGA</option>
-                <option>National Rural Livelihood Mission</option>
-                <option>Pradhan Mantri Awas Yojana</option>
-                <option>Health & Nutrition</option>
-                <option>Education & Skill Development</option>
+                <option value="SPECIAL">SPECIAL</option>
+                <option value="REGULAR">REGULAR</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
@@ -662,52 +709,7 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
         {/* Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Task Type <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                name="taskType"
-                value={formData.taskType}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-              >
-                <option value="">Select task type</option>
-                <option>Regular Task (Auto Assigned)</option>
-                <option>Special Project Task</option>
-                <option>Monitoring & Evaluation</option>
-                <option>Survey & Data Collection</option>
-                <option>Training & Capacity Building</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Priority Level <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-              >
-                <option value="">Select priority</option>
-                <option>HIGH Priority</option>
-                <option>MEDIUM Priority</option>
-                <option>LOW Priority</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               Start Date <span className="text-red-500">*</span>
             </label>
             <input
@@ -715,12 +717,12 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
               name="startDate"
               value={formData.startDate}
               onChange={handleInputChange}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
               End Date <span className="text-red-500">*</span>
             </label>
             <input
@@ -728,101 +730,181 @@ const CreateTaskTab = memo(function CreateTaskTab({ formData, handleInputChange,
               name="endDate"
               value={formData.endDate}
               onChange={handleInputChange}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
             />
           </div>
         </div>
 
-        {/* Auto-Assignment Checkbox */}
-        <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-          <input
-            type="checkbox"
-            name="enableAutoAssignment"
-            checked={formData.enableAutoAssignment}
-            onChange={handleInputChange}
-            className="mt-0.5 w-4 h-4 text-blue-600 mt-[10px] border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
-          />
+        {/* Row 3 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div>
-            <label className="text-sm font-semibold text-slate-900">Enable Auto-Assignment</label>
-            <p className="text-xs text-slate-600 mt-0.5">
-              Automatically assign this task to eligible CRPs based on vertical and location
-            </p>
-          </div>
-        </div>
-
-        {/* Assign to CRPs */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Assign to CRPs <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              name="assignedCRPs"
-              value={formData.assignedCRPs}
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Honorarium Amount (₹)
+            </label>
+            <input
+              type="number"
+              name="honorariumAmount"
+              value={formData.honorariumAmount}
               onChange={handleInputChange}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-            >
-              <option value="">Select CRPs to assign</option>
-              <option>Priya Desai - North Goa District</option>
-              <option>Rajesh Kumar - South Goa District</option>
-              <option>Anita Fernandes - Tiswadi Taluka</option>
-              <option>Ganesh Parsekar - Sattari Taluka</option>
-              <option>Maria D'Souza - Ponda Taluka</option>
-              <option>Sunita Rane - Quepem Taluka</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+            />
           </div>
-          <p className="text-xs text-slate-500 mt-1.5">Select one or more CRPs for this task</p>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Activity Form <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                name="activityForm"
+                value={formData.activityForm}
+                onChange={handleInputChange}
+                disabled={dataLoading}
+                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white disabled:opacity-60"
+              >
+                <option value="">{dataLoading ? "Loading..." : "Choose..."}</option>
+                {taskCreationData.forms.map((form) => (
+                  <option key={form.id} value={form.id}>
+                    {form.form_name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
-        {/* Task Description */}
+        {/* Row 4 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Latitude <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="latitude"
+              value={formData.latitude}
+              onChange={handleInputChange}
+              placeholder="e.g. 15.2993"
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Longitude <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="longitude"
+              value={formData.longitude}
+              onChange={handleInputChange}
+              placeholder="e.g. 74.1240"
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Row 5 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Radius (Meters) <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="radius"
+              value={formData.radius}
+              onChange={handleInputChange}
+              placeholder="e.g. 100"
+              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+            />
+          </div>
+
+          <div>
+            {formData.taskType === "SPECIAL" ? (
+              <>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Assign to CRP <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    name="assignToCrp"
+                    value={formData.assignToCrp}
+                    onChange={handleInputChange}
+                    disabled={dataLoading}
+                    className="w-full px-3 py-2 border border-blue-400 rounded-md text-sm text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none appearance-none bg-white disabled:opacity-60"
+                  >
+                    <option value="">{dataLoading ? "Loading..." : "Choose CRP..."}</option>
+                    {taskCreationData.crps.map((crp) => (
+                      <option key={crp.id} value={crp.id}>
+                        {crp.fullname} ({crp.crp_id})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Vertical <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    name="vertical_id"
+                    value={formData.vertical_id}
+                    onChange={handleInputChange}
+                    disabled={dataLoading}
+                    className="w-full px-3 py-2 border border-blue-400 rounded-md text-sm text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none appearance-none bg-white disabled:opacity-60"
+                  >
+                    <option value="">{dataLoading ? "Loading..." : "Choose Vertical..."}</option>
+                    {taskCreationData.verticals.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.vertical_name} ({v.vertical_code})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Row 6 */}
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
             Task Description <span className="text-red-500">*</span>
           </label>
           <textarea
-            name="description"
-            value={formData.description}
+            name="taskDescription"
+            value={formData.taskDescription}
             onChange={handleInputChange}
-            rows="4"
-            placeholder="Provide detailed task description, objectives, and expected outcomes"
-            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+            rows="3"
+            placeholder="Brief description"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
           />
         </div>
 
-        {/* Deliverables */}
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Deliverables & Requirements
-          </label>
-          <textarea
-            name="deliverables"
-            value={formData.deliverables}
-            onChange={handleInputChange}
-            rows="4"
-            placeholder="List expected deliverables, documentation requirements, and success criteria"
-            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
-          />
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-2">
+        <div className="p-4 bg-white border-t border-slate-100 flex justify-start gap-3 z-10 shrink-0">
+          <button
+            onClick={() => { handleClearForm(); onClose(); }}
+            className="px-5 py-2 text-[14px] font-medium text-white bg-slate-500 rounded hover:bg-slate-600 transition-colors"
+          >
+            Back
+          </button>
           <button
             onClick={handleCreateTask}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+            className="px-5 py-2 text-[14px] font-medium text-white bg-[#0066ff] rounded hover:bg-blue-600 transition-colors shadow-sm"
           >
-            <Plus size={18} />
-            Create Task
-          </button>
-          <button
-            onClick={handleClearForm}
-            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <X size={18} />
-            Clear Form
+            Assign Task
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 });

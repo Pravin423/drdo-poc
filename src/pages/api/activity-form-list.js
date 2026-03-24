@@ -9,26 +9,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const fetchOptions = {
-      method: req.method,
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
-
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      fetchOptions.body = JSON.stringify(req.body);
-    }
-
-    const response = await fetch("https://goadrda.runtime-solutions.net/admin/api/activity-tasks", fetchOptions);
+    const response = await fetch(
+      "https://goadrda.runtime-solutions.net/admin/api/activity-form/details",
+      {
+        method: "GET",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
 
     const data = await response.json();
-
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error("Activity tasks proxy fetch error:", error);
+    console.error("Proxy fetch error (activity-form/details):", error);
     return res.status(500).json({ status: false, message: "Proxy request failed", error: error.message });
   }
 }
