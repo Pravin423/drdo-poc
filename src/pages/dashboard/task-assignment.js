@@ -116,7 +116,7 @@ const TaskTypeBadge = ({ type }) => {
   else if (isRegular) colorClass = "bg-[#10b981]";
 
   return (
-    <span className={`${colorClass} text-white px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide inline-block whitespace-nowrap`}>
+    <span className={`${colorClass} text-white px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide inline-block`}>
       {type}
     </span>
   );
@@ -514,13 +514,13 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
               ) : (
                 paginatedTasks.map((task, index) => (
                   <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
-                    <td className="px-6 py-6 text-[15px] font-extrabold text-slate-600 align-middle">
+                    <td className="px-6 py-6 text-[15px] font-bold text-slate-600 align-middle">
                       {String(task.id).startsWith("TASK") ? index + 1 : task.id}
                     </td>
 
                     <td className="px-6 py-6 align-middle">
                       <div className="flex flex-col max-w-[240px]">
-                        <span className="font-extrabold text-slate-800 text-[15px] break-words">{task.title}</span>
+                        <span className="font-semibold text-slate-800 text-[14px]">{task.title}</span>
                       </div>
                     </td>
 
