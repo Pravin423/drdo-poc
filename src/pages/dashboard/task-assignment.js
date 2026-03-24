@@ -288,29 +288,42 @@ const StatsCard = memo(function StatsCard({ icon: Icon, label, value, subValue, 
 
 
 const StatusBadge = ({ status }) => {
+  const normStatus = status ? status.toLowerCase() : "";
+  
   const styles = {
-    Approved: "bg-emerald-600 text-white",
-    Closed: "bg-slate-500 text-white",
-    Pending: "bg-amber-400 text-white",
-    inprogress: "bg-slate-500 text-white",
-    Overdue: "bg-rose-50 text-rose-700 border-rose-200",
-    active: "bg-blue-50 text-blue-700 border-blue-200",
-    completed: "bg-slate-100 text-slate-600 border-slate-200",
-    "Pending Review": "bg-orange-50 text-orange-700 border-orange-200",
-    Rejected: "bg-rose-50 text-rose-700 border-rose-200",
-    "Info Requested": "bg-blue-50 text-blue-700 border-blue-200",
+    approved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    active: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    completed: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    closed: "bg-slate-50 text-slate-700 border border-slate-200",
+    pending: "bg-amber-50 text-amber-700 border border-amber-300/60",
+    "pending review": "bg-amber-50 text-amber-700 border border-amber-300/60",
+    inprogress: "bg-blue-50 text-blue-700 border border-blue-200",
+    overdue: "bg-rose-50 text-rose-700 border border-rose-200",
+    deleted: "bg-rose-50 text-rose-700 border border-rose-200",
+    rejected: "bg-rose-50 text-rose-700 border border-rose-200",
+    "info requested": "bg-blue-50 text-blue-700 border border-blue-200",
   };
 
+  const badgeStyle = styles[normStatus] || "bg-slate-50 text-slate-700 border border-slate-200";
+
   return (
-    <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${styles[status] || styles.active}`}>
+    <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[12px] font-bold capitalize ${badgeStyle}`}>
       {status}
     </div>
   );
 };
 
 const TaskTypeBadge = ({ type }) => {
+  const t = type ? type.toUpperCase() : '';
+  const isSpecial = t.includes('SPECIAL');
+  const isRegular = t.includes('REGULAR');
+  
+  let colorClass = "bg-slate-500";
+  if (isSpecial) colorClass = "bg-[#f43f5e]"; 
+  else if (isRegular) colorClass = "bg-[#10b981]"; 
+
   return (
-    <span className="bg-slate-500 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider inline-block">
+    <span className={`${colorClass} text-white px-3 py-1 rounded-md text-[10px] font-extrabold uppercase inline-block whitespace-nowrap`}>
       {type}
     </span>
   );
@@ -318,7 +331,7 @@ const TaskTypeBadge = ({ type }) => {
 
 const ActivityFormBadge = ({ formName }) => {
   return (
-    <span className="bg-cyan-400 text-white px-2 py-0.5 rounded-full text-[11px] font-bold inline-block">
+    <span className="bg-[#00d0e4] text-white px-4 py-1.5 rounded-full text-[11px] font-extrabold inline-block whitespace-nowrap">
       {formName}
     </span>
   );
