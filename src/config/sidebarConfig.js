@@ -26,6 +26,7 @@ export const SIDEBAR_CONFIG = {
           subItems: [
             { name: "CRP List", path: "/dashboard/crp-management" },
             { name: "CRP SHGs Mapping", path: "/dashboard/crp-management/crp-shg-mapping" },
+            { name: "CRP Vertical Mapping", path: "/dashboard/crp-management/crp-vertical-mapping" },
           ],
         },
         { name: "Attendance Management", path: "/dashboard/attandence" },

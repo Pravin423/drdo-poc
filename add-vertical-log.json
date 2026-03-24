@@ -1,10 +1,10 @@
 {
   "requestBody": {
-    "vertical_name": "rrtyui",
-    "vertical_code": "tyu",
-    "start_date": "2026-03-23",
-    "end_date": "2026-03-25",
-    "description": "hh"
+    "vertical_name": "test vertical",
+    "vertical_code": "123",
+    "start_date": "2026-03-24",
+    "end_date": "2026-03-28",
+    "description": "d"
   },
   "responseStatus": 200,
   "responseData": {
