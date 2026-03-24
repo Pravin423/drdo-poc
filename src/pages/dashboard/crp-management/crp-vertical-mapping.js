@@ -36,11 +36,11 @@ export default function CRPVerticalMapping() {
   const fetchMappings = async () => {
     setIsLoading(true);
     try {
-      // Fetch CRPS
-      const crpRes = await fetch("/api/user");
+      // Fetch CRPS (crp-shg-list is known to return crp_list)
+      const crpRes = await fetch("/api/crp-shg-list");
       const crpResult = await crpRes.json();
-      if (crpResult.data && Array.isArray(crpResult.data)) {
-        setCrps(crpResult.data.filter(user => user.role === "crp"));
+      if (crpResult.crp_list && Array.isArray(crpResult.crp_list)) {
+        setCrps(crpResult.crp_list);
       }
 
       // Fetch Verticals
@@ -114,7 +114,7 @@ export default function CRPVerticalMapping() {
     try {
       const payload = {
         mapping_id: editFormData.mappingId,
-        crp_id: Number(editFormData.crpuser),
+        crp_user_id: Number(editFormData.crpuser),
         vertical_id: Number(editFormData.vertical_id),
         status: Number(editFormData.status)
       };
@@ -154,7 +154,7 @@ export default function CRPVerticalMapping() {
     setIsSubmitting(true);
     try {
       const payload = {
-        crp_id: Number(formData.crpuser),
+        crp_user_id: Number(formData.crpuser),
         vertical_id: Number(formData.vertical_id),
         status: Number(formData.status)
       };
