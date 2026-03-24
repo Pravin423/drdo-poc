@@ -648,262 +648,193 @@ const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputCha
     fetchData();
   }, []);
 
+  const fieldClass = "w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none bg-white placeholder:text-slate-400";
+  const selectClass = `${fieldClass} appearance-none disabled:opacity-60`;
+  const labelClass = "block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5";
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.25 }}
         onClick={onClose}
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
       />
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        initial={{ opacity: 0, scale: 0.97, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 20 }}
+        exit={{ opacity: 0, scale: 0.97, y: 24 }}
         transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
       >
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50 z-10 shrink-0">
-          <div>
-            <h2 className="text-lg font-bold text-slate-700">Assign New Activity Task</h2>
+
+        {/* ── Dark Header ── */}
+        <div className="bg-[#0f1c3f] px-6 py-5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center">
+              <ListTodo size={22} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-[17px] font-bold text-white leading-tight">Assign New Activity Task</h2>
+              <p className="text-[12px] text-slate-400 mt-0.5">Fill in the details to create and assign a task</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
-            <X size={20} />
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+            <X size={16} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-        {/* Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Task Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="taskName"
-              value={formData.taskName}
-              onChange={handleInputChange}
-              placeholder="e.g. Field Survey"
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
+        {/* ── Scrollable Body ── */}
+        <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Task Type <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                name="taskType"
-                value={formData.taskType}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-              >
-                <option value="SPECIAL">SPECIAL</option>
-                <option value="REGULAR">REGULAR</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          {/* Section 1 — Task Details */}
+          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
+            <div>
+              <p className="text-[14px] font-bold text-slate-800">Task Details</p>
+              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">Core information and type of the task being created.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Task Name <span className="text-red-500">*</span></label>
+                  <input type="text" name="taskName" value={formData.taskName} onChange={handleInputChange} placeholder="e.g. Field Survey" className={fieldClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Task Type <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select name="taskType" value={formData.taskType} onChange={handleInputChange} className={selectClass}>
+                      <option value="SPECIAL">SPECIAL</option>
+                      <option value="REGULAR">REGULAR</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>Task Description <span className="text-red-500">*</span></label>
+                <textarea name="taskDescription" value={formData.taskDescription} onChange={handleInputChange} rows="3" placeholder="Brief description of the task..." className={`${fieldClass} resize-none`} />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Row 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Start Date <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              value={formData.startDate}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              End Date <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={formData.endDate}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Row 3 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Honorarium Amount (₹)
-            </label>
-            <input
-              type="number"
-              name="honorariumAmount"
-              value={formData.honorariumAmount}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Activity Form <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                name="activityForm"
-                value={formData.activityForm}
-                onChange={handleInputChange}
-                disabled={dataLoading}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white disabled:opacity-60"
-              >
-                <option value="">{dataLoading ? "Loading..." : "Choose..."}</option>
-                {taskCreationData.forms.map((form) => (
-                  <option key={form.id} value={form.id}>
-                    {form.form_name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          {/* Section 2 — Schedule & Form */}
+          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
+            <div>
+              <p className="text-[14px] font-bold text-slate-800">Schedule & Form</p>
+              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">Set the timeline and link the activity form.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Start Date <span className="text-red-500">*</span></label>
+                  <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} className={fieldClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>End Date <span className="text-red-500">*</span></label>
+                  <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} className={fieldClass} />
+                </div>
+              </div>
+              <div className={formData.taskType === "SPECIAL" ? "grid grid-cols-2 gap-4" : ""}>
+                <div>
+                  <label className={labelClass}>Activity Form <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select name="activityForm" value={formData.activityForm} onChange={handleInputChange} disabled={dataLoading} className={selectClass}>
+                      <option value="">{dataLoading ? "Loading..." : "Choose form..."}</option>
+                      {taskCreationData.forms.map((form) => (
+                        <option key={form.id} value={form.id}>{form.form_name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+                {formData.taskType === "SPECIAL" && (
+                  <div>
+                    <label className={labelClass}>Honorarium Amount (₹)</label>
+                    <input type="number" name="honorariumAmount" value={formData.honorariumAmount} onChange={handleInputChange} placeholder="0" className={fieldClass} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Row 4 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Latitude <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="latitude"
-              value={formData.latitude}
-              onChange={handleInputChange}
-              placeholder="e.g. 15.2993"
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Longitude <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="longitude"
-              value={formData.longitude}
-              onChange={handleInputChange}
-              placeholder="e.g. 74.1240"
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Row 5 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Radius (Meters) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="radius"
-              value={formData.radius}
-              onChange={handleInputChange}
-              placeholder="e.g. 100"
-              className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            {formData.taskType === "SPECIAL" ? (
-              <>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Assign to CRP <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    name="assignToCrp"
-                    value={formData.assignToCrp}
-                    onChange={handleInputChange}
-                    disabled={dataLoading}
-                    className="w-full px-3 py-2 border border-blue-400 rounded-md text-sm text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none appearance-none bg-white disabled:opacity-60"
-                  >
-                    <option value="">{dataLoading ? "Loading..." : "Choose CRP..."}</option>
-                    {taskCreationData.crps.map((crp) => (
-                      <option key={crp.id} value={crp.id}>
-                        {crp.fullname} ({crp.crp_id})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          {/* Section 3 — Location */}
+          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
+            <div>
+              <p className="text-[14px] font-bold text-slate-800">Location Settings</p>
+              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">Specify where this task operates geographically.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Latitude <span className="text-red-500">*</span></label>
+                  <input type="text" name="latitude" value={formData.latitude} onChange={handleInputChange} placeholder="e.g. 15.2993" className={fieldClass} />
                 </div>
-              </>
-            ) : (
-              <>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Vertical <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    name="vertical_id"
-                    value={formData.vertical_id}
-                    onChange={handleInputChange}
-                    disabled={dataLoading}
-                    className="w-full px-3 py-2 border border-blue-400 rounded-md text-sm text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none appearance-none bg-white disabled:opacity-60"
-                  >
-                    <option value="">{dataLoading ? "Loading..." : "Choose Vertical..."}</option>
-                    {taskCreationData.verticals.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.vertical_name} ({v.vertical_code})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <div>
+                  <label className={labelClass}>Longitude <span className="text-red-500">*</span></label>
+                  <input type="text" name="longitude" value={formData.longitude} onChange={handleInputChange} placeholder="e.g. 74.1240" className={fieldClass} />
                 </div>
-              </>
-            )}
+              </div>
+              <div className="w-1/2 pr-2">
+                <label className={labelClass}>Radius (Meters) <span className="text-red-500">*</span></label>
+                <input type="text" name="radius" value={formData.radius} onChange={handleInputChange} placeholder="e.g. 100" className={fieldClass} />
+              </div>
+            </div>
           </div>
+
+          {/* Section 4 — Assignment */}
+          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
+            <div>
+              <p className="text-[14px] font-bold text-slate-800">Assignment</p>
+              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">
+                {formData.taskType === "SPECIAL" ? "Assign directly to a specific CRP." : "Link to a vertical for auto-assignment."}
+              </p>
+            </div>
+            <div>
+              {formData.taskType === "SPECIAL" ? (
+                <div>
+                  <label className={labelClass}>Assign to CRP <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select name="assignToCrp" value={formData.assignToCrp} onChange={handleInputChange} disabled={dataLoading} className={selectClass}>
+                      <option value="">{dataLoading ? "Loading..." : "Choose CRP..."}</option>
+                      {taskCreationData.crps.map((crp) => (
+                        <option key={crp.id} value={crp.id}>{crp.fullname} ({crp.crp_id})</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Vertical <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select name="vertical_id" value={formData.vertical_id} onChange={handleInputChange} disabled={dataLoading} className={selectClass}>
+                      <option value="">{dataLoading ? "Loading..." : "Choose Vertical..."}</option>
+                      {taskCreationData.verticals.map((v) => (
+                        <option key={v.id} value={v.id}>{v.vertical_name} ({v.vertical_code})</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
         </div>
 
-        {/* Row 6 */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
-            Task Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="taskDescription"
-            value={formData.taskDescription}
-            onChange={handleInputChange}
-            rows="3"
-            placeholder="Brief description"
-            className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm text-slate-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
-          />
-        </div>
-
-        </div>
-
-        {/* Action Buttons */}
-        <div className="p-4 bg-white border-t border-slate-100 flex justify-start gap-3 z-10 shrink-0">
+        {/* ── Footer ── */}
+        <div className="px-6 py-4 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0">
           <button
             onClick={() => { handleClearForm(); onClose(); }}
-            className="px-5 py-2 text-[14px] font-medium text-white bg-slate-500 rounded hover:bg-slate-600 transition-colors"
+            className="px-5 py-2.5 text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
           >
-            Back
+            Cancel
           </button>
           <button
             onClick={handleCreateTask}
-            className="px-5 py-2 text-[14px] font-medium text-white bg-[#0066ff] rounded hover:bg-blue-600 transition-colors shadow-sm"
+            className="px-6 py-2.5 text-[13px] font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
           >
             Assign Task
           </button>
