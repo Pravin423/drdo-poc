@@ -1,222 +1,15 @@
 "use client";
 
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClipboardList, Activity, CheckCircle, AlertCircle, TrendingUp, Download, Users, FileText, RefreshCw, Filter, Search, ChevronDown, Plus, X, ListTodo, Edit, Trash2, Calendar, Image as ImageIcon, ArrowUpRight, ArrowDownRight, Clock, MapPin, User, CheckCircle2, XCircle, Info } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 
 /* ---------------- MOCK DATA ---------------- */
-const INITIAL_MOCK_TASKS = [
-  {
-    id: 1,
-    title: "Digit Fraud",
-    description: "Digital Payment camps.",
-    taskType: "SPECIAL",
-    vertical: "-",
-    activityForm: "Digital Payment",
-    assignedTo: [{ name: "Rohit Kumar", crpId: "CRP0021" }],
-    startDate: "09 Mar 2026",
-    endDate: "12 Mar 2026",
-    honorarium: "₹200.00",
-    status: "Approved",
-  },
-  {
-    id: 2,
-    title: "Gender Awareness Workshop",
-    description: "Conduct workshops promoting gender equal...",
-    taskType: "REGULAR",
-    vertical: "Social Security Schemes",
-    activityForm: "Maternal Health Awareness",
-    assignedTo: [{ name: "Rohit Kumar" }, { name: "Kiran" }],
-    startDate: "25 Feb 2026",
-    endDate: "20 Mar 2026",
-    honorarium: "₹450.00",
-    status: "Closed",
-  },
-  {
-    id: 3,
-    title: "Pension Scheme Awareness",
-    description: "Promote awareness of pension schemes lik...",
-    taskType: "REGULAR",
-    vertical: "Social Security Schemes",
-    activityForm: "Swachh Bharat Awareness Drive",
-    assignedTo: [{ name: "Rohit Kumar" }, { name: "Kiran" }],
-    startDate: "20 Feb 2026",
-    endDate: "20 Mar 2026",
-    honorarium: "₹450.00",
-    status: "Closed",
-  },
-  {
-    id: 4,
-    title: "APY Awareness",
-    description: "Conduct awareness sessions on Atal Pensi...",
-    taskType: "REGULAR",
-    vertical: "MGNREGA Awareness",
-    activityForm: "Awareness Campaign",
-    assignedTo: [],
-    startDate: "20 Jan 2026",
-    endDate: "30 Apr 2026",
-    honorarium: "₹450.00",
-    status: "Pending",
-  },
-  {
-    id: 5,
-    title: "Pension Scheme Awareness",
-    description: "Promote awareness of pension schemes lik...",
-    taskType: "REGULAR",
-    vertical: "Insurance & Pension",
-    activityForm: "Swachh Bharat Awareness Drive",
-    assignedTo: [],
-    startDate: "01 Jan 2026",
-    endDate: "05 Apr 2026",
-    honorarium: "₹450.00",
-    status: "Pending",
-  },
-  {
-    id: 6,
-    title: "Waste Management Awareness",
-    description: "Educate villagers about waste segregatio...",
-    taskType: "REGULAR",
-    vertical: "Social Security Schemes",
-    activityForm: "Waste Management Awareness",
-    assignedTo: [{ name: "Rohit Kumar" }, { name: "Kiran" }],
-    startDate: "01 Feb 2026",
-    endDate: "30 Mar 2026",
-    honorarium: "₹450.00",
-    status: "Pending",
-  },
-  {
-    id: 7,
-    title: "Child Nutrition Program",
-    description: "Promote child nutrition practices throug...",
-    taskType: "SPECIAL",
-    vertical: "-",
-    activityForm: "Health Camp Mobilization",
-    assignedTo: [{ name: "Santosh", crpId: "CRP0020" }],
-    startDate: "05 Mar 2026",
-    endDate: "31 Mar 2026",
-    honorarium: "₹900.00",
-    status: "inprogress",
-  },
-];
-
-const VERIFICATION_SUBMISSIONS = [
-  {
-    id: 1,
-    taskTitle: "SHG Formation and Registration Drive",
-    submittedBy: "Priya Desai (CRP001)",
-    submittedDate: "28 Jan 2026, 02:30 pm",
-    stats: {
-      villagesCovered: 5,
-      shgsFormed: 12,
-      membersEnrolled: 144,
-      trainingSessions: 8,
-    },
-    activityReport:
-      "Conducted SHG formation drive in 5 villages of North Goa District.\n\nActivities Completed:\n- Organized awareness meetings in Mapusa, Bicholim, Pernem, Bardez, and Tiswadi...",
-    evidenceImages: [
-      "https://picsum.photos/200/150?random=1",
-      "https://picsum.photos/200/150?random=2",
-      "https://picsum.photos/200/150?random=3",
-    ],
-    attachments: [
-      {
-        name: "SHG_Registration_Photos.pdf",
-        size: "2.4 MB",
-        url: "/files/SHG_Registration_Photos.pdf",
-      },
-      {
-        name: "Attendance_Sheets.xlsx",
-        size: "156 KB",
-        url: "/files/Attendance_Sheets.xlsx",
-      },
-      {
-        name: "Training_Report.docx",
-        size: "890 KB",
-        url: "/files/Training_Report.docx",
-      },
-    ],
-    status: "Pending Review",
-  },
-  {
-  id: 2,
-  taskTitle: "MGNREGA Work Site Monitoring",
-  submittedBy: "Rajesh Kumar (CRP002)",
-  submittedDate: "29 Jan 2026, 10:15 am",
-  stats: {
-    sitesVisited: 4,
-    workersVerified: 156,
-    issuesIdentified: 2,
-    reportsGenerated: 4,
-  },
-  activityReport:
-    "Conducted comprehensive monitoring of MGNREGA work sites across South Goa District.\n\nSites Visited:\n- Road construction project in Margao Block...\n\nObservations:\n- Verified worker attendance and wage records\n- Identified minor safety and material issues at select sites",
-  evidenceImages: [
-    "https://picsum.photos/400/250?random=11",
-    "https://picsum.photos/400/250?random=12",
-  ],
-  attachments: [
-    {
-      name: "MGNREGA_Worksite_Inspection_Report.pdf",
-      size: "1.8 MB",
-      url: "/files/MGNREGA_Worksite_Inspection_Report.pdf",
-    },
-    {
-      name: "Worker_Verification_List.xlsx",
-      size: "245 KB",
-      url: "/files/Worker_Verification_List.xlsx",
-    },
-    {
-      name: "Issue_Compliance_Notes.docx",
-      size: "620 KB",
-      url: "/files/Issue_Compliance_Notes.docx",
-    },
-  ],
-  status: "Pending Review",
-}
-,
- {
-  id: 3,
-  taskTitle: "Health & Nutrition Awareness Campaign",
-  submittedBy: "Anita Fernandes (CRP003)",
-  submittedDate: "29 Jan 2026, 04:45 pm",
-  stats: {
-    villagesCovered: 3,
-    beneficiaries: 89,
-    anemiaDetected: 23,
-    supplementsDistributed: 67,
-  },
-  activityReport:
-    "Organized health and nutrition awareness campaign in Tiswadi Taluka villages.\n\nCampaign Activities:\n- Conducted health check-up camps in 3 villages\n- Identified anemia cases among women and children\n- Distributed iron and nutrition supplements\n- Provided dietary awareness sessions",
-  evidenceImages: [
-    "https://picsum.photos/400/250?random=21",
-    "https://picsum.photos/400/250?random=22",
-    "https://picsum.photos/400/250?random=23",
-  ],
-  attachments: [
-    {
-      name: "Health_Checkup_Report.pdf",
-      size: "2.1 MB",
-      url: "/files/Health_Checkup_Report.pdf",
-    },
-    {
-      name: "Beneficiary_Attendance_Sheet.xlsx",
-      size: "198 KB",
-      url: "/files/Beneficiary_Attendance_Sheet.xlsx",
-    },
-    {
-      name: "Nutrition_Awareness_Material.docx",
-      size: "940 KB",
-      url: "/files/Nutrition_Awareness_Material.docx",
-    },
-  ],
-  status: "Pending Review",
-}
+const INITIAL_MOCK_TASKS = []; // We will load from API now
 
 
-
-];
 
 
 /* Helper function to generate unique task ID */
@@ -289,7 +82,7 @@ const StatsCard = memo(function StatsCard({ icon: Icon, label, value, subValue, 
 
 const StatusBadge = ({ status }) => {
   const normStatus = status ? status.toLowerCase() : "";
-  
+
   const styles = {
     approved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     active: "bg-emerald-50 text-emerald-700 border border-emerald-200",
@@ -317,13 +110,13 @@ const TaskTypeBadge = ({ type }) => {
   const t = type ? type.toUpperCase() : '';
   const isSpecial = t.includes('SPECIAL');
   const isRegular = t.includes('REGULAR');
-  
+
   let colorClass = "bg-slate-500";
-  if (isSpecial) colorClass = "bg-[#f43f5e]"; 
-  else if (isRegular) colorClass = "bg-[#10b981]"; 
+  if (isSpecial) colorClass = "bg-[#f43f5e]";
+  else if (isRegular) colorClass = "bg-[#10b981]";
 
   return (
-    <span className={`${colorClass} text-white px-3 py-1 rounded-md text-[10px] font-extrabold uppercase inline-block whitespace-nowrap`}>
+    <span className={`${colorClass} text-white px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide inline-block whitespace-nowrap`}>
       {type}
     </span>
   );
@@ -331,7 +124,7 @@ const TaskTypeBadge = ({ type }) => {
 
 const ActivityFormBadge = ({ formName }) => {
   return (
-    <span className="bg-[#00d0e4] text-white px-4 py-1.5 rounded-full text-[11px] font-extrabold inline-block whitespace-nowrap">
+    <span className="bg-[#00d0e4] text-white px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-block whitespace-nowrap">
       {formName}
     </span>
   );
@@ -364,7 +157,9 @@ const ProgressBar = ({ percentage }) => {
 /* ---------------- MAIN PAGE COMPONENT ---------------- */
 export default function TaskAssignment() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [tasks, setTasks] = useState(INITIAL_MOCK_TASKS);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [formData, setFormData] = useState({
     taskTitle: "",
     vertical: "",
@@ -377,6 +172,51 @@ export default function TaskAssignment() {
     description: "",
     deliverables: "",
   });
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/activity-tasks");
+      const result = await res.json();
+
+      const tasksData = Array.isArray(result) ? result : (result.data || []);
+
+      let mappedTasks = tasksData.map(t => ({
+        id: t.id || Math.random().toString(36).substr(2, 9),
+        title: t.task_name,
+        description: t.task_description,
+        taskType: t.task_type || "REGULAR",
+        vertical: t.vertical_name || "-",
+        activityForm: t.form_name || "-",
+        assignedTo: t.assigned_to_name ? [{ name: t.assigned_to_name, crpId: t.crp_id }] : [],
+        startDate: formatDateForDisplay(t.start_date),
+        endDate: formatDateForDisplay(t.end_date),
+        honorarium: t.honorarium_amount ? `₹${t.honorarium_amount}` : "-",
+        status: t.status || "Active",
+        progress: t.progress || 0
+      }));
+
+      // Sort by ID in ascending order
+      mappedTasks.sort((a, b) => {
+        const numA = Number(a.id);
+        const numB = Number(b.id);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return String(a.id).localeCompare(String(b.id));
+      });
+
+      setTasks(mappedTasks);
+    } catch (error) {
+      console.error("Failed to fetch tasks", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   const tabs = [
     { id: "overview", label: "Overview", icon: ListTodo },
@@ -597,7 +437,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
   const [localSearch, setLocalSearch] = useState("");
 
   const displayTasks = useMemo(() => {
-    return tasks.filter(t => 
+    return tasks.filter(t =>
       (t.title || "").toLowerCase().includes(localSearch.toLowerCase()) ||
       (t.vertical || "").toLowerCase().includes(localSearch.toLowerCase())
     );
@@ -629,7 +469,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
           </select>
           <span>entries</span>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-center justify-end gap-5 w-full lg:w-auto">
           <div className="relative group flex items-center gap-3">
             <span className="text-sm font-semibold text-slate-600">Search:</span>
@@ -655,55 +495,55 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead className="bg-[#fafcff]/60">
               <tr>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase w-20">ID</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Task Name</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Task Type</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Vertical</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Activity Form</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Assigned To</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Date Range</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase">Honorarium</th>
-                <th className="px-5 py-4 text-xs font-bold text-slate-500 uppercase text-center">Status</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest w-20">ID</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest">Task Name</th>
+                <th className="px-6 py-5 text-[12px]   text-slate-500 uppercase tracking-widest">Task Type</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest">Vertical</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest">Activity Form</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest">Assigned To</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest">Date Range</th>
+                <th className="px-6 py-5 text-[12px]  text-slate-500 uppercase tracking-widest">Honorarium</th>
+                <th className="px-6 py-5 text-[12px] text-slate-500 uppercase tracking-widest text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {paginatedTasks.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="p-16 text-center text-slate-400 text-sm font-medium">No tasks found.</td>
+                  <td colSpan="9" className="p-1 text-center text-slate-400 text-sm font-medium">No tasks found.</td>
                 </tr>
               ) : (
                 paginatedTasks.map((task, index) => (
                   <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
-                    <td className="px-5 py-4 text-sm font-bold text-slate-500 align-middle">
-                      {String(task.id).startsWith("TASK") ? `TSK00${index + 1}` : task.id}
+                    <td className="px-6 py-6 text-[15px] font-extrabold text-slate-600 align-middle">
+                      {String(task.id).startsWith("TASK") ? index + 1 : task.id}
                     </td>
-                    
-                    <td className="px-5 py-4 align-middle">
+
+                    <td className="px-6 py-6 align-middle">
                       <div className="flex flex-col max-w-[240px]">
-                        <span className="font-bold text-slate-900 text-sm break-words">{task.title}</span>
+                        <span className="font-extrabold text-slate-800 text-[15px] break-words">{task.title}</span>
                       </div>
                     </td>
 
-                    <td className="px-5 py-4 align-middle">
+                    <td className="px-6 py-6 align-middle">
                       <TaskTypeBadge type={task.taskType} />
                     </td>
 
-                    <td className="px-5 py-4 text-sm text-slate-600 max-w-[160px] break-words align-middle">
+                    <td className="px-6 py-6 text-[14px] font-medium text-slate-500 max-w-[160px] break-words align-middle">
                       {task.vertical}
                     </td>
 
-                    <td className="px-5 py-4 align-middle font-medium text-slate-800">
+                    <td className="px-6 py-6 align-middle font-medium text-slate-800">
                       {task.activityForm ? <ActivityFormBadge formName={task.activityForm} /> : <span className="text-slate-300 font-bold">—</span>}
                     </td>
 
-                    <td className="px-5 py-4 align-middle">
+                    <td className="px-6 py-6 align-middle">
                       {task.assignedTo && task.assignedTo.length > 0 ? (
-                        <div className="flex flex-col gap-0.5">
+                        <div className="flex flex-col gap-1">
                           {task.assignedTo.map((a, i) => {
                             const name = typeof a === 'string' ? a : a.name;
                             return (
                               <div key={i} className="mb-0 flex items-center">
-                                <span className="text-sm font-semibold text-slate-800 leading-tight">{name}{i < task.assignedTo.length - 1 && ','}</span>
+                                <span className="text-[14px] font-bold text-slate-700 leading-tight">{name}{i < task.assignedTo.length - 1 && ','}</span>
                               </div>
                             );
                           })}
@@ -713,18 +553,18 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
                       )}
                     </td>
 
-                    <td className="px-5 py-4 text-slate-600 whitespace-nowrap align-middle">
+                    <td className="px-6 py-6 text-slate-600 whitespace-nowrap align-middle">
                       <div className="flex flex-col text-[13px] leading-tight font-medium">
-                        <span className="text-slate-700">{task.startDate}</span>
-                        <span className="text-slate-500">to {task.endDate}</span>
+                        <span className="text-slate-700 text-[14px]">{task.startDate}</span>
+                        <span className="text-slate-400 mt-0.5">to {task.endDate}</span>
                       </div>
                     </td>
 
-                    <td className="px-5 py-4 text-sm font-bold text-slate-700 align-middle">
+                    <td className="px-6 py-6 text-[15px] font-extrabold text-slate-700 align-middle">
                       {task.honorarium || ""}
                     </td>
 
-                    <td className="px-5 py-4 text-center align-middle">
+                    <td className="px-6 py-6 text-center align-middle">
                       <StatusBadge status={task.status} />
                     </td>
                   </tr>
@@ -734,7 +574,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, set
           </table>
         </div>
       </div>
-      
+
       {/* Pagination Container */}
       {!displayTasks.length ? null : (
         <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white">
