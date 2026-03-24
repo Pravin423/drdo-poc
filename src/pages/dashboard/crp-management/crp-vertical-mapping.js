@@ -68,19 +68,32 @@ export default function CRPVerticalMapping() {
       const result = await res.json();
       
       const mappingsList = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-      setMappings(mappingsList.map((mapping, idx) => ({
-        id: mapping.id || mapping.mapping_id || idx + 1,
-        crpId: mapping.user_id || mapping.crpuser || mapping.crp_id || "",
-        verticalId: mapping.vertical_id || "",
-        name: mapping.fullname || mapping.crp_name || mapping.name || "N/A",
-        email: mapping.email || mapping.crp_email || "N/A",
-        mobile: mapping.mobile || mapping.crp_mobile || "N/A",
-        taskType: mapping.task_type || mapping.taskType || "N/A",
-        taskName: mapping.task_name || mapping.taskName || "N/A",
-        verticalName: mapping.vertical_name || mapping.verticalName || mapping.title || "N/A",
-        verticalCode: mapping.vertical_code || mapping.verticalCode || "N/A",
-        status: mapping.status === 0 || mapping.status === "0" || mapping.status === "Active" ? "Active" : "Inactive",
-      })));
+      setMappings(mappingsList.map((mapping, idx) => {
+        let parsedTaskType = "N/A";
+        const rawTaskType = mapping.task_type !== undefined ? mapping.task_type : mapping.taskType;
+        
+        if (rawTaskType === 0 || String(rawTaskType) === "0") {
+          parsedTaskType = "Regular Task";
+        } else if (rawTaskType === 1 || String(rawTaskType) === "1") {
+          parsedTaskType = "Special Task";
+        } else if (rawTaskType) {
+          parsedTaskType = rawTaskType;
+        }
+
+        return {
+          id: mapping.id || mapping.mapping_id || idx + 1,
+          crpId: mapping.user_id || mapping.crpuser || mapping.crp_id || "",
+          verticalId: mapping.vertical_id || "",
+          name: mapping.fullname || mapping.crp_name || mapping.name || "N/A",
+          email: mapping.email || mapping.crp_email || "N/A",
+          mobile: mapping.mobile || mapping.crp_mobile || "N/A",
+          taskType: parsedTaskType,
+          taskName: mapping.task_name || mapping.taskName || "N/A",
+          verticalName: mapping.vertical_name || mapping.verticalName || mapping.title || "N/A",
+          verticalCode: mapping.vertical_code || mapping.verticalCode || "N/A",
+          status: mapping.status === 0 || mapping.status === "0" || mapping.status === "Active" ? "Active" : "Inactive",
+        };
+      }));
 
     } catch (err) {
       console.error("[CRP-Vertical Mapping] Fetch error:", err);

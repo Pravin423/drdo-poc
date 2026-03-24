@@ -17,7 +17,7 @@ export const SIDEBAR_CONFIG = {
         },
       ],
     },
-    
+
     {
       section: "CRP OPERATIONS",
       items: [
@@ -30,7 +30,6 @@ export const SIDEBAR_CONFIG = {
           ],
         },
         { name: "Attendance Management", path: "/dashboard/attandence" },
-        { name: "Task Assignment", path: "/dashboard/task-assignment" },
       ],
     },
     {
@@ -59,8 +58,8 @@ export const SIDEBAR_CONFIG = {
         {
           name: "User Management",
           subItems: [
-            { name: "Add User",   path: "/dashboard/user-management/add-user" },
-            { name: "User List",  path: "/dashboard/user-management/user-list" },
+            { name: "Add User", path: "/dashboard/user-management/add-user" },
+            { name: "User List", path: "/dashboard/user-management/user-list" },
           ],
         },
       ],
@@ -72,9 +71,15 @@ export const SIDEBAR_CONFIG = {
           name: "Activity Forms",
           subItems: [
             { name: "Create Form", path: "/dashboard/activity-forms/create" },
-            { name: "All Forms",   path: "/dashboard/activity-forms/all" },
+            { name: "All Forms", path: "/dashboard/activity-forms/all" },
           ],
         },
+      ],
+    },
+    {
+      section: "Task and Assignments",
+      items: [
+        { name: "All Tasks", path: "/dashboard/task-assignment" }
       ],
     },
   ],

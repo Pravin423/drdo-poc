@@ -9,74 +9,95 @@ import DashboardLayout from "../../components/DashboardLayout";
 /* ---------------- MOCK DATA ---------------- */
 const INITIAL_MOCK_TASKS = [
   {
-    id: "TASK173823377184",
-    title: "SHG Formation and Registration Drive",
-    vertical: "Self Help Groups (SHG)",
-    assignedTo: ["Priya Desai", "Anita Fernandes"],
-    crpCount: 2,
-    progress: 65,
+    id: 1,
+    title: "Digit Fraud",
+    description: "Digital Payment camps.",
+    taskType: "SPECIAL",
+    vertical: "-",
+    activityForm: "Digital Payment",
+    assignedTo: [{ name: "Rohit Kumar", crpId: "CRP0021" }],
+    startDate: "09 Mar 2026",
+    endDate: "12 Mar 2026",
+    honorarium: "₹200.00",
+    status: "Approved",
+  },
+  {
+    id: 2,
+    title: "Gender Awareness Workshop",
+    description: "Conduct workshops promoting gender equal...",
+    taskType: "REGULAR",
+    vertical: "Social Security Schemes",
+    activityForm: "Maternal Health Awareness",
+    assignedTo: [{ name: "Rohit Kumar" }, { name: "Kiran" }],
+    startDate: "25 Feb 2026",
+    endDate: "20 Mar 2026",
+    honorarium: "₹450.00",
+    status: "Closed",
+  },
+  {
+    id: 3,
+    title: "Pension Scheme Awareness",
+    description: "Promote awareness of pension schemes lik...",
+    taskType: "REGULAR",
+    vertical: "Social Security Schemes",
+    activityForm: "Swachh Bharat Awareness Drive",
+    assignedTo: [{ name: "Rohit Kumar" }, { name: "Kiran" }],
+    startDate: "20 Feb 2026",
+    endDate: "20 Mar 2026",
+    honorarium: "₹450.00",
+    status: "Closed",
+  },
+  {
+    id: 4,
+    title: "APY Awareness",
+    description: "Conduct awareness sessions on Atal Pensi...",
+    taskType: "REGULAR",
+    vertical: "MGNREGA Awareness",
+    activityForm: "Awareness Campaign",
+    assignedTo: [],
     startDate: "20 Jan 2026",
-    endDate: "05 Feb 2026",
-    daysOverdue: 4,
-    status: "Overdue",
-    priority: "HIGH",
-    taskType: "Regular Task",
+    endDate: "30 Apr 2026",
+    honorarium: "₹450.00",
+    status: "Pending",
   },
   {
-    id: "TASK173823377185",
-    title: "MGNREGA Work Site Monitoring",
-    vertical: "MGNREGA",
-    assignedTo: ["Rajesh Kumar", "Suresh Naik"],
-    crpCount: 2,
-    progress: 45,
-    startDate: "25 Jan 2026",
-    endDate: "10 Feb 2026",
-    daysLeft: 1,
-    status: "active",
-    priority: "HIGH",
-    taskType: "Monitoring",
+    id: 5,
+    title: "Pension Scheme Awareness",
+    description: "Promote awareness of pension schemes lik...",
+    taskType: "REGULAR",
+    vertical: "Insurance & Pension",
+    activityForm: "Swachh Bharat Awareness Drive",
+    assignedTo: [],
+    startDate: "01 Jan 2026",
+    endDate: "05 Apr 2026",
+    honorarium: "₹450.00",
+    status: "Pending",
   },
   {
-    id: "TASK173823377186",
-    title: "Health & Nutrition Awareness Campaign",
-    vertical: "Health & Nutrition",
-    assignedTo: ["Anita Fernandes", "Maria D'Souza"],
-    crpCount: 2,
-    progress: 80,
-    startDate: "22 Jan 2026",
-    endDate: "08 Feb 2026",
-    daysOverdue: 1,
-    status: "Overdue",
-    priority: "MEDIUM",
-    taskType: "Special Project",
+    id: 6,
+    title: "Waste Management Awareness",
+    description: "Educate villagers about waste segregatio...",
+    taskType: "REGULAR",
+    vertical: "Social Security Schemes",
+    activityForm: "Waste Management Awareness",
+    assignedTo: [{ name: "Rohit Kumar" }, { name: "Kiran" }],
+    startDate: "01 Feb 2026",
+    endDate: "30 Mar 2026",
+    honorarium: "₹450.00",
+    status: "Pending",
   },
   {
-    id: "TASK173823377187",
-    title: "PMAY Beneficiary Verification",
-    vertical: "Pradhan Mantri Awas Yojana",
-    assignedTo: ["Ganesh Parsekar", "Prakash Gaonkar"],
-    crpCount: 2,
-    progress: 55,
-    startDate: "18 Jan 2026",
-    endDate: "02 Feb 2026",
-    daysOverdue: 7,
-    status: "Overdue",
-    priority: "HIGH",
-    taskType: "Survey",
-  },
-  {
-    id: "TASK173823377188",
-    title: "Skill Development Training Coordination",
-    vertical: "Education & Skill Development",
-    assignedTo: ["Sunita Rane"],
-    crpCount: 1,
-    progress: 30,
-    startDate: "28 Jan 2026",
-    endDate: "15 Feb 2026",
-    daysLeft: 6,
-    status: "active",
-    priority: "MEDIUM",
-    taskType: "Training",
+    id: 7,
+    title: "Child Nutrition Program",
+    description: "Promote child nutrition practices throug...",
+    taskType: "SPECIAL",
+    vertical: "-",
+    activityForm: "Health Camp Mobilization",
+    assignedTo: [{ name: "Santosh", crpId: "CRP0020" }],
+    startDate: "05 Mar 2026",
+    endDate: "31 Mar 2026",
+    honorarium: "₹900.00",
+    status: "inprogress",
   },
 ];
 
@@ -266,52 +287,39 @@ const StatsCard = memo(function StatsCard({ icon: Icon, label, value, subValue, 
 });
 
 
-/* ---------------- STATUS BADGE WITH COLORS FOR ALL STATES ---------------- */
 const StatusBadge = ({ status }) => {
   const styles = {
+    Approved: "bg-emerald-600 text-white",
+    Closed: "bg-slate-500 text-white",
+    Pending: "bg-amber-400 text-white",
+    inprogress: "bg-slate-500 text-white",
     Overdue: "bg-rose-50 text-rose-700 border-rose-200",
     active: "bg-blue-50 text-blue-700 border-blue-200",
     completed: "bg-slate-100 text-slate-600 border-slate-200",
     "Pending Review": "bg-orange-50 text-orange-700 border-orange-200",
-    Approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
     Rejected: "bg-rose-50 text-rose-700 border-rose-200",
     "Info Requested": "bg-blue-50 text-blue-700 border-blue-200",
   };
 
-  // Icon mapping for each status
-  const getIcon = (status) => {
-    switch (status) {
-      case "Approved":
-        return "✓";
-      case "Rejected":
-        return "✕";
-      case "Info Requested":
-        return "!";
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${styles[status] || styles.active}`}>
-      {status === "Approved" && <span className="text-lg">✓</span>}
-      {status === "Rejected" && <span className="text-lg">✕</span>}
-      {status === "Info Requested" && <span className="text-lg">!</span>}
+    <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${styles[status] || styles.active}`}>
       {status}
     </div>
   );
 };
-/* ---------------- PRIORITY BADGE ---------------- */
-const PriorityBadge = ({ priority }) => {
-  const styles = {
-    HIGH: "bg-rose-50 text-rose-700 border-rose-200",
-    MEDIUM: "bg-orange-50 text-orange-700 border-orange-200",
-    LOW: "bg-blue-50 text-blue-700 border-blue-200",
-  };
 
+const TaskTypeBadge = ({ type }) => {
   return (
-    <span className={`px-2 py-0.5 rounded text-xs font-bold border ${styles[priority]}`}>
-      {priority}
+    <span className="bg-slate-500 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider inline-block">
+      {type}
+    </span>
+  );
+};
+
+const ActivityFormBadge = ({ formName }) => {
+  return (
+    <span className="bg-cyan-400 text-white px-2 py-0.5 rounded-full text-[11px] font-bold inline-block">
+      {formName}
     </span>
   );
 };
@@ -531,7 +539,7 @@ export default function TaskAssignment() {
 
             {/* Navigation Tabs */}
             <div className="flex p-1.5 bg-slate-200/50 rounded-2xl w-fit backdrop-blur-sm border border-slate-200/50">
-              {tabs.map((tab) => {
+              {tabs.filter(t => t.id !== "createTask").map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
@@ -560,7 +568,7 @@ export default function TaskAssignment() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                {activeTab === "overview" && <OverviewTab tasks={tasks} onDeleteTask={handleDeleteTask} />}
+                {activeTab === "overview" && <OverviewTab tasks={tasks} onDeleteTask={handleDeleteTask} setActiveTab={setActiveTab} />}
                 {activeTab === "createTask" && (
                   <CreateTaskTab
                     formData={formData}
@@ -580,7 +588,7 @@ export default function TaskAssignment() {
 }
 
 /* ---------------- OVERVIEW TAB ---------------- */
-const OverviewTab = memo(function OverviewTab({ tasks, onDeleteTask }) {
+const OverviewTab = memo(function OverviewTab({ tasks, onDeleteTask, setActiveTab }) {
   const [filters, setFilters] = useState({
     search: "",
     vertical: "all",
@@ -711,111 +719,182 @@ const OverviewTab = memo(function OverviewTab({ tasks, onDeleteTask }) {
       </div>
 
       {/* Active Tasks List */}
-      <ActiveTasksList tasks={tasks} onDeleteTask={onDeleteTask} />
+      <ActiveTasksList tasks={tasks} onDeleteTask={onDeleteTask} setActiveTab={setActiveTab} />
     </>
   );
 });
 
 /* ---------------- ACTIVE TASKS LIST ---------------- */
-const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask }) {
+const ActiveTasksList = memo(function ActiveTasksList({ tasks, onDeleteTask, setActiveTab }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [localSearch, setLocalSearch] = useState("");
+
+  const displayTasks = useMemo(() => {
+    return tasks.filter(t => 
+      (t.title || "").toLowerCase().includes(localSearch.toLowerCase()) ||
+      (t.vertical || "").toLowerCase().includes(localSearch.toLowerCase())
+    );
+  }, [tasks, localSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(displayTasks.length / itemsPerPage));
+  const paginatedTasks = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return displayTasks.slice(start, start + itemsPerPage);
+  }, [displayTasks, currentPage, itemsPerPage]);
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-200">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Active Tasks</h2>
-            <p className="text-sm text-slate-500 mt-1">{tasks.length} tasks in progress</p>
+      {/* Header Panel */}
+      <div className="p-6 border-b border-slate-200 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-sm text-slate-600">
+          <span>Show</span>
+          <select
+            className="border border-slate-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          <span>entries</span>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-4 w-full lg:w-auto">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">Search:</span>
+            <input
+              type="text"
+              className="border border-slate-200 rounded-md px-3 py-1.5 min-w-[200px] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={localSearch}
+              onChange={(e) => {
+                setLocalSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-            <Download size={16} />
-            Export
+          <button onClick={() => setActiveTab("createTask")} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#1a2e7a] rounded-lg hover:bg-[#11205c] transition-colors whitespace-nowrap">
+            <Plus size={16} /> Assign Task
           </button>
         </div>
       </div>
 
-      {/* Tasks List */}
-      <div className="divide-y divide-slate-100">
-        {tasks.length === 0 ? (
-          <div className="p-6 text-center text-slate-500">
-            <p>No tasks yet. Create one to get started!</p>
-          </div>
-        ) : (
-          tasks.map((task, index) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="p-6 hover:bg-slate-50/50 transition-colors"
-            >
-              {/* Header Row */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-slate-900">{task.title}</h3>
-                    <PriorityBadge priority={task.priority} />
-                    <StatusBadge status={task.status} />
-                  </div>
-                  <p className="text-sm text-slate-600 flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <FileText className="w-3.5 h-3.5" />
-                      ID: {task.id}
-                    </span>
-                    <span className="text-slate-400">•</span>
-                    <span>{task.taskType}</span>
-                  </p>
-                </div>
-              </div>
+      {/* Main Table Layer */}
+      <div className="w-full min-h-[400px]">
+        <div className="overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', willChange: 'transform' }}>
+          <table className="w-full min-w-[800px] text-left border-collapse whitespace-nowrap md:whitespace-normal">
+            <thead className="bg-slate-50/60">
+              <tr>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center w-12">#</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[25%]">Task Name</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[10%]">Task Type</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Vertical</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Activity Form</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Assigned To</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-[15%]">Date Range</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-24">Honorarium</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase w-24 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {paginatedTasks.length === 0 ? (
+                <tr>
+                  <td colSpan="9" className="p-8 text-center text-slate-500 text-sm">No tasks found.</td>
+                </tr>
+              ) : (
+                paginatedTasks.map((task) => (
+                  <tr key={task.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-4 py-3 text-center text-sm font-bold text-slate-500">{task.id}</td>
+                    
+                    <td className="px-4 py-3 max-w-[240px]">
+                      <h4 className="font-semibold text-slate-900 text-sm truncate">{task.title}</h4>
+                      <p className="text-slate-500 text-[12px] mt-0.5 truncate">{task.description}</p>
+                    </td>
 
-              {/* Details Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Vertical</p>
-                  <p className="text-sm font-semibold text-slate-900">{task.vertical}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Assigned To</p>
-                  <p className="text-sm font-semibold text-slate-900">{task.crpCount} CRPs</p>
-                  <p className="text-xs text-slate-600">{task.assignedTo.join(", ")}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Timeline</p>
-                  <p className="text-sm font-semibold text-slate-900">{task.startDate} to {task.endDate}</p>
-                  {task.daysOverdue ? (
-                    <p className="text-xs text-rose-600 font-medium">{task.daysOverdue} days overdue</p>
-                  ) : task.daysLeft ? (
-                    <p className="text-xs text-emerald-600 font-medium">{task.daysLeft} days left</p>
-                  ) : null}
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Progress</p>
-                  <ProgressBar percentage={task.progress} />
-                </div>
-              </div>
+                    <td className="px-4 py-3">
+                      <TaskTypeBadge type={task.taskType} />
+                    </td>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors">
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDeleteTask(task.id)}
-                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                  Delete
-                </button>
-                <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                  <Info className="w-4 h-4" />
-                  Details
-                </button>
-              </div>
-            </motion.div>
-          ))
-        )}
+                    <td className="px-4 py-3 text-sm text-slate-600">
+                      {task.vertical}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <ActivityFormBadge formName={task.activityForm} />
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {task.assignedTo && task.assignedTo.length > 0 ? (
+                        <div className="flex flex-col gap-0.5">
+                          {task.assignedTo.length === 1 ? (
+                            <>
+                              <span className="text-sm font-semibold text-slate-900 leading-tight">{task.assignedTo[0].name}</span>
+                              {task.assignedTo[0].crpId && <span className="text-slate-500 text-[12px] leading-tight">{task.assignedTo[0].crpId}</span>}
+                            </>
+                          ) : (
+                            <span className="text-sm font-semibold text-slate-900 leading-tight block truncate w-full max-w-[120px]">
+                              {task.assignedTo.map(a => a.name).join(", ")}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-600 text-sm">—</span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3 text-slate-600 min-w-[120px] whitespace-normal">
+                      <div className="flex flex-col text-[13px] leading-tight text-sm">
+                        <span>{task.startDate}</span>
+                        <span>to {task.endDate}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-slate-600">
+                      {task.honorarium}
+                    </td>
+
+                    <td className="px-4 py-3 text-center">
+                      <StatusBadge status={task.status} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+      
+      {/* Pagination Container */}
+      {!displayTasks.length ? null : (
+        <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white">
+          <span className="text-sm text-slate-500">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, displayTasks.length)} of {displayTasks.length} entries
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded text-sm hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            >
+              Previous
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center rounded text-sm bg-blue-600 text-white font-medium">
+              {currentPage}
+            </button>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded text-sm hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
