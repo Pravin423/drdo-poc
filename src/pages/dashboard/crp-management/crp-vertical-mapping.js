@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Link as LinkIcon, Search, RefreshCw, Edit, Trash2, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
@@ -29,25 +29,22 @@ export default function CRPVerticalMapping() {
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Fetch mappings, crp list, and vertical list
   const fetchMappings = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("authToken");
-      
       // Fetch CRPS
-      const crpRes = await fetch("/api/user", {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      const crpRes = await fetch("/api/user");
       const crpResult = await crpRes.json();
       if (crpResult.data && Array.isArray(crpResult.data)) {
         setCrps(crpResult.data.filter(user => user.role === "crp"));
       }
 
       // Fetch Verticals
-      const vertRes = await fetch("/api/vertical-list", {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      const vertRes = await fetch("/api/vertical-list");
       const vertResult = await vertRes.json();
       if (vertResult && Array.isArray(vertResult)) {
         setVerticals(vertResult);
@@ -59,7 +56,6 @@ export default function CRPVerticalMapping() {
       const res = await fetch("/api/vertical-mapping-list", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -79,7 +75,10 @@ export default function CRPVerticalMapping() {
         name: mapping.fullname || mapping.crp_name || mapping.name || "N/A",
         email: mapping.email || mapping.crp_email || "N/A",
         mobile: mapping.mobile || mapping.crp_mobile || "N/A",
+        taskType: mapping.task_type || mapping.taskType || "N/A",
+        taskName: mapping.task_name || mapping.taskName || "N/A",
         verticalName: mapping.vertical_name || mapping.verticalName || mapping.title || "N/A",
+        verticalCode: mapping.vertical_code || mapping.verticalCode || "N/A",
         status: mapping.status === 0 || mapping.status === "0" || mapping.status === "Active" ? "Active" : "Inactive",
       })));
 
@@ -113,7 +112,6 @@ export default function CRPVerticalMapping() {
 
     setIsUpdating(true);
     try {
-      const token = localStorage.getItem("authToken");
       const payload = {
         mapping_id: editFormData.mappingId,
         crp_id: Number(editFormData.crpuser),
@@ -124,7 +122,6 @@ export default function CRPVerticalMapping() {
       const res = await fetch("/api/edit-vertical-mapping", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
@@ -156,7 +153,6 @@ export default function CRPVerticalMapping() {
 
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem("authToken");
       const payload = {
         crp_id: Number(formData.crpuser),
         vertical_id: Number(formData.vertical_id),
@@ -166,7 +162,6 @@ export default function CRPVerticalMapping() {
       const res = await fetch("/api/add-vertical-mapping", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
@@ -193,11 +188,23 @@ export default function CRPVerticalMapping() {
     }
   };
 
-  const filteredMappings = mappings.filter((m) =>
-    (m.name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (m.email || "").toLowerCase().includes(search.toLowerCase()) ||
-    (m.verticalName || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredMappings = useMemo(() => {
+    return mappings.filter((m) =>
+      (m.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.email || "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.verticalName || "").toLowerCase().includes(search.toLowerCase())
+    );
+  }, [mappings, search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMappings.length / itemsPerPage));
+  const paginatedMappings = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredMappings.slice(start, start + itemsPerPage);
+  }, [filteredMappings, currentPage, itemsPerPage]);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -228,6 +235,23 @@ export default function CRPVerticalMapping() {
 
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="px-6 py-5 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+               <div className="flex items-center gap-2 text-sm text-slate-600">
+                 <span>Show</span>
+                 <select
+                   className="border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                   value={itemsPerPage}
+                   onChange={(e) => {
+                     setItemsPerPage(Number(e.target.value));
+                     setCurrentPage(1);
+                   }}
+                 >
+                   <option value={10}>10</option>
+                   <option value={20}>20</option>
+                   <option value={50}>50</option>
+                   <option value={100}>100</option>
+                 </select>
+                 <span>entries</span>
+               </div>
                <div className="relative group w-full sm:w-[320px]">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <Search size={18} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
@@ -246,17 +270,20 @@ export default function CRPVerticalMapping() {
                </div>
             </div>
 
-            <div className="overflow-x-auto min-h-[400px]">
-              <table className="w-full text-left border-collapse">
+            <div className="w-full min-h-[400px]">
+              <div className="overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', willChange: 'transform' }}>
+                <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50/60 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-bold whitespace-nowrap">
                   <tr>
                     {[
                       "ID",
-                      "CRP Name",
-                      "CRP Email",
-                      "CRP Mobile",
+                      "Name",
+                      "Email",
+                      "Mobile",
+                      "Task Type",
+                      "Task Name",
                       "Vertical Name",
-                      "Status",
+                      "Vertical Code",
                       "Action"
                     ].map((h) => (
                       <th
@@ -271,21 +298,19 @@ export default function CRPVerticalMapping() {
                 <tbody className="divide-y divide-slate-100">
                   {isLoading ? (
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-slate-500">Loading mappings...</td>
+                      <td colSpan="9" className="p-8 text-center text-slate-500">Loading mappings...</td>
                     </tr>
-                  ) : filteredMappings.length > 0 ? (
-                    filteredMappings.map((mapping, idx) => (
+                  ) : paginatedMappings.length > 0 ? (
+                    paginatedMappings.map((mapping, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50 transition-colors group">
                         <td className="p-4 text-sm text-slate-900">{mapping.id}</td>
                         <td className="p-4 text-sm font-semibold text-slate-900 whitespace-nowrap">{mapping.name}</td>
                         <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.email}</td>
                         <td className="p-4 text-sm text-slate-600">{mapping.mobile}</td>
+                        <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.taskType}</td>
+                        <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.taskName}</td>
                         <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.verticalName}</td>
-                        <td className="p-4 text-sm">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${mapping.status === 'Active' ? 'text-emerald-700 bg-emerald-50 border border-emerald-100' : 'text-slate-600 bg-slate-100 border border-slate-200'}`}>
-                            {mapping.status}
-                          </span>
-                        </td>
+                        <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.verticalCode}</td>
                         <td className="p-4 text-center flex items-center justify-center gap-2">
                            <button onClick={() => handleEditClick(mapping)} className="p-1.5 text-blue-500 bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors shadow-sm" title="Edit">
                              <Edit size={16} />
@@ -298,12 +323,57 @@ export default function CRPVerticalMapping() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="p-8 text-center text-slate-500">No mappings found.</td>
+                      <td colSpan="9" className="p-8 text-center text-slate-500">No mappings found.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            </div>
+
+            {/* Pagination Controls */}
+            {!isLoading && filteredMappings.length > 0 && (
+              <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-sm text-slate-500 font-medium">
+                  Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredMappings.length)} of {filteredMappings.length} entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(page => Math.abs(page - currentPage) <= 2 || page === 1 || page === totalPages)
+                      .map((page, index, array) => (
+                        <span key={page} className="flex items-center">
+                          {index > 0 && page - array[index - 1] > 1 && <span className="px-2 text-slate-400">...</span>}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                              currentPage === page
+                                ? "bg-blue-500 text-white"
+                                : "text-slate-600 hover:bg-slate-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </DashboardLayout>
