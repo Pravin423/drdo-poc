@@ -190,14 +190,14 @@ export default function TaskAssignment() {
         progress: t.progress || 0
       }));
 
-      // Sort by ID in ascending order
+      // Sort by ID in descending order (newest first)
       mappedTasks.sort((a, b) => {
         const numA = Number(a.id);
         const numB = Number(b.id);
         if (!isNaN(numA) && !isNaN(numB)) {
-          return numA - numB;
+          return numB - numA;
         }
-        return String(a.id).localeCompare(String(b.id));
+        return String(b.id).localeCompare(String(a.id));
       });
 
       setTasks(mappedTasks);
@@ -519,15 +519,18 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
                   <td colSpan="9" className="py-16 text-center text-slate-400 text-sm font-medium">No tasks found.</td>
                 </tr>
               ) : (
-                paginatedTasks.map((task, index) => (
+                paginatedTasks.map((task, index) => {
+                  const globalIndex = (currentPage - 1) * itemsPerPage + index + 1;
+                  return (
                   <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
                     <td className="px-6 py-6 text-[15px] font-bold text-slate-600 align-middle">
-                      {String(task.id).startsWith("TASK") ? index + 1 : task.id}
+                      {globalIndex}
                     </td>
 
                     <td className="px-6 py-6 align-middle">
                       <div className="flex flex-col max-w-[240px]">
                         <span className="font-semibold text-slate-800 text-[14px]">{task.title}</span>
+                        <span className="text-[11px] text-slate-400 font-medium mt-0.5">Task ID - {task.id}</span>
                       </div>
                     </td>
 
@@ -575,7 +578,8 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
                       <StatusBadge status={task.status} />
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
