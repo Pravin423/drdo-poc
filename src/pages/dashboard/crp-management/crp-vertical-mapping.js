@@ -37,38 +37,42 @@ export default function CRPVerticalMapping() {
     setIsLoading(true);
     try {
       // Fetch CRPS (crp-shg-list is known to return crp_list)
-      const crpRes = await fetch("/api/crp-shg-list");
+      const crpRes = await fetch("/api/crp-shg-list", { credentials: "include" });
       const crpResult = await crpRes.json();
       if (crpResult.crp_list && Array.isArray(crpResult.crp_list)) {
         setCrps(crpResult.crp_list);
       }
 
       // Fetch Verticals
-      const vertRes = await fetch("/api/vertical-list");
+      const vertRes = await fetch("/api/vertical-list", { credentials: "include" });
       const vertResult = await vertRes.json();
+      let allVerticals = [];
       if (vertResult && Array.isArray(vertResult)) {
-        setVerticals(vertResult);
+        allVerticals = vertResult;
       } else if (vertResult.data && Array.isArray(vertResult.data)) {
-        setVerticals(vertResult.data);
+        allVerticals = vertResult.data;
       }
 
-      // Fetch mappings
-      const res = await fetch("/api/vertical-mapping-list", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // Fetch mappings and activity-tasks in parallel
+      const [res, tasksRes] = await Promise.all([
+        fetch("/api/vertical-mapping-list", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }),
+        fetch("/api/activity-tasks", { credentials: "include" }),
+      ]);
 
       if (!res.ok) {
         console.warn(`Failed to fetch mappings: ${res.statusText}`);
+        setVerticals(allVerticals);
         return;
       }
 
       const result = await res.json();
       
       const mappingsList = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
-      setMappings(mappingsList.map((mapping, idx) => {
+      const parsedMappings = mappingsList.map((mapping, idx) => {
         let parsedTaskType = "N/A";
         const rawTaskType = mapping.task_type !== undefined ? mapping.task_type : mapping.taskType;
         
@@ -93,11 +97,41 @@ export default function CRPVerticalMapping() {
           verticalCode: mapping.vertical_code || mapping.verticalCode || "N/A",
           status: mapping.status === 0 || mapping.status === "0" || mapping.status === "Active" ? "Active" : "Inactive",
         };
-      }));
+      });
+
+      setMappings(parsedMappings);
+
+      // Filter verticals dropdown: only show verticals that have at least one task assigned
+      try {
+        const tasksResult = await tasksRes.json();
+        const tasksList = Array.isArray(tasksResult) ? tasksResult
+          : Array.isArray(tasksResult?.data) ? tasksResult.data
+          : Array.isArray(tasksResult?.tasks) ? tasksResult.tasks
+          : [];
+
+        // Build a set of vertical IDs that have at least one task
+        const verticalIdsWithTasks = new Set(
+          tasksList
+            .map((t) => String(t.vertical_id || t.verticalId || ""))
+            .filter(Boolean)
+        );
+
+        if (verticalIdsWithTasks.size > 0) {
+          const filteredVerticals = allVerticals.filter((v) =>
+            verticalIdsWithTasks.has(String(v.id || v.vertical_id || ""))
+          );
+          setVerticals(filteredVerticals.length > 0 ? filteredVerticals : allVerticals);
+        } else {
+          // No task data — show all verticals as fallback
+          setVerticals(allVerticals);
+        }
+      } catch (taskErr) {
+        console.warn("[CRP-Vertical Mapping] Could not parse tasks for vertical filter, showing all:", taskErr);
+        setVerticals(allVerticals);
+      }
 
     } catch (err) {
       console.error("[CRP-Vertical Mapping] Fetch error:", err);
-      // setMappings([]);
     } finally {
       setIsLoading(false);
     }
@@ -134,9 +168,8 @@ export default function CRPVerticalMapping() {
 
       const res = await fetch("/api/edit-vertical-mapping", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload)
       });
 
@@ -174,9 +207,8 @@ export default function CRPVerticalMapping() {
 
       const res = await fetch("/api/add-vertical-mapping", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload)
       });
 

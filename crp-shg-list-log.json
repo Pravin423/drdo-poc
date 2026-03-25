@@ -92,6 +92,19 @@
       "taluka": "Satari",
       "village": "Codiem",
       "status": 0
+    },
+    {
+      "id": 8,
+      "user_id": 30,
+      "fullname": "testname2",
+      "mobile": 9898989898,
+      "email": "ouda00@gmail.com",
+      "shg_name": "shg2111",
+      "shg_id": 16,
+      "district": "North Goa",
+      "taluka": "Satari",
+      "village": "Codiem",
+      "status": 0
     }
   ],
   "shglist": [
