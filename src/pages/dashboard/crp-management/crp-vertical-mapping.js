@@ -99,7 +99,14 @@ export default function CRPVerticalMapping() {
         };
       });
 
-      setMappings(parsedMappings);
+      // Sort mappings by id descending to show newly added first
+      const sortedMappings = parsedMappings.sort((a, b) => {
+        const idA = !isNaN(a.id) ? Number(a.id) : 0;
+        const idB = !isNaN(b.id) ? Number(b.id) : 0;
+        return idB - idA;
+      });
+
+      setMappings(sortedMappings);
 
       // Filter verticals dropdown: only show verticals that have at least one task assigned
       try {
@@ -348,8 +355,13 @@ export default function CRPVerticalMapping() {
                   ) : paginatedMappings.length > 0 ? (
                     paginatedMappings.map((mapping, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="p-4 text-sm text-slate-900">{mapping.id}</td>
-                        <td className="p-4 text-sm font-semibold text-slate-900 whitespace-nowrap">{mapping.name}</td>
+                        <td className="p-4 text-sm text-slate-900">
+                          {(currentPage - 1) * itemsPerPage + idx + 1}
+                        </td>
+                        <td className="p-4 text-sm font-semibold text-slate-900 whitespace-nowrap">
+                          {mapping.name}
+                          <div className="text-xs text-slate-500 font-normal mt-0.5" title="Mapping ID">Mapping ID: {mapping.id}</div>
+                        </td>
                         <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.email}</td>
                         <td className="p-4 text-sm text-slate-600">{mapping.mobile}</td>
                         <td className="p-4 text-sm text-slate-600 whitespace-nowrap">{mapping.taskType}</td>
