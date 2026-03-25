@@ -166,6 +166,7 @@ export default function TaskAssignment() {
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [apiError, setApiError] = useState(null);
 
   const fetchTasks = async () => {
     try {
@@ -221,8 +222,14 @@ export default function TaskAssignment() {
   };
 
   const handleCreateTask = async () => {
+    setApiError(null);
     if (!formData.taskName || !formData.taskType || !formData.startDate || !formData.endDate || !formData.activityForm || !formData.latitude || !formData.longitude || !formData.radius || !formData.taskDescription) {
-      alert("Please fill in all required fields marked with *");
+      setApiError("Please fill in all required fields marked with *");
+      return;
+    }
+    
+    if (new Date(formData.endDate) < new Date(formData.startDate)) {
+      setApiError("End date cannot be earlier than start date.");
       return;
     }
 
@@ -245,14 +252,14 @@ export default function TaskAssignment() {
 
       if (!isSpecial) {
         if (!formData.vertical_id) {
-          alert("Vertical is required for Regular tasks.");
+          setApiError("Vertical is required for Regular tasks.");
           setLoading(false);
           return;
         }
         payload.vertical_id = Number(formData.vertical_id);
       } else {
         if (!formData.assignToCrp) {
-          alert("Assign to CRP is required for Special tasks.");
+          setApiError("Assign to CRP is required for Special tasks.");
           setLoading(false);
           return;
         }
@@ -280,7 +287,7 @@ export default function TaskAssignment() {
       
     } catch (error) {
       console.error("Error creating task:", error);
-      alert(error.message || "Failed to assign task. Please try again.");
+      setApiError(error.message || "Failed to assign task. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -403,7 +410,7 @@ export default function TaskAssignment() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                <ActiveTasksList tasks={tasks} loading={loading} onDeleteTask={handleDeleteTask} onOpenAssignModal={() => setIsAssignModalOpen(true)} />
+                <ActiveTasksList tasks={tasks} loading={loading} onDeleteTask={handleDeleteTask} onOpenAssignModal={() => { setApiError(null); setIsAssignModalOpen(true); }} />
               </motion.div>
             </AnimatePresence>
 
@@ -420,6 +427,7 @@ export default function TaskAssignment() {
             handleCreateTask={handleCreateTask}
             handleClearForm={handleClearForm}
             onClose={() => setIsAssignModalOpen(false)}
+            apiError={apiError}
           />
         )}
       </AnimatePresence>
@@ -618,7 +626,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
 });
 
 /* ---------------- CREATE TASK MODAL ---------------- */
-const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputChange, handleCreateTask, handleClearForm, onClose }) {
+const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputChange, handleCreateTask, handleClearForm, onClose, apiError }) {
   const [taskCreationData, setTaskCreationData] = useState({ forms: [], crps: [], verticals: [] });
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -688,6 +696,12 @@ const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputCha
 
         {/* ── Scrollable Body ── */}
         <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+          {apiError && (
+            <div className="bg-red-50 text-red-600 px-6 py-4 border-b border-red-100 text-sm font-semibold flex items-start gap-3">
+              <AlertCircle size={18} className="shrink-0 mt-0.5" />
+              <span>{apiError}</span>
+            </div>
+          )}
 
           {/* Section 1 — Task Details */}
           <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Link as LinkIcon, Search, RefreshCw, Edit, Trash2, X } from "lucide-react";
+import { Users, Link as LinkIcon, Search, RefreshCw, Edit, Trash2, X, AlertCircle } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -11,6 +11,7 @@ export default function CRPVerticalMapping() {
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [apiError, setApiError] = useState(null);
   const [crps, setCrps] = useState([]);
   const [verticals, setVerticals] = useState([]);
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ export default function CRPVerticalMapping() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editApiError, setEditApiError] = useState(null);
   const [editFormData, setEditFormData] = useState({
     mappingId: "",
     crpuser: "",
@@ -149,6 +151,7 @@ export default function CRPVerticalMapping() {
   }, []);
 
   const handleEditClick = (mapping) => {
+    setEditApiError(null);
     setEditFormData({
       mappingId: mapping.id,
       crpuser: mapping.crpId,
@@ -159,8 +162,9 @@ export default function CRPVerticalMapping() {
   };
 
   const handleUpdateMapping = async () => {
+    setEditApiError(null);
     if (!editFormData.crpuser || !editFormData.vertical_id) {
-      alert("Please select both CRP and Vertical");
+      setEditApiError("Please select both CRP and Vertical");
       return;
     }
 
@@ -180,11 +184,11 @@ export default function CRPVerticalMapping() {
         body: JSON.stringify(payload)
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.status === false) {
-           console.warn(data.message);
-        }
+      let data;
+      try { data = await res.json(); } catch(e) {}
+
+      if (!res.ok || data?.status === false) {
+        throw new Error((data && data.message) || "Failed to update mapping");
       }
 
       alert("Mapping updated successfully!");
@@ -192,15 +196,16 @@ export default function CRPVerticalMapping() {
       fetchMappings();
     } catch (err) {
       console.error(err);
-      alert("An error occurred while updating the mapping");
+      setEditApiError(err.message || "An error occurred while updating the mapping");
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleSaveMapping = async () => {
+    setApiError(null);
     if (!formData.crpuser || !formData.vertical_id) {
-      alert("Please select both CRP and Vertical");
+      setApiError("Please select both CRP and Vertical");
       return;
     }
 
@@ -224,7 +229,7 @@ export default function CRPVerticalMapping() {
         data = await res.json();
       } catch(e) { /* ignore non-json */ }
       
-      if (!res.ok) {
+      if (!res.ok || data?.status === false) {
         throw new Error((data && data.message) || "Failed to save mapping");
       }
 
@@ -234,7 +239,7 @@ export default function CRPVerticalMapping() {
       fetchMappings();
     } catch (err) {
       console.error(err);
-      alert(err.message || "An error occurred while saving the mapping");
+      setApiError(err.message || "An error occurred while saving the mapping");
     } finally {
       setIsSubmitting(false);
     }
@@ -277,7 +282,10 @@ export default function CRPVerticalMapping() {
 
             <div className="flex gap-3">
               <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  setApiError(null);
+                  setIsModalOpen(true);
+                }}
                 className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 flex items-center gap-2 transition-colors cursor-pointer"
               >
                 <LinkIcon size={16} /> Link CRP to Vertical
@@ -457,6 +465,12 @@ export default function CRPVerticalMapping() {
               </div>
 
               <div className="p-6 space-y-6">
+                {apiError && (
+                  <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 text-sm font-medium flex items-center gap-3">
+                    <AlertCircle size={18} className="shrink-0" />
+                    <span>{apiError}</span>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-slate-600 mb-2">Select CRP</label>
                   <div className="relative">
@@ -567,6 +581,12 @@ export default function CRPVerticalMapping() {
               </div>
 
               <div className="p-6 space-y-6">
+                {editApiError && (
+                  <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 text-sm font-medium flex items-center gap-3">
+                    <AlertCircle size={18} className="shrink-0" />
+                    <span>{editApiError}</span>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-slate-600 mb-2">Select CRP</label>
                   <div className="relative">

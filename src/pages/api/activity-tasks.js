@@ -19,6 +19,11 @@ export default async function handler(req, res) {
     };
 
     if (req.method !== "GET" && req.method !== "HEAD") {
+      if (req.body && req.body.start_date && req.body.end_date) {
+        if (new Date(req.body.end_date) < new Date(req.body.start_date)) {
+          return res.status(400).json({ status: false, message: "End date cannot be earlier than start date." });
+        }
+      }
       fetchOptions.body = JSON.stringify(req.body);
     }
 
