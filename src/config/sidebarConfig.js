@@ -27,6 +27,8 @@ export const SIDEBAR_CONFIG = {
             { name: "CRP List", path: "/dashboard/crp-management" },
             { name: "CRP SHGs Mapping", path: "/dashboard/crp-management/crp-shg-mapping" },
             { name: "CRP Vertical Mapping", path: "/dashboard/crp-management/crp-vertical-mapping" },
+            { name: "CRP Village Mapping", path: "/dashboard/crp-management/crp-village-mapping" },
+
           ],
         },
         { name: "Attendance Management", path: "/dashboard/attandence" },
