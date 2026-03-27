@@ -29,8 +29,10 @@ import {
   Edit,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
@@ -870,12 +872,22 @@ const HolidaysTab = memo(function HolidaysTab() {
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ── Add Modal State ──
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({
+    holiday_name: '',
+    start_date: '',
+    end_date: '',
+    status: 'active',
+  });
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState('');
+
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  // ✅ Format date to "19 Nov 2026"
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const d = new Date(dateStr);
@@ -890,13 +902,10 @@ const HolidaysTab = memo(function HolidaysTab() {
     return days;
   };
 
-  // ✅ Updated: checks if day falls within start_date → end_date range
   const isHoliday = (day) => {
     if (!day) return false;
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return holidays.find(h => {
-      return dateStr >= h.date && dateStr <= (h.end_date || h.date);
-    });
+    return holidays.find(h => dateStr >= h.date && dateStr <= (h.end_date || h.date));
   };
 
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
@@ -911,6 +920,7 @@ const HolidaysTab = memo(function HolidaysTab() {
     );
   };
 
+  // ── Fetch Holidays ──
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
@@ -920,8 +930,6 @@ const HolidaysTab = memo(function HolidaysTab() {
         });
 
         const data = await res.json();
-
-        // ✅ API returns { status: 1, message: "...", data: [...] }
         let holidayData = data?.data || [];
         if (!Array.isArray(holidayData)) holidayData = [];
 
@@ -929,20 +937,16 @@ const HolidaysTab = memo(function HolidaysTab() {
           .filter(h => h.status === 'active')
           .map((h, index) => {
             const dateObj = new Date(h.start_date);
-
             const yyyy = dateObj.getFullYear();
             const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
             const dd = String(dateObj.getDate()).padStart(2, '0');
             const normalizedDate = `${yyyy}-${mm}-${dd}`;
 
-            const isMultiDay = h.start_date !== h.end_date;
-
             return {
               id: h.id || index,
               name: h.holiday_name,
-              date: normalizedDate,                    // start date normalized
-              end_date: h.end_date || normalizedDate,  // end date raw string
-              type: isMultiDay ,
+              date: normalizedDate,
+              end_date: h.end_date || normalizedDate,
               day: isNaN(dateObj.getTime())
                 ? 'N/A'
                 : dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -960,8 +964,58 @@ const HolidaysTab = memo(function HolidaysTab() {
     fetchHolidays();
   }, []);
 
+  // ── Add Holiday Handler ──
+  const handleAddHoliday = async () => {
+    setAddError('');
+
+    if (!addForm.holiday_name.trim()) return setAddError('Holiday name is required.');
+    if (!addForm.start_date) return setAddError('Start date is required.');
+    if (!addForm.end_date) return setAddError('End date is required.');
+    if (addForm.end_date < addForm.start_date) return setAddError('End date cannot be before start date.');
+
+    setAddLoading(true);
+    try {
+      const res = await fetch('/api/add-holiday', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addForm),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && (data.status === 1 || data.status === true)) {
+        const dateObj = new Date(addForm.start_date);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const normalizedDate = `${yyyy}-${mm}-${dd}`;
+
+        const newHoliday = {
+          id: data?.data?.id || Date.now(),
+          name: addForm.holiday_name,
+          date: normalizedDate,
+          end_date: addForm.end_date,
+          day: dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
+        };
+
+        setHolidays(prev => [...prev, newHoliday].sort((a, b) => a.date.localeCompare(b.date)));
+        setShowAddModal(false);
+        setAddForm({ holiday_name: '', start_date: '', end_date: '', status: 'active' });
+      } else {
+        setAddError(data?.message || 'Failed to create holiday. Please try again.');
+      }
+    } catch (err) {
+      console.error("Add holiday error:", err);
+      setAddError('Something went wrong. Please try again.');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
       {/* ── Calendar ── */}
       <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 h-fit">
         <div className="flex flex-col items-start gap-4 mb-8">
@@ -1044,7 +1098,10 @@ const HolidaysTab = memo(function HolidaysTab() {
             <h2 className="text-xl font-bold text-slate-900">Holiday List 2026</h2>
             <p className="text-sm text-slate-500 mt-1">Manage official and regional holidays</p>
           </div>
-          <button className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+          <button
+            onClick={() => { setShowAddModal(true); setAddError(''); }}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+          >
             + Add Holiday
           </button>
         </div>
@@ -1071,7 +1128,7 @@ const HolidaysTab = memo(function HolidaysTab() {
                     className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
                   >
                     <div className="flex items-center gap-4">
-                      {/* ✅ Date badge — start day + month */}
+                      {/* Date badge */}
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                         <span className="text-lg leading-none mb-0.5">
                           {new Date(holiday.date).getDate()}
@@ -1093,28 +1150,26 @@ const HolidaysTab = memo(function HolidaysTab() {
                             {holiday.day}
                           </span>
 
-                          {/* ✅ Date range pill */}
+                          {/* Date range pill */}
                           <span className="text-[12px] font-semibold text-indigo-600 flex items-center gap-1 bg-indigo-50 px-2.5 py-0.5 rounded-md ring-1 ring-indigo-100">
                             <Calendar className="w-3 h-3" />
                             {formatDate(holiday.date)}
                             {isMultiDay && (
-                              <> <span className="text-indigo-300 mx-0.5">→</span> {formatDate(holiday.end_date)}</>
+                              <><span className="text-indigo-300 mx-0.5">→</span>{formatDate(holiday.end_date)}</>
                             )}
                           </span>
 
-                          {/* ✅ Multi-day badge */}
+                          {/* Multi-day badge */}
                           {isMultiDay && (
                             <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600">
                               Multi-day
                             </span>
                           )}
-
-                          
                         </div>
                       </div>
                     </div>
 
-                    {/* Edit / Delete — visible on hover */}
+                    {/* Edit / Delete */}
                     <div
                       className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
                       onClick={(e) => e.stopPropagation()}
@@ -1133,6 +1188,116 @@ const HolidaysTab = memo(function HolidaysTab() {
           </div>
         </div>
       </div>
+
+      {/* ── Add Holiday Modal — portal renders outside DashboardLayout ── */}
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-900">Add Holiday</h2>
+              <button
+                onClick={() => { setShowAddModal(false); setAddError(''); }}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {addError && (
+              <div className="mb-4 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-600 text-sm font-medium rounded-xl">
+                {addError}
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <div className="flex flex-col gap-5">
+
+              {/* Holiday Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Holiday Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Diwali"
+                  value={addForm.holiday_name}
+                  onChange={e => setAddForm(p => ({ ...p, holiday_name: e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {/* Start Date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Start Date</label>
+                <input
+                  type="date"
+                  value={addForm.start_date}
+                  onChange={e => setAddForm(p => ({
+                    ...p,
+                    start_date: e.target.value,
+                    end_date: p.end_date || e.target.value,
+                  }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">End Date</label>
+                <input
+                  type="date"
+                  value={addForm.end_date}
+                  min={addForm.start_date}
+                  onChange={e => setAddForm(p => ({ ...p, end_date: e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Status</label>
+                <select
+                  value={addForm.status}
+                  onChange={e => setAddForm(p => ({ ...p, status: e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all bg-white"
+                >
+                  <option value="active">Active</option>
+                  <option value="deactive">Deactive</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 mt-8">
+              <button
+                onClick={() => { setShowAddModal(false); setAddError(''); }}
+                disabled={addLoading}
+                className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all disabled:opacity-50"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleAddHoliday}
+                disabled={addLoading}
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60 flex items-center gap-2"
+              >
+                {addLoading ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    Saving...
+                  </>
+                ) : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body  // ✅ teleports outside DashboardLayout
+      )}
+
     </div>
   );
 });
