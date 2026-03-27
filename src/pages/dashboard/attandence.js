@@ -1028,7 +1028,7 @@ const HolidaysTab = memo(function HolidaysTab() {
         </div>
 
         <div className="relative overflow-hidden">
-          <div 
+          <div
             className="divide-y divide-slate-100 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
             style={{
               maskImage: 'linear-gradient(to bottom, transparent, black 15px, black calc(100% - 25px), transparent)',
@@ -1036,44 +1036,44 @@ const HolidaysTab = memo(function HolidaysTab() {
             }}
           >
             {holidays.map((holiday) => (
-            <div
-              key={holiday.id}
-              onClick={() => setCurrentDate(new Date(holiday.date))}
-              className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-lg leading-none mb-0.5">{new Date(holiday.date).getDate()}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-indigo-400">{monthNames[new Date(holiday.date).getMonth()].substring(0, 3)}</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">{holiday.name}</h3>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {holiday.day}
-                    </span>
-                    <span className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md 
+              <div
+                key={holiday.id}
+                onClick={() => setCurrentDate(new Date(holiday.date))}
+                className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-lg leading-none mb-0.5">{new Date(holiday.date).getDate()}</span>
+                    <span className="text-[10px] uppercase tracking-wider text-indigo-400">{monthNames[new Date(holiday.date).getMonth()].substring(0, 3)}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">{holiday.name}</h3>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {holiday.day}
+                      </span>
+                      <span className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md 
                       ${holiday.type === 'National' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}
                     `}>
-                      {holiday.type}
-                    </span>
+                        {holiday.type}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <div
+                  className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div
-                className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+            ))}
           </div>
         </div>
       </div>
