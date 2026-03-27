@@ -209,152 +209,154 @@ const OverviewGrid = memo(function OverviewGrid() {
 
 
 
-
-
-
 const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const employees = [
-    { id: "CRP2024001", name: "Rajesh Kumar Naik", role: "CRP", avatar: "RN" },
-    { id: "CRP2024002", name: "Priya Desai", role: "CRP", avatar: "PD" },
-    { id: "CRP2024003", name: "Amit Patil", role: "CRP", avatar: "AP" },
-    { id: "CRP2024004", name: "Sunita Verma", role: "CRP", avatar: "SV" },
-    { id: "CRP2024005", name: "Kavita Parsekar", role: "CRP", avatar: "KP" },
-    { id: "CRP2024006", name: "Deepak Velip", role: "CRP", avatar: "DV" },
-    { id: "CRP2024007", name: "Suresh Rane", role: "Manager", avatar: "SR" },
-    { id: "CRP2024008", name: "Anjali Gawas", role: "CRP", avatar: "AG" },
-    { id: "CRP2024009", name: "Mahesh Parab", role: "CRP", avatar: "MP" },
-  ];
+  // ✅ FETCH API
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      try {
+        setLoading(true);
+        const month = selectedMonth.getMonth() + 1;
+        const year = selectedMonth.getFullYear();
+        const res = await fetch(`/api/monthly-attendance?month=${month}&year=${year}`);
+        const result = await res.json();
+        if (result?.status === 1) {
+          setEmployees(result.data.data || []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
+  }, [selectedMonth]);
 
-  const getDaysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
+  // 📅 Days Calculation
+  const monthDays = useMemo(() => {
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
     const days = new Date(year, month + 1, 0).getDate();
+
     return Array.from({ length: days }, (_, i) => {
-      const dayDate = new Date(year, month, i + 1);
-      const dayNum = dayDate.getDay();
+      const d = new Date(year, month, i + 1);
       return {
         day: i + 1,
-        date: dayDate,
-        dayName: dayDate.toLocaleDateString("en-US", { weekday: "short" }),
-        isWeekend: dayNum === 0 || dayNum === 6,
+        dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
+        isWeekend: d.getDay() === 0 || d.getDay() === 6,
       };
-    }).reverse();
-  };
+    });
+  }, [selectedMonth]);
 
-  const monthDays = useMemo(() => getDaysInMonth(selectedMonth), [selectedMonth]);
+  const renderStatus = (status) => {
+    const baseClass = "w-8 h-8 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all";
 
-  const renderStatus = (empId, day) => {
-    const seed = (parseInt(empId.replace(/\D/g, "")) + day) % 10;
-
-    if (seed < 7) return (
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all">
-        <CheckCircle2 size={14} />
-      </div>
-    );
-
-    // Absent
-    if (seed < 8) return (
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all">
-        <X size={14} />
-      </div>
-    );
-
-    // Leave
-    return (
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-all">
-        <span className="text-[10px] font-bold">L</span>
-      </div>
-    );
+    switch (status) {
+      case "P":
+        return <div className={`${baseClass} bg-emerald-50 text-emerald-600 border border-emerald-100`}><CheckCircle2 size={14} /></div>;
+      case "A":
+        return <div className={`${baseClass} bg-rose-50 text-rose-600 border border-rose-100`}><X size={14} /></div>;
+      case "L":
+        return <div className={`${baseClass} bg-amber-50 text-amber-600 border border-amber-100`}>L</div>;
+      case "H":
+        return <div className={`${baseClass} bg-blue-50 text-blue-600 border border-blue-100`}>H</div>;
+      default:
+        return <div className="text-slate-200">-</div>;
+    }
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="bg-slate-50 rounded-3xl p-4 md:p-8 font-sans antialiased text-slate-900 border border-slate-200">
+      <div className="max-w-[1600px] mx-auto space-y-4">
 
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Attendance Ledger</h1>
-            <p className="text-slate-500 text-sm mt-1">Real-time presence tracking and reporting</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-800">Attendance Dashboard</h1>
+            <p className="text-slate-500 text-sm font-medium">Detailed monthly tracking and summaries</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
-              <Filter size={16} /> Filter
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 rounded-xl text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200">
-              <Download size={16} /> Export Reports
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
+              <Download size={16} /> Export CSV
             </button>
           </div>
         </div>
 
-        {/* Main Grid Container */}
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden flex flex-col h-[700px]">
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden flex flex-col h-[750px]">
 
-          {/* Internal Toolbar */}
-          <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-none">
+          {/* Toolbar */}
+          <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="relative group">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search personnel..."
+                  placeholder="Search employee..."
+                  className="pl-11 pr-4 py-2.5 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/20 w-72 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/10 w-full sm:w-64 transition-all"
                 />
               </div>
-              <div className="flex items-center bg-slate-100 rounded-2xl p-1">
-                <button onClick={() => setSelectedMonth(new Date(selectedMonth.setMonth(selectedMonth.getMonth() - 1)))} className="p-1.5 hover:bg-white hover:shadow-sm rounded-xl text-slate-500 transition-all">
+
+              <div className="flex items-center bg-slate-100 p-1 rounded-2xl">
+                <button
+                  onClick={() => setSelectedMonth(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1, 1))}
+                  className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-slate-600 transition-all"
+                >
                   <ChevronLeft size={18} />
                 </button>
-                <div className="flex items-center gap-2 px-3">
-                  <CalendarIcon size={14} className="text-indigo-500" />
-                  <span className="text-sm font-bold text-slate-700 whitespace-nowrap">
+                <div className="flex items-center gap-2 px-4 min-w-[140px] justify-center">
+                  <Calendar size={14} className="text-indigo-500" />
+                  <span className="text-sm font-bold text-slate-700 tabular-nums">
                     {selectedMonth.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
                   </span>
                 </div>
-                <button onClick={() => setSelectedMonth(new Date(selectedMonth.setMonth(selectedMonth.getMonth() + 1)))} className="p-1.5 hover:bg-white hover:shadow-sm rounded-xl text-slate-500 transition-all">
+                <button
+                  onClick={() => setSelectedMonth(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1))}
+                  className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-slate-600 transition-all"
+                >
                   <ChevronRight size={18} />
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 px-5 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-              {[
-                { label: 'Present', color: 'bg-emerald-500' },
-                { label: 'Absent', color: 'bg-rose-500' },
-                { label: 'Leave', color: 'bg-amber-500' },
-                { label: 'Holiday (Sunday)', color: 'bg-blue-500' }
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${item.color}`} />
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</span>
-                </div>
-              ))}
+            <div className="flex items-center gap-6 px-5 py-2 bg-slate-50 rounded-2xl border border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Present</div>
+              <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-rose-500" /> Absent</div>
+              <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500" /> Late</div>
             </div>
           </div>
 
-          {/* Table Area */}
-          <div className="flex-1 overflow-auto relative scroll-smooth custom-scrollbar">
+          {/* Table Container */}
+          <div className="flex-1 overflow-auto relative custom-scrollbar">
+            {loading ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-50">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold text-slate-500">Syncing Data...</p>
+                </div>
+              </div>
+            ) : null}
+
             <table className="w-full border-separate border-spacing-0">
-              <thead className="sticky top-0 z-30">
-                <tr className="bg-white/90 backdrop-blur-md">
-                  <th className="sticky left-0 z-40 bg-white/95 p-5 text-left border-b border-r border-slate-100 min-w-[260px] shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee Profile</span>
+              <thead className="sticky top-0 z-40">
+                <tr className="bg-white/95 backdrop-blur-md">
+                  <th className="sticky left-0 z-50 bg-white p-5 text-left border-b border-r border-slate-100 min-w-[240px] shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Profile</span>
                   </th>
-                  {/* Summary Columns */}
                   {['P', 'A', 'L', 'H'].map((type) => (
-                    <th key={type} className="p-4 border-b border-slate-100 bg-slate-50/30 text-[10px] font-black text-slate-400">{type}</th>
+                    <th key={type} className="p-4 border-b border-slate-100 bg-slate-50/50 text-[10px] font-black text-slate-400 w-12 text-center">{type}</th>
                   ))}
-                  {/* Calendar Dates */}
-                  {monthDays.map((day) => (
-                    <th key={day.day} className={`p-3 border-b border-slate-100 min-w-[50px] ${day.isWeekend ? 'bg-slate-50/50' : ''}`}>
+                  {monthDays.map((d) => (
+                    <th key={d.day} className={`p-3 border-b border-slate-100 min-w-[50px] transition-colors ${d.isWeekend ? 'bg-rose-50/30' : ''}`}>
                       <div className="flex flex-col items-center">
-                        <span className={`text-[9px] font-bold uppercase mb-0.5 ${day.isWeekend ? 'text-rose-400' : 'text-slate-400'}`}>{day.dayName}</span>
-                        <span className="text-sm font-black text-slate-700">{day.day}</span>
+                        <span className={`text-[9px] font-bold uppercase ${d.isWeekend ? 'text-rose-400' : 'text-slate-400'}`}>{d.dayName}</span>
+                        <span className="text-sm font-black text-slate-700">{d.day}</span>
                       </div>
                     </th>
                   ))}
@@ -362,28 +364,29 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {employees
-                  .filter(emp => emp.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .filter((emp) => emp.user.fullname.toLowerCase().includes(searchQuery.toLowerCase()))
                   .map((emp) => (
-                    <tr key={emp.id} className="group hover:bg-indigo-50/30 transition-colors">
-                      <td className="sticky left-0 z-20 bg-white group-hover:bg-indigo-50/50 p-4 border-r border-slate-100 transition-colors shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                    <tr key={emp.user.id} className="group hover:bg-indigo-50/30 transition-colors">
+                      <td className="sticky left-0 z-30 bg-white group-hover:bg-indigo-50/50 p-4 border-r border-slate-100 transition-colors shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-100">
-                            {emp.avatar}
+                          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-md shadow-indigo-200">
+                            {emp.user.fullname.split(' ').map(n => n[0]).join('')}
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{emp.name}</p>
-                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">{emp.id}</p>
+                          <div className="overflow-hidden">
+                            <p className="text-sm font-bold text-slate-800 truncate">{emp.user.fullname}</p>
+                            <p className="text-[10px] font-medium text-slate-400">ID: {String(emp.user.id).slice(-6)}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 text-center text-xs font-bold text-emerald-600 bg-emerald-50/20">24</td>
-                      <td className="p-4 text-center text-xs font-bold text-rose-500 bg-rose-50/20">02</td>
-                      <td className="p-4 text-center text-xs font-bold text-amber-600 bg-amber-50/20">01</td>
+                      <td className="p-4 text-center tabular-nums text-xs font-bold text-emerald-600 bg-emerald-50/10 border-b border-slate-50">{emp.counts?.P || 0}</td>
+                      <td className="p-4 text-center tabular-nums text-xs font-bold text-rose-500 bg-rose-50/10 border-b border-slate-50">{emp.counts?.A || 0}</td>
+                      <td className="p-4 text-center tabular-nums text-xs font-bold text-amber-600 bg-amber-50/10 border-b border-slate-50">{emp.counts?.L || 0}</td>
+                      <td className="p-4 text-center tabular-nums text-xs font-bold text-blue-600 bg-blue-50/10 border-b border-slate-50">{emp.counts?.H || 0}</td>
 
-                      {monthDays.map((day) => (
-                        <td key={day.day} className={`p-2 transition-colors ${day.isWeekend ? 'bg-slate-50/20' : ''}`}>
-                          <div className="flex justify-center">
-                         {renderStatus(emp.id, day.day, day.isWeekend)}
+                      {monthDays.map((d) => (
+                        <td key={d.day} className={`p-2 border-b border-slate-50 transition-colors ${d.isWeekend ? 'bg-slate-50/40' : ''}`}>
+                          <div className="flex justify-center scale-90 hover:scale-110 transition-transform">
+                            {renderStatus(emp.days?.[d.day])}
                           </div>
                         </td>
                       ))}
@@ -393,16 +396,14 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
             </table>
           </div>
 
-          {/* New Footer Design */}
-          <div className="p-5 bg-white border-t border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                Total: {employees.length} Members
-              </span>
+          {/* Footer Info */}
+          <div className="px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+              <Users size={14} className="text-slate-400" />
+              Total Records: {employees.length}
             </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-              <AlertCircle size={14} className="text-indigo-400" />
-              <span>Shift: 09:00 AM - 06:00 PM</span>
+            <div className="text-[10px] font-medium text-slate-400 italic">
+              Use horizontal scroll to view full month history
             </div>
           </div>
         </div>
