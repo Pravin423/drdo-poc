@@ -51,6 +51,31 @@ export default function AttendanceManagement() {
     { id: "holidays", label: "Holidays List", icon: MapIcon },
   ];
 
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Global Fetch for Stats and Reports
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      try {
+        setLoading(true);
+        const month = selectedMonth.getMonth() + 1;
+        const year = selectedMonth.getFullYear();
+        const res = await fetch(`/api/monthly-attendance?month=${month}&year=${year}`);
+        const result = await res.json();
+        if (result?.status === 1) {
+          setEmployees(result.data.data || []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
+  }, [selectedMonth]);
+
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -96,7 +121,7 @@ export default function AttendanceManagement() {
             </motion.div>
 
             {/* --- Overview section always visible --- */}
-            <OverviewGrid />
+            <OverviewGrid employees={employees} loading={loading} />
 
             {/* --- Navigation Tabs --- */}
             <div className="flex overflow-x-auto p-1.5 bg-slate-200/50 rounded-2xl w-fit backdrop-blur-sm border border-slate-200/50">
@@ -129,7 +154,14 @@ export default function AttendanceManagement() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                {activeTab === "masterRole" && <MusterRollTab />}
+                {activeTab === "masterRole" && (
+                  <MusterRollTab 
+                    employees={employees} 
+                    loading={loading} 
+                    selectedMonth={selectedMonth} 
+                    setSelectedMonth={setSelectedMonth} 
+                  />
+                )}
                 {activeTab === "regularization" && <RegularizationTab />}
                 {(activeTab === "leaveList" || activeTab === "gisMap") && <GISMapTab />}
                 {activeTab === "holidays" && <HolidaysTab />}
@@ -145,34 +177,41 @@ export default function AttendanceManagement() {
 
 // --- Sub-components ---
 
-const OverviewGrid = memo(function OverviewGrid() {
-  const stats = useMemo(() => [
-    {
-      label: "Total CRPs",
-      value: "248",
-      accent: "text-emerald-600 bg-emerald-50",
-      icon: Users,
-    },
-    {
-      label: "Present Today",
-      value: "232",
-      accent: "text-blue-600 bg-blue-50",
-      icon: CheckCircle2,
-    },
-    {
-      label: "Absent Today",
-      value: "16",
-      accent: "text-rose-600 bg-rose-50",
-      icon: XCircle,
-    },
+const OverviewGrid = memo(function OverviewGrid({ employees = [], loading = false }) {
+  const today = new Date().getDate();
 
-    {
-      label: "Pending Approvals",
-      value: "24",
-      accent: "text-orange-600 bg-orange-50",
-      icon: Clock,
-    },
-  ], []);
+  const stats = useMemo(() => {
+    // Calculate stats from employees data
+    const presentCount = employees.filter(emp => emp.days?.[today] === "P").length;
+    const absentCount = employees.filter(emp => emp.days?.[today] === "A").length;
+
+    return [
+      {
+        label: "Total CRPs",
+        value: loading ? "..." : employees.length.toString(),
+        accent: "text-emerald-600 bg-emerald-50",
+        icon: Users,
+      },
+      {
+        label: "Present Today",
+        value: loading ? "..." : presentCount.toString(),
+        accent: "text-blue-600 bg-blue-50",
+        icon: CheckCircle2,
+      },
+      {
+        label: "Absent Today",
+        value: loading ? "..." : absentCount.toString(),
+        accent: "text-rose-600 bg-rose-50",
+        icon: XCircle,
+      },
+      {
+        label: "Pending Approvals",
+        value: "24", // This could also be calculated if data is available
+        accent: "text-orange-600 bg-orange-50",
+        icon: Clock,
+      },
+    ];
+  }, [employees, loading, today]);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -209,32 +248,15 @@ const OverviewGrid = memo(function OverviewGrid() {
 
 
 
-const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({ 
+  employees = [], 
+  loading = false, 
+  selectedMonth, 
+  setSelectedMonth 
+}) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // ✅ FETCH API
-  useEffect(() => {
-    const fetchAttendance = async () => {
-      try {
-        setLoading(true);
-        const month = selectedMonth.getMonth() + 1;
-        const year = selectedMonth.getFullYear();
-        const res = await fetch(`/api/monthly-attendance?month=${month}&year=${year}`);
-        const result = await res.json();
-        if (result?.status === 1) {
-          setEmployees(result.data.data || []);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAttendance();
-  }, [selectedMonth]);
+  // Fetch logic moved to parent AttendanceManagement
 
   // 📅 Days Calculation
   const monthDays = useMemo(() => {
@@ -329,6 +351,8 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
               <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Present</div>
               <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-rose-500" /> Absent</div>
               <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500" /> Late</div>
+                            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500" /> Holiday</div>
+
             </div>
           </div>
 
@@ -371,10 +395,10 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-md shadow-indigo-200 overflow-hidden">
                             {emp.user.profile || emp.user.profile_photo || emp.user.image ? (
-                              <img 
-                                src={emp.user.profile || emp.user.profile_photo || emp.user.image} 
-                                alt="" 
-                                className="w-full h-full object-contain" 
+                              <img
+                                src={emp.user.profile || emp.user.profile_photo || emp.user.image}
+                                alt=""
+                                className="w-full h-full object-contain"
                               />
                             ) : (
                               emp.user.fullname?.charAt(0) || "U"
@@ -422,7 +446,12 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
 
 
 // Muster Roll Tab Component
-const MusterRollTab = memo(function MusterRollTab() {
+const MusterRollTab = memo(function MusterRollTab({ 
+  employees, 
+  loading, 
+  selectedMonth, 
+  setSelectedMonth 
+}) {
   const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [filters, setFilters] = useState({
     district: "all",
@@ -637,7 +666,12 @@ const MusterRollTab = memo(function MusterRollTab() {
           transition={{ duration: 0.3 }}
         >
           {viewMode === "grid" ? (
-            <MonthlyAttendanceGrid />
+            <MonthlyAttendanceGrid 
+              employees={employees} 
+              loading={loading} 
+              selectedMonth={selectedMonth} 
+              setSelectedMonth={setSelectedMonth} 
+            />
           ) : (
             <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
               {/* Header */}
