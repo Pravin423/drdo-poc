@@ -369,8 +369,16 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
                     <tr key={emp.user.id} className="group hover:bg-indigo-50/30 transition-colors">
                       <td className="sticky left-0 z-30 bg-white group-hover:bg-indigo-50/50 p-4 border-r border-slate-100 transition-colors shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-md shadow-indigo-200">
-                            {emp.user.fullname.split(' ').map(n => n[0]).join('')}
+                          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xs uppercase shadow-md shadow-indigo-200 overflow-hidden">
+                            {emp.user.profile || emp.user.profile_photo || emp.user.image ? (
+                              <img 
+                                src={emp.user.profile || emp.user.profile_photo || emp.user.image} 
+                                alt="" 
+                                className="w-full h-full object-contain" 
+                              />
+                            ) : (
+                              emp.user.fullname?.charAt(0) || "U"
+                            )}
                           </div>
                           <div className="overflow-hidden">
                             <p className="text-sm font-bold text-slate-800 truncate">{emp.user.fullname}</p>
