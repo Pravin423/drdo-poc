@@ -897,6 +897,12 @@ const HolidaysTab = memo(function HolidaysTab() {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState('');
 
+  // ── Delete Confirm State ──
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, name }
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
@@ -1095,6 +1101,43 @@ const HolidaysTab = memo(function HolidaysTab() {
     }
   };
 
+  // ── Open Delete Confirm ──
+  const openDeleteModal = (holiday) => {
+    setDeleteTarget({ id: holiday.id, name: holiday.name });
+    setDeleteError('');
+    setShowDeleteModal(true);
+  };
+
+  // ── Delete Holiday Handler ──
+  const handleDeleteHoliday = async () => {
+    if (!deleteTarget?.id) return;
+    setDeleteError('');
+    setDeleteLoading(true);
+    try {
+      const res = await fetch('/api/delete-holiday', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deleteTarget.id }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && (data.status === 1 || data.status === true)) {
+        setHolidays(prev => prev.filter(h => h.id !== deleteTarget.id));
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+      } else {
+        setDeleteError(data?.message || 'Failed to delete holiday. Please try again.');
+      }
+    } catch (err) {
+      console.error("Delete holiday error:", err);
+      setDeleteError('Something went wrong. Please try again.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -1262,7 +1305,10 @@ const HolidaysTab = memo(function HolidaysTab() {
                       >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
+                      <button
+                        onClick={() => openDeleteModal(holiday)}
+                        className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -1566,6 +1612,102 @@ const HolidaysTab = memo(function HolidaysTab() {
                     <>
                       <CheckCircle2 className="w-5 h-5" />
                       <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Delete Confirm Modal ── */}
+      {showDeleteModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden relative"
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-rose-600 to-rose-500 p-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Trash2 className="w-24 h-24 rotate-12" />
+              </div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight">Delete Holiday</h2>
+                  <p className="text-rose-100/80 text-sm font-medium mt-1">This action cannot be undone</p>
+                </div>
+                <button
+                  onClick={() => { setShowDeleteModal(false); setDeleteError(''); }}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8">
+              {/* Error */}
+              <AnimatePresence>
+                {deleteError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-6 px-5 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold rounded-2xl flex items-center gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                      <XCircle className="w-4 h-4" />
+                    </div>
+                    {deleteError}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Confirmation message */}
+              <div className="flex items-start gap-4 p-5 bg-rose-50 rounded-2xl border border-rose-100 mb-8">
+                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <Trash2 className="w-5 h-5 text-rose-500" />
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold text-slate-800">
+                    Are you sure you want to delete
+                  </p>
+                  <p className="text-[15px] font-black text-rose-600 mt-0.5">
+                    "{deleteTarget?.name}"?
+                  </p>
+                  <p className="text-sm text-slate-500 mt-2">
+                    This holiday will be permanently removed from the calendar.
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => { setShowDeleteModal(false); setDeleteError(''); }}
+                  disabled={deleteLoading}
+                  className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteHoliday}
+                  disabled={deleteLoading}
+                  className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-rose-600 to-rose-500 rounded-2xl shadow-xl shadow-rose-900/20 hover:shadow-2xl hover:shadow-rose-900/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {deleteLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      <span>Yes, Delete</span>
                     </>
                   )}
                 </button>
