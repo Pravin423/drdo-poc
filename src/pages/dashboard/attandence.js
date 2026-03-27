@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence, useInView, useMotionValue, useSpring } from "framer-motion";
 import {
-  LayoutDashboard,
+  LayoutDashboard,CalendarIcon ,AlertCircle ,
   Users,
   FileCheck,
   Map as MapIcon,
@@ -209,8 +209,373 @@ const OverviewGrid = memo(function OverviewGrid() {
 
 
 
+
+const ModernAttendanceGrid = memo(function ModernAttendanceGrid() {
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const employees = [
+    { id: "001", name: "Rajesh Naik", role: "Lead", initial: "RN", color: "from-indigo-500 to-blue-500" },
+    { id: "002", name: "Priya Desai", role: "Senior", initial: "PD", color: "from-purple-500 to-pink-500" },
+    { id: "003", name: "Amit Patil", role: "Junior", initial: "AP", color: "from-emerald-500 to-teal-500" },
+    { id: "004", name: "Sunita Verma", role: "Lead", initial: "SV", color: "from-orange-500 to-red-500" },
+    { id: "005", name: "Kavita P.", role: "Senior", initial: "KP", color: "from-blue-500 to-cyan-500" },
+  ];
+
+  const monthDays = useMemo(() => {
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: days }, (_, i) => {
+      const d = new Date(year, month, i + 1);
+      return { 
+        day: i + 1, 
+        name: d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
+        isWeekend: d.getDay() === 0 || d.getDay() === 6 
+      };
+    }).reverse();
+  }, [selectedMonth]);
+
+  const getStatus = (id, day) => {
+    const s = (parseInt(id) + day) % 5;
+    if (s === 0) return 'absent';
+    if (s === 1) return 'late';
+    return 'present';
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0f1115] text-slate-300 p-6 font-mono selection:bg-indigo-500/30">
+      <div className="max-w-[1400px] mx-auto space-y-8">
+        
+        {/* Futuristic Header */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-indigo-400 text-xs font-black tracking-[0.3em] uppercase">
+              <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              System Live
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tighter">ROLL_CALL<span className="text-indigo-500">.v2</span></h1>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 bg-[#1a1d23] p-2 rounded-2xl border border-white/5 shadow-2xl">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input 
+                type="text" 
+                placeholder="Find User..." 
+                className="bg-[#0f1115] border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500/50 w-48 transition-all"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="h-6 w-[1px] bg-white/10" />
+            <div className="flex items-center gap-4 px-2">
+              <button onClick={() => setSelectedMonth(new Date(selectedMonth.setMonth(selectedMonth.getMonth() - 1)))} className="hover:text-white transition-colors">
+                <ChevronLeft size={20} />
+              </button>
+              <span className="text-xs font-black uppercase tracking-widest text-white min-w-[100px] text-center">
+                {selectedMonth.toLocaleDateString("en-US", { month: 'short', year: 'numeric' })}
+              </span>
+              <button onClick={() => setSelectedMonth(new Date(selectedMonth.setMonth(selectedMonth.getMonth() + 1)))} className="hover:text-white transition-colors">
+                <ChevronRight size={20} />
+              </button>
+            </div>
+            <button className="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-xl transition-all shadow-lg shadow-indigo-500/20">
+              <Download size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* The Grid Deck */}
+        <div className="relative bg-[#1a1d23] rounded-[2.5rem] border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="sticky left-0 z-20 bg-[#1a1d23] p-8 text-left min-w-[280px]">
+                    <div className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase mb-2">Registry</div>
+                    <div className="text-white font-bold flex items-center gap-2 text-lg">
+                      Staff Member <ArrowUpRight size={16} className="text-indigo-500" />
+                    </div>
+                  </th>
+                  {monthDays.map(d => (
+                    <th key={d.day} className={`p-4 min-w-[65px] transition-colors ${d.isWeekend ? 'bg-white/[0.02]' : ''}`}>
+                      <div className="flex flex-col items-center group cursor-default">
+                        <span className={`text-[9px] font-black mb-1 ${d.isWeekend ? 'text-rose-500' : 'text-slate-500 group-hover:text-indigo-400'}`}>{d.name}</span>
+                        <div className="text-xl font-black text-white/20 group-hover:text-white transition-colors tabular-nums">{d.day}</div>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.03]">
+                {employees.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase())).map((emp) => (
+                  <tr key={emp.id} className="group hover:bg-indigo-500/[0.03] transition-colors">
+                    <td className="sticky left-0 z-10 bg-[#1a1d23] p-6 group-hover:bg-[#1f232b] transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${emp.color} flex items-center justify-center text-white font-black text-sm shadow-xl relative`}>
+                           {emp.initial}
+                           <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-[#1a1d23] rounded-full" />
+                        </div>
+                        <div>
+                          <div className="text-white font-bold text-base tracking-tight">{emp.name}</div>
+                          <div className="text-[10px] font-black text-indigo-400/60 uppercase tracking-widest">{emp.role} // ID-{emp.id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    
+                    {monthDays.map(d => {
+                      const status = getStatus(emp.id, d.day);
+                      return (
+                        <td key={d.day} className="p-3">
+                          <div className="flex items-center justify-center">
+                            {status === 'present' && (
+                              <div className="w-7 h-7 rounded-full border-2 border-emerald-500/20 flex items-center justify-center text-emerald-500 group-hover:border-emerald-500/50 transition-all">
+                                <Check size={14} strokeWidth={3} />
+                              </div>
+                            )}
+                            {status === 'absent' && (
+                              <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 animate-pulse">
+                                <Minus size={14} strokeWidth={3} />
+                              </div>
+                            )}
+                            {status === 'late' && (
+                              <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center text-[#1a1d23] shadow-lg shadow-amber-500/20">
+                                <Zap size={14} fill="currentColor" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Terminal Footer */}
+          <div className="p-6 bg-black/20 border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex gap-6">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" /> On Time
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <div className="w-2 h-2 rounded-sm bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" /> Delayed
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <div className="w-2 h-2 rounded-sm bg-rose-500" /> Void
+              </div>
+            </div>
+            <div className="text-[10px] font-bold text-slate-600">
+              TERMINAL_ID: <span className="text-indigo-400">0x4F2A</span> // SYSTEM_STABLE
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+
+const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const employees = [
+    { id: "CRP2024001", name: "Rajesh Kumar Naik", role: "CRP", avatar: "RN" },
+    { id: "CRP2024002", name: "Priya Desai", role: "CRP", avatar: "PD" },
+    { id: "CRP2024003", name: "Amit Patil", role: "CRP", avatar: "AP" },
+    { id: "CRP2024004", name: "Sunita Verma", role: "CRP", avatar: "SV" },
+    { id: "CRP2024005", name: "Kavita Parsekar", role: "CRP", avatar: "KP" },
+    { id: "CRP2024006", name: "Deepak Velip", role: "CRP", avatar: "DV" },
+    { id: "CRP2024007", name: "Suresh Rane", role: "Manager", avatar: "SR" },
+    { id: "CRP2024008", name: "Anjali Gawas", role: "CRP", avatar: "AG" },
+    { id: "CRP2024009", name: "Mahesh Parab", role: "CRP", avatar: "MP" },
+  ];
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const days = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: days }, (_, i) => {
+      const dayDate = new Date(year, month, i + 1);
+      const dayNum = dayDate.getDay();
+      return {
+        day: i + 1,
+        date: dayDate,
+        dayName: dayDate.toLocaleDateString("en-US", { weekday: "short" }),
+        isWeekend: dayNum === 0 || dayNum === 6,
+      };
+    }).reverse();
+  };
+
+  const monthDays = useMemo(() => getDaysInMonth(selectedMonth), [selectedMonth]);
+
+  const renderStatus = (empId, day) => {
+    const seed = (parseInt(empId.replace(/\D/g, "")) + day) % 10;
+    
+    if (seed < 7) return (
+      <div className="group/status relative flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white">
+        <CheckCircle2 size={14} />
+      </div>
+    );
+    if (seed < 8) return (
+      <div className="group/status relative flex items-center justify-center w-8 h-8 rounded-lg bg-rose-50 text-rose-500 transition-all hover:bg-rose-500 hover:text-white">
+        <X size={14} />
+      </div>
+    );
+    if (seed < 9) return (
+      <div className="group/status relative flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 transition-all hover:bg-amber-500 hover:text-white">
+        <span className="text-[10px] font-bold">T</span>
+      </div>
+    );
+    return <div className="w-8 h-8 rounded-lg border border-dashed border-slate-200" />;
+  };
+
+  return (
+    <div className="bg-slate-50 min-h-screen p-4 md:p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Attendance Ledger</h1>
+            <p className="text-slate-500 text-sm mt-1">Real-time presence tracking and reporting</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+              <Filter size={16} /> Filter
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 rounded-xl text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200">
+              <Download size={16} /> Export Reports
+            </button>
+          </div>
+        </div>
+
+        {/* Main Grid Container */}
+        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden flex flex-col h-[700px]">
+          
+          {/* Internal Toolbar */}
+          <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search personnel..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-indigo-500/10 w-full sm:w-64 transition-all"
+                />
+              </div>
+              <div className="flex items-center bg-slate-100 rounded-2xl p-1">
+                <button onClick={() => setSelectedMonth(new Date(selectedMonth.setMonth(selectedMonth.getMonth() - 1)))} className="p-1.5 hover:bg-white hover:shadow-sm rounded-xl text-slate-500 transition-all">
+                  <ChevronLeft size={18} />
+                </button>
+                <div className="flex items-center gap-2 px-3">
+                  <CalendarIcon size={14} className="text-indigo-500" />
+                  <span className="text-sm font-bold text-slate-700 whitespace-nowrap">
+                    {selectedMonth.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                  </span>
+                </div>
+                <button onClick={() => setSelectedMonth(new Date(selectedMonth.setMonth(selectedMonth.getMonth() + 1)))} className="p-1.5 hover:bg-white hover:shadow-sm rounded-xl text-slate-500 transition-all">
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 px-5 py-2 bg-slate-50 rounded-2xl border border-slate-100">
+               {[
+                 { label: 'Present', color: 'bg-emerald-500' },
+                 { label: 'Absent', color: 'bg-rose-500' },
+                 { label: 'Exception', color: 'bg-amber-500' }
+               ].map((item) => (
+                 <div key={item.label} className="flex items-center gap-2">
+                   <span className={`w-2 h-2 rounded-full ${item.color}`} />
+                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          {/* Table Area */}
+          <div className="flex-1 overflow-auto relative scroll-smooth custom-scrollbar">
+            <table className="w-full border-separate border-spacing-0">
+              <thead className="sticky top-0 z-30">
+                <tr className="bg-white/90 backdrop-blur-md">
+                  <th className="sticky left-0 z-40 bg-white/95 p-5 text-left border-b border-r border-slate-100 min-w-[260px] shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee Profile</span>
+                  </th>
+                  {/* Summary Columns */}
+                  {['P', 'A', 'E'].map((type) => (
+                    <th key={type} className="p-4 border-b border-slate-100 bg-slate-50/30 text-[10px] font-black text-slate-400">{type}</th>
+                  ))}
+                  {/* Calendar Dates */}
+                  {monthDays.map((day) => (
+                    <th key={day.day} className={`p-3 border-b border-slate-100 min-w-[50px] ${day.isWeekend ? 'bg-slate-50/50' : ''}`}>
+                       <div className="flex flex-col items-center">
+                          <span className={`text-[9px] font-bold uppercase mb-0.5 ${day.isWeekend ? 'text-rose-400' : 'text-slate-400'}`}>{day.dayName}</span>
+                          <span className="text-sm font-black text-slate-700">{day.day}</span>
+                       </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {employees
+                  .filter(emp => emp.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((emp) => (
+                  <tr key={emp.id} className="group hover:bg-indigo-50/30 transition-colors">
+                    <td className="sticky left-0 z-20 bg-white group-hover:bg-indigo-50/50 p-4 border-r border-slate-100 transition-colors shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-100">
+                          {emp.avatar}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{emp.name}</p>
+                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">{emp.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center text-xs font-bold text-emerald-600 bg-emerald-50/20">24</td>
+                    <td className="p-4 text-center text-xs font-bold text-rose-500 bg-rose-50/20">02</td>
+                    <td className="p-4 text-center text-xs font-bold text-amber-600 bg-amber-50/20">01</td>
+
+                    {monthDays.map((day) => (
+                      <td key={day.day} className={`p-2 transition-colors ${day.isWeekend ? 'bg-slate-50/20' : ''}`}>
+                        <div className="flex justify-center">
+                          {renderStatus(emp.id, day.day)}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* New Footer Design */}
+          <div className="p-5 bg-white border-t border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                Total: {employees.length} Members
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+              <AlertCircle size={14} className="text-indigo-400" />
+              <span>Shift: 09:00 AM - 06:00 PM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+
 // Muster Roll Tab Component
 const MusterRollTab = memo(function MusterRollTab() {
+  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [filters, setFilters] = useState({
     district: "all",
     block: "all",
@@ -377,12 +742,56 @@ const MusterRollTab = memo(function MusterRollTab() {
   }, []);
 
   // Handle export PDF with useCallback
+  // Handle export PDF with useCallback
   const handleExportPDF = useCallback(() => {
     alert(`Exporting ${filteredAttendanceEntries.length} entries to PDF for date ${filters.date}`);
   }, [filteredAttendanceEntries.length, filters.date]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="space-y-6">
+      {/* View Toggle */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1 p-1 bg-slate-200/50 rounded-2xl border border-slate-200/50 w-fit">
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === "grid" ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-white/40"}`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Monthly Attendance
+          </button>
+          <button
+            onClick={() => setViewMode("list")}
+            className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === "list" ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-white/40"}`}
+          >
+            <Clock className="w-4 h-4" />
+            Daily Muster Roll
+          </button>
+        </div>
+
+        {viewMode === "list" && (
+           <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm"
+           >
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <p className="text-sm font-bold text-slate-700">Muster Roll for {filters.date}</p>
+           </motion.div>
+        )}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={viewMode}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
+          {viewMode === "grid" ? (
+            <MonthlyAttendanceGrid />
+          ) : (
+            <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
       {/* Header */}
       <div className="p-6 border-b border-slate-200">
         <h2 className="text-xl font-bold text-slate-900">Daily Muster Roll</h2>
@@ -599,6 +1008,10 @@ const MusterRollTab = memo(function MusterRollTab() {
         )}
       </div>
     </div>
+  )}
+      </motion.div>
+    </AnimatePresence>
+  </div>
   );
 });
 
