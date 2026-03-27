@@ -26,6 +26,10 @@ import {
   MessageSquare,
   Eye,
   FileText,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -122,7 +126,8 @@ export default function AttendanceManagement() {
               >
                 {activeTab === "masterRole" && <MusterRollTab />}
                 {activeTab === "regularization" && <RegularizationTab />}
-                {(activeTab === "leaveList" || activeTab === "holidays" || activeTab === "gisMap") && <GISMapTab />}
+                {(activeTab === "leaveList" || activeTab === "gisMap") && <GISMapTab />}
+                {activeTab === "holidays" && <HolidaysTab />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -880,3 +885,148 @@ function PlaceholderSection({ tabName }) {
     </div>
   );
 }
+
+// Holidays Tab Component
+const HolidaysTab = memo(function HolidaysTab() {
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // January 2026
+
+  const holidays = [
+    { id: 1, name: "Republic Day", date: "2026-01-26", type: "National", day: "Monday" },
+    { id: 2, name: "Maha Shivaratri", date: "2026-02-15", type: "Gazetted", day: "Sunday" },
+    { id: 3, name: "Holi", date: "2026-03-03", type: "Gazetted", day: "Tuesday" },
+    { id: 4, name: "Good Friday", date: "2026-04-03", type: "Gazetted", day: "Friday" },
+    { id: 5, name: "Gudi Padwa", date: "2026-04-09", type: "Regional", day: "Thursday" },
+    { id: 6, name: "Independence Day", date: "2026-08-15", type: "National", day: "Saturday" },
+    { id: 7, name: "Gandhi Jayanti", date: "2026-10-02", type: "National", day: "Friday" },
+    { id: 8, name: "Diwali", date: "2026-11-08", type: "Gazetted", day: "Sunday" },
+    { id: 9, name: "Christmas", date: "2026-12-25", type: "Gazetted", day: "Friday" },
+  ];
+
+  // Calendar logic
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  
+  const generateCalendarDays = () => {
+    const days = [];
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    return days;
+  };
+
+  const isHoliday = (day) => {
+    if (!day) return false;
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return holidays.find(h => h.date === dateStr);
+  };
+
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Calendar View */}
+      <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 h-fit">
+        <div className="flex flex-col items-start gap-4 mb-8">
+          <h2 className="text-[22px] font-black text-[#111827] tracking-tight shrink-0">Calendar</h2>
+          <div className="flex items-center gap-2 shrink-0">
+            <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors shadow-sm shrink-0">
+              <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+            </button>
+            <div className="px-3 py-1.5 rounded-[8px] border border-slate-200 bg-white shadow-sm flex justify-center shrink-0">
+              <span className="font-extrabold text-[#111827] text-[13px] whitespace-nowrap">
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </span>
+            </div>
+            <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors shadow-sm shrink-0">
+              <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center mb-4">
+          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+            <div key={day} className="text-[11px] font-extrabold text-[#9ca3af] py-2 uppercase tracking-widest">{day}</div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-y-2.5 gap-x-1.5">
+          {generateCalendarDays().map((day, idx) => {
+            const holi = isHoliday(day);
+            return (
+              <div 
+                key={idx} 
+                className={`aspect-square flex flex-col items-center justify-center rounded-[14px] text-[14px] font-bold transition-all relative
+                  ${!day ? 'invisible' : 'visible'}
+                  ${holi ? 'bg-[#5542f6] text-white shadow-lg shadow-[#5542f6]/30 scale-[1.05] z-10' : 'bg-[#fafafa] text-[#374151] hover:bg-slate-100 cursor-pointer border border-transparent'}
+                `}
+                title={holi ? holi.name : ""}
+              >
+                {day}
+                {holi && <div className="absolute -bottom-1 w-[5px] h-[5px] bg-white rounded-full shadow-sm"></div>}
+              </div>
+            );
+          })}
+        </div>
+        
+        <div className="mt-8 pt-5 border-t border-slate-100/80 flex items-center gap-2.5 text-[14px] font-semibold text-[#4b5563]">
+          <span className="w-3.5 h-3.5 bg-[#5542f6] rounded-full inline-block"></span>
+          Highlighted days are Official Holidays
+        </div>
+      </div>
+
+      {/* Holiday List */}
+      <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Holiday List 2026</h2>
+            <p className="text-sm text-slate-500 mt-1">Manage official and regional holidays</p>
+          </div>
+          <button className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            + Add Holiday
+          </button>
+        </div>
+        
+        <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+          {holidays.map((holiday) => (
+            <div key={holiday.id} className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-colors group">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <span className="text-lg leading-none mb-0.5">{new Date(holiday.date).getDate()}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-indigo-400">{monthNames[new Date(holiday.date).getMonth()].substring(0, 3)}</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">{holiday.name}</h3>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {holiday.day}
+                    </span>
+                    <span className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md 
+                      ${holiday.type === 'National' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}
+                    `}>
+                      {holiday.type}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-4 group-hover:translate-x-0">
+                <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+});
