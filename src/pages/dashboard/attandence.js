@@ -885,6 +885,18 @@ const HolidaysTab = memo(function HolidaysTab() {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState('');
 
+  // ── Edit Modal State ──
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    id: null,
+    holiday_name: '',
+    start_date: '',
+    end_date: '',
+    status: 'active',
+  });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
+
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
@@ -949,6 +961,7 @@ const HolidaysTab = memo(function HolidaysTab() {
               name: h.holiday_name,
               date: normalizedDate,
               end_date: h.end_date || normalizedDate,
+              status: h.status,
               day: isNaN(dateObj.getTime())
                 ? 'N/A'
                 : dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -998,6 +1011,7 @@ const HolidaysTab = memo(function HolidaysTab() {
           name: addForm.holiday_name,
           date: normalizedDate,
           end_date: addForm.end_date,
+          status: addForm.status,
           day: dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
         };
 
@@ -1012,6 +1026,72 @@ const HolidaysTab = memo(function HolidaysTab() {
       setAddError('Something went wrong. Please try again.');
     } finally {
       setAddLoading(false);
+    }
+  };
+
+  // ── Open Edit Modal ──
+  const openEditModal = (holiday) => {
+    setEditForm({
+      id: holiday.id,
+      holiday_name: holiday.name,
+      start_date: holiday.date,
+      end_date: holiday.end_date || holiday.date,
+      status: holiday.status || 'active',
+    });
+    setEditError('');
+    setShowEditModal(true);
+  };
+
+  // ── Update Holiday Handler ──
+  const handleUpdateHoliday = async () => {
+    setEditError('');
+
+    if (!editForm.holiday_name.trim()) return setEditError('Holiday name is required.');
+    if (!editForm.start_date) return setEditError('Start date is required.');
+    if (!editForm.end_date) return setEditError('End date is required.');
+    if (editForm.end_date < editForm.start_date) return setEditError('End date cannot be before start date.');
+
+    setEditLoading(true);
+    try {
+      const res = await fetch('/api/update-holiday', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && (data.status === 1 || data.status === true)) {
+        const dateObj = new Date(editForm.start_date);
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const normalizedDate = `${yyyy}-${mm}-${dd}`;
+
+        const updatedHoliday = {
+          id: editForm.id,
+          name: editForm.holiday_name,
+          date: normalizedDate,
+          end_date: editForm.end_date,
+          status: editForm.status,
+          day: dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
+        };
+
+        setHolidays(prev =>
+          prev
+            .map(h => (h.id === editForm.id ? updatedHoliday : h))
+            .sort((a, b) => a.date.localeCompare(b.date))
+        );
+        setShowEditModal(false);
+      } else {
+        setEditError(data?.message || 'Failed to update holiday. Please try again.');
+      }
+    } catch (err) {
+      console.error("Update holiday error:", err);
+      setEditError('Something went wrong. Please try again.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -1176,7 +1256,10 @@ const HolidaysTab = memo(function HolidaysTab() {
                       className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
+                      <button
+                        onClick={() => openEditModal(holiday)}
+                        className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
@@ -1191,7 +1274,7 @@ const HolidaysTab = memo(function HolidaysTab() {
         </div>
       </div>
 
-      {/* ── Add Holiday Modal — portal renders outside DashboardLayout ── */}
+      {/* ── Add Holiday Modal ── */}
       {showAddModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4 overflow-y-auto py-8">
           <motion.div
@@ -1199,7 +1282,7 @@ const HolidaysTab = memo(function HolidaysTab() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg overflow-hidden relative"
           >
-            {/* Modal Header with Gradient */}
+            {/* Modal Header */}
             <div className="bg-gradient-to-r from-[#1a2e7a] to-[#2a44a1] p-8 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <Calendar className="w-24 h-24 rotate-12" />
@@ -1219,7 +1302,6 @@ const HolidaysTab = memo(function HolidaysTab() {
             </div>
 
             <div className="p-8">
-              {/* Error Message */}
               <AnimatePresence>
                 {addError && (
                   <motion.div
@@ -1236,9 +1318,7 @@ const HolidaysTab = memo(function HolidaysTab() {
                 )}
               </AnimatePresence>
 
-              {/* Form Fields */}
               <div className="space-y-6">
-                {/* Holiday Name */}
                 <div className="space-y-2">
                   <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Holiday Name</label>
                   <div className="relative group">
@@ -1255,7 +1335,6 @@ const HolidaysTab = memo(function HolidaysTab() {
                   </div>
                 </div>
 
-                {/* Date Selection Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Start Date</label>
@@ -1293,7 +1372,6 @@ const HolidaysTab = memo(function HolidaysTab() {
                   </div>
                 </div>
 
-                {/* Status Selection */}
                 <div className="space-y-2">
                   <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Status</label>
                   <div className="relative group">
@@ -1315,7 +1393,6 @@ const HolidaysTab = memo(function HolidaysTab() {
                 </div>
               </div>
 
-              {/* Modal Footer with Actions */}
               <div className="flex items-center gap-4 mt-10">
                 <button
                   onClick={() => { setShowAddModal(false); setAddError(''); }}
@@ -1338,6 +1415,157 @@ const HolidaysTab = memo(function HolidaysTab() {
                     <>
                       <CheckCircle2 className="w-5 h-5" />
                       <span>Confirm & Save</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── Edit Holiday Modal ── */}
+      {showEditModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4 overflow-y-auto py-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg overflow-hidden relative"
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#0f6e4f] to-[#1a9e70] p-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Calendar className="w-24 h-24 rotate-12" />
+              </div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight">Edit Holiday</h2>
+                  <p className="text-emerald-100/80 text-sm font-medium mt-1">Update the selected holiday details</p>
+                </div>
+                <button
+                  onClick={() => { setShowEditModal(false); setEditError(''); }}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8">
+              <AnimatePresence>
+                {editError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-6 px-5 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold rounded-2xl flex items-center gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                      <XCircle className="w-4 h-4" />
+                    </div>
+                    {editError}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Holiday Name</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                      <Tag className="w-5 h-5" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. Diwali Festival"
+                      value={editForm.holiday_name}
+                      onChange={e => setEditForm(p => ({ ...p, holiday_name: e.target.value }))}
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Start Date</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                        <Calendar className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="date"
+                        value={editForm.start_date}
+                        onChange={e => setEditForm(p => ({
+                          ...p,
+                          start_date: e.target.value,
+                          end_date: p.end_date < e.target.value ? e.target.value : p.end_date,
+                        }))}
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all appearance-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">End Date</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                        <Calendar className="w-5 h-5" />
+                      </div>
+                      <input
+                        type="date"
+                        value={editForm.end_date}
+                        min={editForm.start_date}
+                        onChange={e => setEditForm(p => ({ ...p, end_date: e.target.value }))}
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all appearance-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Status</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <select
+                      value={editForm.status}
+                      onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}
+                      className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="active">Active Entry</option>
+                      <option value="deactive">Inactive / Archive</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 mt-10">
+                <button
+                  onClick={() => { setShowEditModal(false); setEditError(''); }}
+                  disabled={editLoading}
+                  className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateHoliday}
+                  disabled={editLoading}
+                  className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#0f6e4f] to-[#1a9e70] rounded-2xl shadow-xl shadow-emerald-900/20 hover:shadow-2xl hover:shadow-emerald-900/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {editLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Updating Holiday...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>Save Changes</span>
                     </>
                   )}
                 </button>
