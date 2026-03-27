@@ -942,7 +942,7 @@ const HolidaysTab = memo(function HolidaysTab() {
               name: h.holiday_name,
               date: normalizedDate,                    // start date normalized
               end_date: h.end_date || normalizedDate,  // end date raw string
-              type: isMultiDay ? 'National' : 'General',
+              type: isMultiDay ,
               day: isNaN(dateObj.getTime())
                 ? 'N/A'
                 : dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -1104,16 +1104,12 @@ const HolidaysTab = memo(function HolidaysTab() {
 
                           {/* ✅ Multi-day badge */}
                           {isMultiDay && (
-                            <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md bg-violet-50 text-violet-600">
+                            <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600">
                               Multi-day
                             </span>
                           )}
 
-                          {/* Type badge */}
-                          <span className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md 
-                            ${holiday.type === 'National' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}`}>
-                            {holiday.type}
-                          </span>
+                          
                         </div>
                       </div>
                     </div>
