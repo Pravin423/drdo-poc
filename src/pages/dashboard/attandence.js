@@ -30,6 +30,8 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  ShieldCheck,
+  RefreshCw,
   X,
   Tag,
   Activity
@@ -155,11 +157,11 @@ export default function AttendanceManagement() {
                 className="space-y-6"
               >
                 {activeTab === "masterRole" && (
-                  <MusterRollTab 
-                    employees={employees} 
-                    loading={loading} 
-                    selectedMonth={selectedMonth} 
-                    setSelectedMonth={setSelectedMonth} 
+                  <MusterRollTab
+                    employees={employees}
+                    loading={loading}
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
                   />
                 )}
                 {activeTab === "regularization" && <RegularizationTab />}
@@ -248,11 +250,11 @@ const OverviewGrid = memo(function OverviewGrid({ employees = [], loading = fals
 
 
 
-const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({ 
-  employees = [], 
-  loading = false, 
-  selectedMonth, 
-  setSelectedMonth 
+const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({
+  employees = [],
+  loading = false,
+  selectedMonth,
+  setSelectedMonth
 }) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -351,7 +353,7 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({
               <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Present</div>
               <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-rose-500" /> Absent</div>
               <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500" /> Late</div>
-                            <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500" /> Holiday</div>
+              <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500" /> Holiday</div>
 
             </div>
           </div>
@@ -446,114 +448,104 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({
 
 
 // Muster Roll Tab Component
-const MusterRollTab = memo(function MusterRollTab({ 
-  employees, 
-  loading, 
-  selectedMonth, 
-  setSelectedMonth 
+const MusterRollTab = memo(function MusterRollTab({
+  employees,
+  loading,
+  selectedMonth,
+  setSelectedMonth
 }) {
   const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [filters, setFilters] = useState({
     district: "all",
     block: "all",
-    date: "2026-01-30",
+    date: new Date().toISOString().split('T')[0],
+    search: "",
     exceptionType: "all"
   });
+  const [isReportLoading, setIsReportLoading] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState([]);
+  const [attendanceEntries, setAttendanceEntries] = useState([]);
 
-  const [attendanceEntries, setAttendanceEntries] = useState([
-    {
-      id: 1,
-      name: "Rajesh Kumar Naik",
-      status: "Present",
-      statusColor: "emerald",
-      employeeId: "CRP2024001",
-      district: "North Goa",
-      block: "Pernem",
-      location: "Arambol, Pernem, North Goa",
-      punchIn: "09:15 AM",
-      punchOut: "05:30 PM",
-      workHours: "8h 15m",
-      supervisor: "Suresh Rane",
-      remarks: "Regular attendance",
-      approved: true,
-      approvedStatus: "Approved",
-      exceptionType: null
-    },
-    {
-      id: 2,
-      name: "Priya Desai",
-      status: "Exception",
-      statusColor: "orange",
-      employeeId: "CRP2024002",
-      district: "North Goa",
-      block: "Bicholim",
-      location: "Mayem, Bicholim, North Goa",
-      punchIn: "09:45 AM",
-      punchOut: "05:15 PM",
-      workHours: "7h 30m",
-      supervisor: "Mangesh Naik",
-      remarks: "Location 2.3km from assigned village - Field visit to neighboring SHG",
-      crpJustification: "Attended inter-village SHG coordination meeting at Mayem Community Hall as per Block Manager instruction dated 2026-01-29",
-      approved: false,
-      approvedStatus: "Pending",
-      exceptionType: "geo"
-    },
-    {
-      id: 3,
-      name: "Amit Patil",
-      status: "Exception",
-      statusColor: "orange",
-      employeeId: "CRP2024003",
-      district: "South Goa",
-      block: "Quepem",
-      location: "Balli, Quepem, South Goa",
-      punchIn: "10:15 AM",
-      punchOut: "05:45 PM",
-      workHours: "7h 30m",
-      supervisor: "Rita Fernandes",
-      remarks: "Late entry - Traffic jam on national highway",
-      approved: false,
-      approvedStatus: "Pending",
-      exceptionType: "late"
-    },
-    {
-      id: 4,
-      name: "Sunita Verma",
-      status: "Present",
-      statusColor: "emerald",
-      employeeId: "CRP2024004",
-      district: "South Goa",
-      block: "Sanguem",
-      location: "Verna, Sanguem, South Goa",
-      punchIn: "09:00 AM",
-      punchOut: "05:30 PM",
-      workHours: "8h 30m",
-      supervisor: "John D'Souza",
-      remarks: "Regular attendance",
-      approved: true,
-      approvedStatus: "Approved",
-      exceptionType: null
-    },
-    {
-      id: 5,
-      name: "Kavita Parsekar",
-      status: "Exception",
-      statusColor: "orange",
-      employeeId: "CRP2024005",
-      district: "North Goa",
-      block: "Pernem",
-      location: "Mandrem, Pernem, North Goa",
-      punchIn: "09:30 AM",
-      punchOut: "03:45 PM",
-      workHours: "6h 15m",
-      supervisor: "Ramesh Naik",
-      remarks: "Early exit - Medical emergency",
-      approved: false,
-      approvedStatus: "Pending",
-      exceptionType: "early"
-    }
-  ]);
+  // 📡 Fetch Daily Attendance Record API
+  useEffect(() => {
+    if (viewMode !== "list") return;
+
+    const fetchReport = async () => {
+      setIsReportLoading(true);
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+        const query = new URLSearchParams({
+          date: filters.date,
+          district: filters.district,
+          taluka: filters.block,
+          search: filters.search
+        }).toString();
+        
+        const res = await fetch(`/api/attendance-report?${query}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const result = await res.json();
+        
+        console.log("Daily Record Data:", result);
+
+        if (result.status === 1 || result.success === true || Array.isArray(result?.data?.data) || Array.isArray(result?.data)) {
+          // Look for data in common nested locations: result.data.data (Pagination), result.data (Direct), result.attendance, etc.
+          let rawData = result?.data?.data || result?.data || result?.attendance || result?.records || [];
+          
+          if (!Array.isArray(rawData)) {
+            console.warn("⚠️ Data was not an array, attempting to use fallback:", rawData);
+            rawData = [];
+          }
+
+          const mapped = rawData.map((item, idx) => {
+            // Function to format "2026-03-27 18:33:02" to "18:33"
+            const formatTime = (dateTimeStr) => {
+              if (!dateTimeStr) return "--:--";
+              try {
+                const parts = dateTimeStr.split(' ');
+                if (parts.length < 2) return dateTimeStr;
+                const timeParts = parts[1].split(':');
+                return `${timeParts[0]}:${timeParts[1]}`;
+              } catch (e) { return dateTimeStr; }
+            };
+
+            const isPresent = item.attendance_status === 1 || item.checkin_time;
+            const status = isPresent ? "Present" : "Absent";
+            
+            return {
+              id: item.id || idx + 1,
+              name: item.fullname || item.name || "Unknown",
+              status: status,
+              statusColor: isPresent ? "emerald" : "rose",
+              employeeId: item.employee_id || item.crp_id || `CRP-${item.id}`,
+              district: item.district_name || item.district || "",
+              block: item.taluka_name || item.block || "",
+              location: item.location || item.village_name || "N/A",
+              punchIn: formatTime(item.checkin_time),
+              punchOut: formatTime(item.checkout_time),
+              workHours: item.total_hours || "0h",
+              supervisor: item.supervisor_name || item.approver_name || "Supervisor Not Assigned",
+              remarks: item.remarks || "No remarks provided",
+              approved: item.is_approved === 1 || item.status === "Approved",
+              approvedStatus: (item.is_approved === 1 || item.status === "Approved") ? "Approved" : "Pending",
+              profile: item.profile || item.image || item.profile_photo || null
+            };
+          });
+          setAttendanceEntries(mapped);
+        } else {
+          setAttendanceEntries([]);
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch record:", err);
+      } finally {
+        setIsReportLoading(false);
+      }
+    };
+
+    fetchReport();
+  }, [viewMode, filters.date, filters.search, filters.district, filters.block]);
 
   // Filter attendance entries with memoization
   const filteredAttendanceEntries = useMemo(() => attendanceEntries.filter(entry => {
@@ -636,13 +628,13 @@ const MusterRollTab = memo(function MusterRollTab({
             <LayoutDashboard className="w-4 h-4" />
             Monthly Attendance
           </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === "list" ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-white/40"}`}
-          >
-            <Clock className="w-4 h-4" />
-            Daily Muster Roll
-          </button>
+           <button
+             onClick={() => setViewMode("list")}
+             className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === "list" ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-white/40"}`}
+           >
+             <Clock className="w-4 h-4" />
+             Daily Record
+           </button>
         </div>
 
         {viewMode === "list" && (
@@ -651,9 +643,9 @@ const MusterRollTab = memo(function MusterRollTab({
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm"
           >
-            <Calendar className="w-4 h-4 text-indigo-600" />
-            <p className="text-sm font-bold text-slate-700">Muster Roll for {filters.date}</p>
-          </motion.div>
+             <Calendar className="w-4 h-4 text-indigo-600" />
+             <p className="text-sm font-bold text-slate-700">Attendance Record for {filters.date}</p>
+           </motion.div>
         )}
       </div>
 
@@ -666,87 +658,52 @@ const MusterRollTab = memo(function MusterRollTab({
           transition={{ duration: 0.3 }}
         >
           {viewMode === "grid" ? (
-            <MonthlyAttendanceGrid 
-              employees={employees} 
-              loading={loading} 
-              selectedMonth={selectedMonth} 
-              setSelectedMonth={setSelectedMonth} 
+            <MonthlyAttendanceGrid
+              employees={employees}
+              loading={loading}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
             />
           ) : (
             <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
-              {/* Header */}
-              <div className="p-6 border-b border-slate-200">
-                <h2 className="text-xl font-bold text-slate-900">Daily Muster Roll</h2>
-                <p className="text-sm text-slate-500 mt-1">
-                  Attendance entries requiring supervisor approval ({pendingEntries.length} pending)
-                </p>
-              </div>
+               {/* Header */}
+               <div className="p-6 border-b border-slate-200">
+                 <h2 className="text-xl font-bold text-slate-900">Daily Attendance Record</h2>
+                 <p className="text-sm text-slate-500 mt-1">
+                   Attendance entries for {filters.date} ({attendanceEntries.length} total)
+                 </p>
+               </div>
 
-              {/* Filters */}
-              <div className="p-6 border-b border-slate-200 bg-slate-50/50">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">District</label>
-                    <div className="relative">
-                      <select
-                        value={filters.district}
-                        onChange={(e) => setFilters({ ...filters, district: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-                      >
-                        <option value="all">All Districts</option>
-                        <option value="north">North Goa</option>
-                        <option value="south">South Goa</option>
-                      </select>
-                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Block</label>
-                    <div className="relative">
-                      <select
-                        value={filters.block}
-                        onChange={(e) => setFilters({ ...filters, block: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-                      >
-                        <option value="all">All Blocks</option>
-                        <option value="pernem">Pernem</option>
-                        <option value="bicholim">Bicholim</option>
-                        <option value="quepem">Quepem</option>
-                        <option value="sanguem">Sanguem</option>
-                      </select>
-                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
-                    <input
-                      type="date"
-                      value={filters.date}
-                      onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Exception Type</label>
-                    <div className="relative">
-                      <select
-                        value={filters.exceptionType}
-                        onChange={(e) => setFilters({ ...filters, exceptionType: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-                      >
-                        <option value="all">All Types</option>
-                        <option value="late">Late Punch-in</option>
-                        <option value="early">Early Punch-out</option>
-                        <option value="geo">Geo-location Mismatch</option>
-                        <option value="missed">Missed Punch</option>
-                      </select>
-                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                    </div>
-                  </div>
-                </div>
+               {/* Filters */}
+               <div className="p-6 border-b border-slate-200 bg-slate-50/50">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                   <div>
+                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
+                     <div className="relative">
+                       <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                       <input
+                         type="date"
+                         value={filters.date}
+                         onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                         className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none bg-white font-medium transition-all"
+                       />
+                     </div>
+                   </div>
+ 
+                   <div>
+                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Search Employee</label>
+                     <div className="relative">
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                       <input
+                         type="text"
+                         placeholder="Search by name..."
+                         value={filters.search}
+                         onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                         className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none bg-white font-medium transition-all"
+                       />
+                     </div>
+                   </div>
+                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -771,124 +728,106 @@ const MusterRollTab = memo(function MusterRollTab({
                 </div>
               </div>
 
-              {/* Attendance Entries List */}
-              <div className="divide-y divide-slate-100">
-                {filteredAttendanceEntries.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500 font-medium">No attendance entries found for the selected filters</p>
-                  </div>
-                ) : (
-                  filteredAttendanceEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="p-6 hover:bg-slate-50/50 transition-colors"
-                    >
-                      {/* Header Row */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3 flex-1">
-                          {!entry.approved && (
-                            <input
-                              type="checkbox"
-                              checked={selectedEntries.includes(entry.id)}
-                              onChange={(e) => handleEntrySelection(entry.id, e.target.checked)}
-                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 mt-1"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-slate-900">{entry.name}</h3>
-                              <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${entry.statusColor === 'emerald'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-orange-50 text-orange-700'
-                                }`}>
-                                {entry.status}
-                              </span>
-                            </div>
-                            <p className="text-sm text-slate-600">
-                              {entry.employeeId} • {entry.location}
-                            </p>
-                          </div>
-                        </div>
-                        {entry.approved && (
-                          <span className={`flex items-center gap-1 text-sm font-semibold ${entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
-                            }`}>
-                            {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                            {entry.approvedStatus}
-                          </span>
-                        )}
-                        {!entry.approved && (
-                          <span className="flex items-center gap-1 text-orange-600 text-sm font-semibold">
-                            <Clock className="w-4 h-4" />
-                            {entry.approvedStatus}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Time Details Grid */}
-                      <div className="grid grid-cols-4 gap-4 mb-3 p-4 bg-slate-50 rounded-lg">
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-1">Punch In</p>
-                          <p className="text-sm font-semibold text-slate-900">{entry.punchIn}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-1">Punch Out</p>
-                          <p className="text-sm font-semibold text-slate-900">{entry.punchOut}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-1">Work Hours</p>
-                          <p className="text-sm font-semibold text-slate-900">{entry.workHours}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-1">Supervisor</p>
-                          <p className="text-sm font-semibold text-slate-900">{entry.supervisor}</p>
-                        </div>
-                      </div>
-
-                      {/* Remarks */}
-                      <div className="mb-3">
-                        <p className="text-xs font-semibold text-slate-500 mb-1">Remarks</p>
-                        <p className="text-sm text-slate-700">{entry.remarks}</p>
-                      </div>
-
-                      {/* CRP Justification (if exists) */}
-                      {entry.crpJustification && (
-                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                          <p className="text-xs font-semibold text-amber-900 mb-1">CRP Justification</p>
-                          <p className="text-sm text-amber-800">{entry.crpJustification}</p>
-                        </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      {!entry.approved && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleApproveEntry(entry.id)}
-                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleRejectEntry(entry.id)}
-                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => handleRequestInfo(entry.id)}
-                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-                          >
-                            <Info className="w-4 h-4" />
-                            Request Info
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
+               {/* Attendance Record Cards */}
+               <div className="p-6 bg-slate-50/30">
+                 {isReportLoading ? (
+                   <div className="flex flex-col items-center justify-center py-20 gap-3">
+                     <RefreshCw className="w-10 h-10 text-indigo-500 animate-spin" />
+                     <p className="text-sm font-bold text-slate-500">Updating Records...</p>
+                   </div>
+                 ) : attendanceEntries.length === 0 ? (
+                   <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                     <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                     <p className="text-slate-500 font-medium">No records found for {filters.date}</p>
+                   </div>
+                 ) : (
+                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                     {attendanceEntries.map((entry) => (
+                       <motion.div
+                         layout
+                         initial={{ opacity: 0, scale: 0.95 }}
+                         animate={{ opacity: 1, scale: 1 }}
+                         key={entry.id}
+                         className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4"
+                       >
+                         {/* Header: Profile + Status */}
+                         <div className="flex items-start justify-between">
+                           <div className="flex items-center gap-3">
+                             <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg uppercase shadow-lg shadow-indigo-100 overflow-hidden text-center">
+                               {entry.profile ? (
+                                 <img src={entry.profile} alt="" className="w-full h-full object-cover" />
+                               ) : (
+                                 entry.name?.charAt(0) || "U"
+                               )}
+                             </div>
+                             <div>
+                               <h3 className="font-bold text-slate-900 text-base">{entry.name}</h3>
+                               <p className="text-xs font-medium text-slate-400">ID: {String(entry.employeeId).slice(-8)}</p>
+                             </div>
+                           </div>
+                           <div className="flex flex-col items-end gap-1.5">
+                             <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
+                               entry.status === 'Present' 
+                               ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                               : entry.status === 'Absent'
+                               ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                               : 'bg-amber-50 text-amber-600 border border-amber-100'
+                             }`}>
+                               {entry.status}
+                             </span>
+                             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 border border-slate-100">
+                               <MapPin size={12} className="text-slate-400" />
+                               <span className="text-[10px] font-bold text-slate-600">{entry.block}</span>
+                             </div>
+                           </div>
+                         </div>
+ 
+                         {/* Time Grid Card */}
+                         <div className="grid grid-cols-3 gap-3 bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
+                           <div className="space-y-0.5 text-center md:text-left">
+                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Punch In</p>
+                             <div className="flex items-center gap-1.5 justify-center md:justify-start">
+                               <Clock size={12} className="text-indigo-500" />
+                               <p className="text-xs font-bold text-slate-700">{entry.punchIn}</p>
+                             </div>
+                           </div>
+                           <div className="space-y-0.5 border-x border-slate-200 px-3 text-center md:text-left">
+                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Punch Out</p>
+                             <div className="flex items-center gap-1.5 justify-center md:justify-start">
+                               <Clock size={12} className="text-slate-400" />
+                               <p className="text-xs font-bold text-slate-700">{entry.punchOut}</p>
+                             </div>
+                           </div>
+                           <div className="space-y-0.5 pl-3 text-center md:text-left">
+                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Work Hours</p>
+                             <div className="flex items-center gap-1.5 justify-center md:justify-start">
+                               <Timer size={12} className="text-emerald-500" />
+                               <p className="text-xs font-bold text-emerald-700">{entry.workHours}</p>
+                             </div>
+                           </div>
+                         </div>
+ 
+                         {/* Bottom Info */}
+                         <div className="flex items-center justify-between text-[11px] px-1">
+                           <div className="flex items-center gap-1.5">
+                             <User size={13} className="text-slate-400" />
+                             <span className="text-slate-500 font-medium italic truncate max-w-[120px]">Approver: {entry.supervisor}</span>
+                           </div>
+                           {entry.approved ? (
+                             <div className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                               <ShieldCheck size={12} /> Approved
+                             </div>
+                           ) : (
+                             <div className="flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                               <Clock size={12} /> Pending
+                             </div>
+                           )}
+                         </div>
+                       </motion.div>
+                     ))}
+                   </div>
+                 )}
+               </div>
             </div>
           )}
         </motion.div>
