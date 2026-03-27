@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence, useInView, useMotionValue, useSpring } from "framer-motion";
 import {
-  LayoutDashboard,CalendarIcon ,AlertCircle ,
+  LayoutDashboard, CalendarIcon, AlertCircle,
   Users,
   FileCheck,
   Map as MapIcon,
@@ -248,29 +248,32 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
 
   const renderStatus = (empId, day) => {
     const seed = (parseInt(empId.replace(/\D/g, "")) + day) % 10;
-    
+
     if (seed < 7) return (
-      <div className="group/status relative flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-600 hover:text-white">
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all">
         <CheckCircle2 size={14} />
       </div>
     );
+
+    // Absent
     if (seed < 8) return (
-      <div className="group/status relative flex items-center justify-center w-8 h-8 rounded-lg bg-rose-50 text-rose-500 transition-all hover:bg-rose-500 hover:text-white">
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all">
         <X size={14} />
       </div>
     );
-    if (seed < 9) return (
-      <div className="group/status relative flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 transition-all hover:bg-amber-500 hover:text-white">
-        <span className="text-[10px] font-bold">T</span>
+
+    // Leave
+    return (
+      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-all">
+        <span className="text-[10px] font-bold">L</span>
       </div>
     );
-    return <div className="w-8 h-8 rounded-lg border border-dashed border-slate-200" />;
   };
 
   return (
     <div className="bg-slate-50 min-h-screen p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
-        
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -289,7 +292,7 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
 
         {/* Main Grid Container */}
         <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden flex flex-col h-[700px]">
-          
+
           {/* Internal Toolbar */}
           <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -320,16 +323,17 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
             </div>
 
             <div className="flex items-center gap-6 px-5 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-               {[
-                 { label: 'Present', color: 'bg-emerald-500' },
-                 { label: 'Absent', color: 'bg-rose-500' },
-                 { label: 'Exception', color: 'bg-amber-500' }
-               ].map((item) => (
-                 <div key={item.label} className="flex items-center gap-2">
-                   <span className={`w-2 h-2 rounded-full ${item.color}`} />
-                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</span>
-                 </div>
-               ))}
+              {[
+                { label: 'Present', color: 'bg-emerald-500' },
+                { label: 'Absent', color: 'bg-rose-500' },
+                { label: 'Leave', color: 'bg-amber-500' },
+                { label: 'Holiday (Sunday)', color: 'bg-blue-500' }
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${item.color}`} />
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -342,16 +346,16 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee Profile</span>
                   </th>
                   {/* Summary Columns */}
-                  {['P', 'A', 'E'].map((type) => (
+                  {['P', 'A', 'L', 'H'].map((type) => (
                     <th key={type} className="p-4 border-b border-slate-100 bg-slate-50/30 text-[10px] font-black text-slate-400">{type}</th>
                   ))}
                   {/* Calendar Dates */}
                   {monthDays.map((day) => (
                     <th key={day.day} className={`p-3 border-b border-slate-100 min-w-[50px] ${day.isWeekend ? 'bg-slate-50/50' : ''}`}>
-                       <div className="flex flex-col items-center">
-                          <span className={`text-[9px] font-bold uppercase mb-0.5 ${day.isWeekend ? 'text-rose-400' : 'text-slate-400'}`}>{day.dayName}</span>
-                          <span className="text-sm font-black text-slate-700">{day.day}</span>
-                       </div>
+                      <div className="flex flex-col items-center">
+                        <span className={`text-[9px] font-bold uppercase mb-0.5 ${day.isWeekend ? 'text-rose-400' : 'text-slate-400'}`}>{day.dayName}</span>
+                        <span className="text-sm font-black text-slate-700">{day.day}</span>
+                      </div>
                     </th>
                   ))}
                 </tr>
@@ -360,31 +364,31 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid() {
                 {employees
                   .filter(emp => emp.name.toLowerCase().includes(searchQuery.toLowerCase()))
                   .map((emp) => (
-                  <tr key={emp.id} className="group hover:bg-indigo-50/30 transition-colors">
-                    <td className="sticky left-0 z-20 bg-white group-hover:bg-indigo-50/50 p-4 border-r border-slate-100 transition-colors shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-100">
-                          {emp.avatar}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{emp.name}</p>
-                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">{emp.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-center text-xs font-bold text-emerald-600 bg-emerald-50/20">24</td>
-                    <td className="p-4 text-center text-xs font-bold text-rose-500 bg-rose-50/20">02</td>
-                    <td className="p-4 text-center text-xs font-bold text-amber-600 bg-amber-50/20">01</td>
-
-                    {monthDays.map((day) => (
-                      <td key={day.day} className={`p-2 transition-colors ${day.isWeekend ? 'bg-slate-50/20' : ''}`}>
-                        <div className="flex justify-center">
-                          {renderStatus(emp.id, day.day)}
+                    <tr key={emp.id} className="group hover:bg-indigo-50/30 transition-colors">
+                      <td className="sticky left-0 z-20 bg-white group-hover:bg-indigo-50/50 p-4 border-r border-slate-100 transition-colors shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-100">
+                            {emp.avatar}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{emp.name}</p>
+                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">{emp.id}</p>
+                          </div>
                         </div>
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                      <td className="p-4 text-center text-xs font-bold text-emerald-600 bg-emerald-50/20">24</td>
+                      <td className="p-4 text-center text-xs font-bold text-rose-500 bg-rose-50/20">02</td>
+                      <td className="p-4 text-center text-xs font-bold text-amber-600 bg-amber-50/20">01</td>
+
+                      {monthDays.map((day) => (
+                        <td key={day.day} className={`p-2 transition-colors ${day.isWeekend ? 'bg-slate-50/20' : ''}`}>
+                          <div className="flex justify-center">
+                         {renderStatus(emp.id, day.day, day.isWeekend)}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -604,14 +608,14 @@ const MusterRollTab = memo(function MusterRollTab() {
         </div>
 
         {viewMode === "list" && (
-           <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm"
-           >
-              <Calendar className="w-4 h-4 text-indigo-600" />
-              <p className="text-sm font-bold text-slate-700">Muster Roll for {filters.date}</p>
-           </motion.div>
+          >
+            <Calendar className="w-4 h-4 text-indigo-600" />
+            <p className="text-sm font-bold text-slate-700">Muster Roll for {filters.date}</p>
+          </motion.div>
         )}
       </div>
 
@@ -627,226 +631,226 @@ const MusterRollTab = memo(function MusterRollTab() {
             <MonthlyAttendanceGrid />
           ) : (
             <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-200">
-        <h2 className="text-xl font-bold text-slate-900">Daily Muster Roll</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Attendance entries requiring supervisor approval ({pendingEntries.length} pending)
-        </p>
-      </div>
+              {/* Header */}
+              <div className="p-6 border-b border-slate-200">
+                <h2 className="text-xl font-bold text-slate-900">Daily Muster Roll</h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Attendance entries requiring supervisor approval ({pendingEntries.length} pending)
+                </p>
+              </div>
 
-      {/* Filters */}
-      <div className="p-6 border-b border-slate-200 bg-slate-50/50">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">District</label>
-            <div className="relative">
-              <select
-                value={filters.district}
-                onChange={(e) => setFilters({ ...filters, district: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-              >
-                <option value="all">All Districts</option>
-                <option value="north">North Goa</option>
-                <option value="south">South Goa</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Block</label>
-            <div className="relative">
-              <select
-                value={filters.block}
-                onChange={(e) => setFilters({ ...filters, block: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-              >
-                <option value="all">All Blocks</option>
-                <option value="pernem">Pernem</option>
-                <option value="bicholim">Bicholim</option>
-                <option value="quepem">Quepem</option>
-                <option value="sanguem">Sanguem</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
-            <input
-              type="date"
-              value={filters.date}
-              onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Exception Type</label>
-            <div className="relative">
-              <select
-                value={filters.exceptionType}
-                onChange={(e) => setFilters({ ...filters, exceptionType: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
-              >
-                <option value="all">All Types</option>
-                <option value="late">Late Punch-in</option>
-                <option value="early">Early Punch-out</option>
-                <option value="geo">Geo-location Mismatch</option>
-                <option value="missed">Missed Punch</option>
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedEntries.length > 0 && selectedEntries.length === pendingEntries.length}
-                onChange={(e) => handleSelectAllPending(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-slate-700">Select All Pending</span>
-            </label>
-          </div>
-
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Export PDF
-          </button>
-        </div>
-      </div>
-
-      {/* Attendance Entries List */}
-      <div className="divide-y divide-slate-100">
-        {filteredAttendanceEntries.length === 0 ? (
-          <div className="p-12 text-center">
-            <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-medium">No attendance entries found for the selected filters</p>
-          </div>
-        ) : (
-          filteredAttendanceEntries.map((entry) => (
-            <div
-              key={entry.id}
-              className="p-6 hover:bg-slate-50/50 transition-colors"
-            >
-              {/* Header Row */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3 flex-1">
-                  {!entry.approved && (
-                    <input
-                      type="checkbox"
-                      checked={selectedEntries.includes(entry.id)}
-                      onChange={(e) => handleEntrySelection(entry.id, e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 mt-1"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900">{entry.name}</h3>
-                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${entry.statusColor === 'emerald'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-orange-50 text-orange-700'
-                        }`}>
-                        {entry.status}
-                      </span>
+              {/* Filters */}
+              <div className="p-6 border-b border-slate-200 bg-slate-50/50">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">District</label>
+                    <div className="relative">
+                      <select
+                        value={filters.district}
+                        onChange={(e) => setFilters({ ...filters, district: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                      >
+                        <option value="all">All Districts</option>
+                        <option value="north">North Goa</option>
+                        <option value="south">South Goa</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
-                    <p className="text-sm text-slate-600">
-                      {entry.employeeId} • {entry.location}
-                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Block</label>
+                    <div className="relative">
+                      <select
+                        value={filters.block}
+                        onChange={(e) => setFilters({ ...filters, block: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                      >
+                        <option value="all">All Blocks</option>
+                        <option value="pernem">Pernem</option>
+                        <option value="bicholim">Bicholim</option>
+                        <option value="quepem">Quepem</option>
+                        <option value="sanguem">Sanguem</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
+                    <input
+                      type="date"
+                      value={filters.date}
+                      onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Exception Type</label>
+                    <div className="relative">
+                      <select
+                        value={filters.exceptionType}
+                        onChange={(e) => setFilters({ ...filters, exceptionType: e.target.value })}
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white"
+                      >
+                        <option value="all">All Types</option>
+                        <option value="late">Late Punch-in</option>
+                        <option value="early">Early Punch-out</option>
+                        <option value="geo">Geo-location Mismatch</option>
+                        <option value="missed">Missed Punch</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
-                {entry.approved && (
-                  <span className={`flex items-center gap-1 text-sm font-semibold ${entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
-                    }`}>
-                    {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                    {entry.approvedStatus}
-                  </span>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedEntries.length > 0 && selectedEntries.length === pendingEntries.length}
+                        onChange={(e) => handleSelectAllPending(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-slate-700">Select All Pending</span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={handleExportPDF}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export PDF
+                  </button>
+                </div>
+              </div>
+
+              {/* Attendance Entries List */}
+              <div className="divide-y divide-slate-100">
+                {filteredAttendanceEntries.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500 font-medium">No attendance entries found for the selected filters</p>
+                  </div>
+                ) : (
+                  filteredAttendanceEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="p-6 hover:bg-slate-50/50 transition-colors"
+                    >
+                      {/* Header Row */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 flex-1">
+                          {!entry.approved && (
+                            <input
+                              type="checkbox"
+                              checked={selectedEntries.includes(entry.id)}
+                              onChange={(e) => handleEntrySelection(entry.id, e.target.checked)}
+                              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 mt-1"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-slate-900">{entry.name}</h3>
+                              <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${entry.statusColor === 'emerald'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-orange-50 text-orange-700'
+                                }`}>
+                                {entry.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600">
+                              {entry.employeeId} • {entry.location}
+                            </p>
+                          </div>
+                        </div>
+                        {entry.approved && (
+                          <span className={`flex items-center gap-1 text-sm font-semibold ${entry.approvedStatus === 'Approved' ? 'text-emerald-600' : 'text-rose-600'
+                            }`}>
+                            {entry.approvedStatus === 'Approved' ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                            {entry.approvedStatus}
+                          </span>
+                        )}
+                        {!entry.approved && (
+                          <span className="flex items-center gap-1 text-orange-600 text-sm font-semibold">
+                            <Clock className="w-4 h-4" />
+                            {entry.approvedStatus}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Time Details Grid */}
+                      <div className="grid grid-cols-4 gap-4 mb-3 p-4 bg-slate-50 rounded-lg">
+                        <div>
+                          <p className="text-xs text-slate-500 font-medium mb-1">Punch In</p>
+                          <p className="text-sm font-semibold text-slate-900">{entry.punchIn}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-medium mb-1">Punch Out</p>
+                          <p className="text-sm font-semibold text-slate-900">{entry.punchOut}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-medium mb-1">Work Hours</p>
+                          <p className="text-sm font-semibold text-slate-900">{entry.workHours}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-medium mb-1">Supervisor</p>
+                          <p className="text-sm font-semibold text-slate-900">{entry.supervisor}</p>
+                        </div>
+                      </div>
+
+                      {/* Remarks */}
+                      <div className="mb-3">
+                        <p className="text-xs font-semibold text-slate-500 mb-1">Remarks</p>
+                        <p className="text-sm text-slate-700">{entry.remarks}</p>
+                      </div>
+
+                      {/* CRP Justification (if exists) */}
+                      {entry.crpJustification && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                          <p className="text-xs font-semibold text-amber-900 mb-1">CRP Justification</p>
+                          <p className="text-sm text-amber-800">{entry.crpJustification}</p>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      {!entry.approved && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleApproveEntry(entry.id)}
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectEntry(entry.id)}
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject
+                          </button>
+                          <button
+                            onClick={() => handleRequestInfo(entry.id)}
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                          >
+                            <Info className="w-4 h-4" />
+                            Request Info
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))
                 )}
-                {!entry.approved && (
-                  <span className="flex items-center gap-1 text-orange-600 text-sm font-semibold">
-                    <Clock className="w-4 h-4" />
-                    {entry.approvedStatus}
-                  </span>
-                )}
               </div>
-
-              {/* Time Details Grid */}
-              <div className="grid grid-cols-4 gap-4 mb-3 p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Punch In</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.punchIn}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Punch Out</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.punchOut}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Work Hours</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.workHours}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Supervisor</p>
-                  <p className="text-sm font-semibold text-slate-900">{entry.supervisor}</p>
-                </div>
-              </div>
-
-              {/* Remarks */}
-              <div className="mb-3">
-                <p className="text-xs font-semibold text-slate-500 mb-1">Remarks</p>
-                <p className="text-sm text-slate-700">{entry.remarks}</p>
-              </div>
-
-              {/* CRP Justification (if exists) */}
-              {entry.crpJustification && (
-                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-xs font-semibold text-amber-900 mb-1">CRP Justification</p>
-                  <p className="text-sm text-amber-800">{entry.crpJustification}</p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              {!entry.approved && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleApproveEntry(entry.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleRejectEntry(entry.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-rose-600 rounded-lg hover:bg-rose-700 transition-colors"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleRequestInfo(entry.id)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    <Info className="w-4 h-4" />
-                    Request Info
-                  </button>
-                </div>
-              )}
             </div>
-          ))
-        )}
-      </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
-  )}
-      </motion.div>
-    </AnimatePresence>
-  </div>
   );
 });
 
