@@ -863,47 +863,14 @@ const RegularizationTab = memo(function RegularizationTab() {
   );
 });
 
-function PlaceholderSection({ tabName }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-[2.5rem] p-12 shadow-sm min-h-[500px] flex flex-col items-center justify-center text-center">
-      <div className="bg-indigo-50 p-6 rounded-full mb-6">
-        <Search className="w-12 h-12 text-indigo-200" />
-      </div>
-      <h3 className="text-2xl font-bold text-slate-800">
-        Searching for {tabName.replace(/([A-Z])/g, ' $1')} Data...
-      </h3>
-      <p className="text-slate-500 max-w-sm mt-2 font-medium">
-        We're syncing the latest records from the District server. Please wait a moment.
-      </p>
-      <div className="mt-8 flex gap-3">
-        <button className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors">
-          Refresh Node
-        </button>
-        <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">
-          Contact Admin
-        </button>
-      </div>
-    </div>
-  );
-}
 
 // Holidays Tab Component
 const HolidaysTab = memo(function HolidaysTab() {
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // January 2026
 
-  const holidays = [
-    { id: 1, name: "Republic Day", date: "2026-01-26", type: "National", day: "Monday" },
-    { id: 2, name: "Maha Shivaratri", date: "2026-02-15", type: "Gazetted", day: "Sunday" },
-    { id: 3, name: "Holi", date: "2026-03-03", type: "Gazetted", day: "Tuesday" },
-    { id: 4, name: "Good Friday", date: "2026-04-03", type: "Gazetted", day: "Friday" },
-    { id: 5, name: "Gudi Padwa", date: "2026-04-09", type: "Regional", day: "Thursday" },
-    { id: 6, name: "Independence Day", date: "2026-08-15", type: "National", day: "Saturday" },
-    { id: 7, name: "Gandhi Jayanti", date: "2026-10-02", type: "National", day: "Friday" },
-    { id: 8, name: "Diwali", date: "2026-11-08", type: "Gazetted", day: "Sunday" },
-    { id: 9, name: "Christmas", date: "2026-12-25", type: "Gazetted", day: "Friday" },
-  ];
-
+  const [holidays, setHolidays] = useState([]);
+  const [loading, setLoading] = useState(true);
   // Calendar logic
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -935,8 +902,58 @@ const HolidaysTab = memo(function HolidaysTab() {
       currentDate.getMonth() === today.getMonth() &&
       currentDate.getFullYear() === today.getFullYear()
     );
+  };  
+ useEffect(() => {
+  const fetchHolidays = async () => {
+    try {
+      const res = await fetch('/api/holiday', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+
+      // API returns { status: 1, message: "...", data: [...] }
+      let holidayData = data?.data || [];
+      if (!Array.isArray(holidayData)) holidayData = [];
+
+      const formatted = holidayData
+        .filter(h => h.status === 'active') // only show active holidays
+        .map((h, index) => {
+          // Use start_date as the primary display date
+          const dateObj = new Date(h.start_date);
+
+          const yyyy = dateObj.getFullYear();
+          const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const dd = String(dateObj.getDate()).padStart(2, '0');
+          const normalizedDate = `${yyyy}-${mm}-${dd}`;
+
+          // Check if it's multi-day
+          const isMultiDay = h.start_date !== h.end_date;
+          const type = isMultiDay ? 'National' : 'General'; // or adjust to your logic
+
+          return {
+            id: h.id || index,
+            name: h.holiday_name,               // ✅ mapped from holiday_name
+            date: normalizedDate,               // ✅ mapped from start_date
+            end_date: h.end_date,               // optional: store for display
+            type,                               // derived
+            day: isNaN(dateObj.getTime())
+              ? 'N/A'
+              : dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
+          };
+        });
+
+      setHolidays(formatted);
+    } catch (err) {
+      console.error("Holiday fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  fetchHolidays();
+}, []);
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   return (
@@ -1016,12 +1033,14 @@ const HolidaysTab = memo(function HolidaysTab() {
       </div>
 
       {/* Holiday List */}
+      {/* Holiday List */}
       <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Holiday List 2026</h2>
             <p className="text-sm text-slate-500 mt-1">Manage official and regional holidays</p>
           </div>
+
           <button className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
             + Add Holiday
           </button>
@@ -1035,45 +1054,75 @@ const HolidaysTab = memo(function HolidaysTab() {
               WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15px, black calc(100% - 25px), transparent)'
             }}
           >
-            {holidays.map((holiday) => (
-              <div
-                key={holiday.id}
-                onClick={() => setCurrentDate(new Date(holiday.date))}
-                className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-lg leading-none mb-0.5">{new Date(holiday.date).getDate()}</span>
-                    <span className="text-[10px] uppercase tracking-wider text-indigo-400">{monthNames[new Date(holiday.date).getMonth()].substring(0, 3)}</span>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">{holiday.name}</h3>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {holiday.day}
+
+            {/* 🔥 Loading State */}
+            {loading ? (
+              <div className="p-6 text-center text-slate-500">
+                Loading holidays...
+              </div>
+
+            ) : holidays.length === 0 ? (
+              /* 🔥 Empty State */
+              <div className="p-6 text-center text-slate-400">
+                No holidays found
+              </div>
+
+            ) : (
+              /* 🔥 Data Rendering */
+              holidays.map((holiday) => (
+                <div
+                  key={holiday.id}
+                  onClick={() => setCurrentDate(new Date(holiday.date))}
+                  className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-lg leading-none mb-0.5">
+                        {new Date(holiday.date).getDate()}
                       </span>
-                      <span className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md 
-                      ${holiday.type === 'National' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}
-                    `}>
-                        {holiday.type}
+                      <span className="text-[10px] uppercase tracking-wider text-indigo-400">
+                        {monthNames[new Date(holiday.date).getMonth()]?.substring(0, 3) || "N/A"}
                       </span>
                     </div>
+
+                    <div>
+                      <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">
+                        {holiday.name}
+                      </h3>
+
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {holiday.day}
+                        </span>
+
+                        <span className={`px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md 
+                    ${holiday.type === 'National'
+                            ? 'bg-rose-50 text-rose-600'
+                            : 'bg-amber-50 text-amber-600'}
+                  `}>
+                          {holiday.type}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
+                      <Edit className="w-4 h-4" />
+                    </button>
+
+                    <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-                <div
-                  className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
+
           </div>
         </div>
       </div>
