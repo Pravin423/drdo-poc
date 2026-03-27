@@ -47,6 +47,7 @@ export default function AttendanceManagement() {
     { id: "holidays", label: "Holidays List", icon: MapIcon },
   ];
 
+
   return (
     <ProtectedRoute allowedRole="super-admin">
       <DashboardLayout>
@@ -160,7 +161,7 @@ const OverviewGrid = memo(function OverviewGrid() {
       accent: "text-rose-600 bg-rose-50",
       icon: XCircle,
     },
-    
+
     {
       label: "Pending Approvals",
       value: "24",
@@ -888,6 +889,7 @@ function PlaceholderSection({ tabName }) {
 
 // Holidays Tab Component
 const HolidaysTab = memo(function HolidaysTab() {
+  const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // January 2026
 
   const holidays = [
@@ -905,7 +907,7 @@ const HolidaysTab = memo(function HolidaysTab() {
   // Calendar logic
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-  
+
   const generateCalendarDays = () => {
     const days = [];
     for (let i = 0; i < firstDayOfMonth; i++) {
@@ -926,8 +928,17 @@ const HolidaysTab = memo(function HolidaysTab() {
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
 
+  const isToday = (day) => {
+    if (!day) return false;
+    return (
+      day === today.getDate() &&
+      currentDate.getMonth() === today.getMonth() &&
+      currentDate.getFullYear() === today.getFullYear()
+    );
+  };
+
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Calendar View */}
@@ -946,6 +957,19 @@ const HolidaysTab = memo(function HolidaysTab() {
             <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-[8px] border border-slate-200 text-slate-800 hover:bg-slate-50 transition-colors shadow-sm shrink-0">
               <ChevronRight className="w-4 h-4 stroke-[2.5]" />
             </button>
+
+            {/* ↺ Today button — redirects calendar to current month */}
+            <button
+              onClick={() => setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1))}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-indigo-200 bg-indigo-50 text-indigo-600 text-[12px] font-bold hover:bg-indigo-100 transition-colors shadow-sm shrink-0"
+              title="Go to today"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Today
+            </button>
           </div>
         </div>
 
@@ -954,18 +978,23 @@ const HolidaysTab = memo(function HolidaysTab() {
             <div key={day} className="text-[11px] font-extrabold text-[#9ca3af] py-2 uppercase tracking-widest">{day}</div>
           ))}
         </div>
-        
+
         <div className="grid grid-cols-7 gap-y-2.5 gap-x-1.5">
           {generateCalendarDays().map((day, idx) => {
             const holi = isHoliday(day);
+            const isDayToday = isToday(day);
             return (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className={`aspect-square flex flex-col items-center justify-center rounded-[14px] text-[14px] font-bold transition-all relative
                   ${!day ? 'invisible' : 'visible'}
-                  ${holi ? 'bg-[#5542f6] text-white shadow-lg shadow-[#5542f6]/30 scale-[1.05] z-10' : 'bg-[#fafafa] text-[#374151] hover:bg-slate-100 cursor-pointer border border-transparent'}
+                  ${isDayToday
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-[1.05] z-10'
+                    : holi
+                      ? 'bg-[#5542f6] text-white shadow-lg shadow-[#5542f6]/30 scale-[1.05] z-10'
+                      : 'bg-[#fafafa] text-[#374151] hover:bg-slate-100 cursor-pointer border border-transparent'}
                 `}
-                title={holi ? holi.name : ""}
+                title={holi ? holi.name : isDayToday ? "Today" : ""}
               >
                 {day}
                 {holi && <div className="absolute -bottom-1 w-[5px] h-[5px] bg-white rounded-full shadow-sm"></div>}
@@ -973,10 +1002,16 @@ const HolidaysTab = memo(function HolidaysTab() {
             );
           })}
         </div>
-        
-        <div className="mt-8 pt-5 border-t border-slate-100/80 flex items-center gap-2.5 text-[14px] font-semibold text-[#4b5563]">
-          <span className="w-3.5 h-3.5 bg-[#5542f6] rounded-full inline-block"></span>
-          Highlighted days are Official Holidays
+
+        <div className="mt-8 pt-5 border-t border-slate-100/80 flex flex-col gap-3 text-[14px] font-semibold text-[#4b5563]">
+          <div className="flex items-center gap-2.5 transition-all hover:translate-x-1">
+            <span className="w-3.5 h-3.5 bg-emerald-600 rounded-full inline-block shadow-sm ring-2 ring-emerald-50 shadow-emerald-600/20"></span>
+            <span>Today's Date</span>
+          </div>
+          <div className="flex items-center gap-2.5 transition-all hover:translate-x-1">
+            <span className="w-3.5 h-3.5 bg-[#5542f6] rounded-full inline-block shadow-sm ring-2 ring-indigo-50 shadow-[#5542f6]/20"></span>
+            <span>Official Holidays</span>
+          </div>
         </div>
       </div>
 
@@ -991,12 +1026,23 @@ const HolidaysTab = memo(function HolidaysTab() {
             + Add Holiday
           </button>
         </div>
-        
-        <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-          {holidays.map((holiday) => (
-            <div key={holiday.id} className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-colors group">
+
+        <div className="relative overflow-hidden">
+          <div 
+            className="divide-y divide-slate-100 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
+            style={{
+              maskImage: 'linear-gradient(to bottom, transparent, black 15px, black calc(100% - 25px), transparent)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15px, black calc(100% - 25px), transparent)'
+            }}
+          >
+            {holidays.map((holiday) => (
+            <div
+              key={holiday.id}
+              onClick={() => setCurrentDate(new Date(holiday.date))}
+              className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
+            >
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <span className="text-lg leading-none mb-0.5">{new Date(holiday.date).getDate()}</span>
                   <span className="text-[10px] uppercase tracking-wider text-indigo-400">{monthNames[new Date(holiday.date).getMonth()].substring(0, 3)}</span>
                 </div>
@@ -1015,7 +1061,10 @@ const HolidaysTab = memo(function HolidaysTab() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-4 group-hover:translate-x-0">
+              <div
+                className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110">
                   <Edit className="w-4 h-4" />
                 </button>
@@ -1025,6 +1074,7 @@ const HolidaysTab = memo(function HolidaysTab() {
               </div>
             </div>
           ))}
+          </div>
         </div>
       </div>
     </div>
