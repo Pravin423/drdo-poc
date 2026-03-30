@@ -37,6 +37,7 @@ import {
   Activity
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import { exportToExcel } from "../../lib/exportToExcel";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
@@ -257,8 +258,47 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({
   setSelectedMonth
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportMonth, setExportMonth] = useState(String(selectedMonth.getMonth() + 1).padStart(2, '0'));
+  const [exportYear, setExportYear] = useState(String(selectedMonth.getFullYear()));
+  const [isExporting, setIsExporting] = useState(false);
 
-  // Fetch logic moved to parent AttendanceManagement
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+      // Fetch as raw data (CSV text) first
+      const res = await fetch(`/api/attendance-month-export?month=${exportMonth}&year=${exportYear}&type=excel&format=raw`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error("Export failed");
+
+      const text = await res.text();
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length === 0) throw new Error("No data returned");
+
+      const headers = lines[0].split(',').map(h => h.trim());
+      const rows = lines.slice(1).map(l => l.split(',').map(cell => cell.trim()));
+
+      // Use the fancy Excel exporter
+      exportToExcel({
+        title: `Monthly Attendance Report — ${new Date(exportYear, exportMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}`,
+        headers: headers,
+        rows: rows,
+        filename: `attendance_report_${exportMonth}_${exportYear}`
+      });
+
+      setIsExportModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export attendance report");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // 📅 Days Calculation
   const monthDays = useMemo(() => {
@@ -304,7 +344,10 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({
             <p className="text-slate-500 text-sm font-medium">Detailed monthly tracking and summaries</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
+            >
               <Download size={16} /> Export CSV
             </button>
           </div>
@@ -442,6 +485,100 @@ const MonthlyAttendanceGrid = memo(function MonthlyAttendanceGrid({
           </div>
         </div>
       </div>
+
+      {/* Export Modal - Rendered outside DashboardLayout using Portal */}
+      {typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isExportModalOpen && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsExportModalOpen(false)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative bg-white rounded-[32px] shadow-2xl border border-slate-200/50 w-full max-w-md overflow-hidden"
+              >
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-bold text-slate-900 font-sans tracking-tight">Export Report</h3>
+                      <p className="text-sm text-slate-500 font-medium">Select period for attendance export</p>
+                    </div>
+                    <button
+                      onClick={() => setIsExportModalOpen(false)}
+                      className="p-2.5 hover:bg-slate-100/80 rounded-full transition-all active:scale-95 group"
+                    >
+                      <X className="w-5 h-5 text-slate-400 group-hover:text-slate-600" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-2.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Month</label>
+                        <div className="relative group">
+                          <select
+                            value={exportMonth}
+                            onChange={(e) => setExportMonth(e.target.value)}
+                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all appearance-none cursor-pointer pr-10 hover:bg-white"
+                          >
+                            {Array.from({ length: 12 }, (_, i) => (
+                              <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
+                        </div>
+                      </div>
+                      <div className="space-y-2.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Year</label>
+                        <div className="relative group">
+                          <select
+                            value={exportYear}
+                            onChange={(e) => setExportYear(e.target.value)}
+                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all appearance-none cursor-pointer pr-10 hover:bg-white"
+                          >
+                            {[2024, 2025, 2026, 2027].map(y => (
+                              <option key={y} value={String(y)}>{y}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none transition-transform group-hover:translate-y-[-40%]" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6">
+                      <button
+                        onClick={handleExport}
+                        disabled={isExporting}
+                        className="w-full py-4.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-2xl font-black text-[13px] uppercase tracking-wider shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] hover:shadow-indigo-200 active:scale-[0.98] border border-indigo-500/20"
+                      >
+                        {isExporting ? (
+                          <>
+                            <RefreshCw className="w-5 h-5 animate-spin" />
+                            Preparing...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-5 h-5" />
+                            Generate & Download
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>, document.body)}
     </div>
   );
 });
@@ -746,10 +883,10 @@ const MusterRollTab = memo(function MusterRollTab({
                           </div>
                           <div className="flex flex-col items-end gap-1.5">
                             <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${entry.status === 'Present'
-                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                : entry.status === 'Absent'
-                                  ? 'bg-rose-50 text-rose-600 border border-rose-100'
-                                  : 'bg-amber-50 text-amber-600 border border-amber-100'
+                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                              : entry.status === 'Absent'
+                                ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                                : 'bg-amber-50 text-amber-600 border border-amber-100'
                               }`}>
                               {entry.status}
                             </span>
