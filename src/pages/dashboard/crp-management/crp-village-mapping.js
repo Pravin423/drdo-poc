@@ -256,7 +256,7 @@ export default function CRPVillageMapping() {
                 <tbody className="divide-y divide-slate-100">
                   {isLoading ? (
                     <tr>
-                      <td colSpan="10" className="p-8 text-center text-slate-500">Loading mappings...</td>
+                      <td colSpan="10" className="p-8 text-center cllclstext-slate-500">Loading mappings...</td>
                     </tr>
                   ) : filteredMappings.length > 0 ? (
                     filteredMappings.map((mapping, idx) => (

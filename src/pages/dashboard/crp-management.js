@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  Users, MapPin, X, Download, Eye, Edit, MoreHorizontal, Search, RefreshCw, 
-  UploadCloud, ChevronDown, UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap 
+import {
+  Users, MapPin, X, Download, Eye, Edit, MoreHorizontal, Search, RefreshCw,
+  UploadCloud, ChevronDown, UserPlus, Upload, Activity, FileText, Shield, ShieldCheck, Zap
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -51,7 +51,7 @@ const StatusToggle = ({ id, currentStatus, onStatusChange, fetchList }) => {
 
   const handleToggle = async (newCode) => {
     if (isUpdating || statusToCode[currentStatus] === newCode) return;
-    
+
     setIsUpdating(true);
     try {
       const token = localStorage.getItem("authToken");
@@ -63,7 +63,7 @@ const StatusToggle = ({ id, currentStatus, onStatusChange, fetchList }) => {
         },
         body: JSON.stringify({ id, status: newCode }),
       });
-      
+
       const result = await res.json();
       if (result.status === true || result.success || result.status === 1) {
         onStatusChange(codeToStatus[newCode]);
@@ -84,7 +84,7 @@ const StatusToggle = ({ id, currentStatus, onStatusChange, fetchList }) => {
     <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 w-fit h-fit relative shadow-inner">
       <AnimatePresence mode="wait">
         {isUpdating && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -94,7 +94,7 @@ const StatusToggle = ({ id, currentStatus, onStatusChange, fetchList }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {[
         { code: 0, label: "Active", color: "bg-emerald-500", shadow: "shadow-emerald-200" },
         { code: 1, label: "Inactive", color: "bg-amber-500", shadow: "shadow-amber-200" },
@@ -108,20 +108,19 @@ const StatusToggle = ({ id, currentStatus, onStatusChange, fetchList }) => {
             disabled={isUpdating}
             whileHover={!isActive && !isUpdating ? { scale: 1.02, backgroundColor: "rgba(255,255,255,0.8)" } : {}}
             whileTap={!isUpdating ? { scale: 0.95 } : {}}
-            className={`relative px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center min-w-[80px] ${
-              isActive ? "text-white" : "text-slate-400 hover:text-slate-600"
-            }`}
+            className={`relative px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center min-w-[80px] ${isActive ? "text-white" : "text-slate-400 hover:text-slate-600"
+              }`}
           >
             {isActive && (
-             <motion.div
-  initial={false}
-  animate={{
-    opacity: isActive ? 1 : 0,
-    scale: isActive ? 1 : 0.9,
-  }}
-  transition={{ duration: 0.2, ease: "easeOut" }}
-  className={`absolute inset-0 ${stage.color} rounded-xl shadow-sm`}
- />
+              <motion.div
+                initial={false}
+                animate={{
+                  opacity: isActive ? 1 : 0,
+                  scale: isActive ? 1 : 0.9,
+                }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className={`absolute inset-0 ${stage.color} rounded-xl shadow-sm`}
+              />
             )}
             <span className="relative z-10">{stage.label}</span>
           </motion.button>
@@ -255,26 +254,26 @@ export default function CrpManagement() {
       if (Array.isArray(d)) {
         d = d[0] || {};
       }
-       setViewCRPData({
-         id: d.crp_id || d.id || crp.id,
-         numericId: d.id || crp.numericId || crp.id,
-         name: d.fullname || d.fullName || crp.name,
-         aadhaar: d.aadhar_number || d.aadhaar_number || d.aadhaar || crp.aadhaar || "",
-         mobile: d.mobile || crp.mobile,
-         email: d.email || crp.email,
-         gender: d.gender || crp.gender,
-         dob: d.date_of_birth || d.dob || crp.dob,
-         status: crp.status,
-         district: d.district || crp.district,
-         taluka: d.taluka || crp.taluka,
-         bankName: d.bank_name || "",
-         branchName: d.branch_name || "",
-         accountNumber: d.account_number || "",
-         ifsc: d.ifsc || d.ifsc_code || "",
-         pan: d.pan_number || d.pan || "",
-         image: d.profile || d.profile_img || crp.image,
-         signatureStatus: crp.signatureStatus,
-       });
+      setViewCRPData({
+        id: d.crp_id || d.id || crp.id,
+        numericId: d.id || crp.numericId || crp.id,
+        name: d.fullname || d.fullName || crp.name,
+        aadhaar: d.aadhar_number || d.aadhaar_number || d.aadhaar || crp.aadhaar || "",
+        mobile: d.mobile || crp.mobile,
+        email: d.email || crp.email,
+        gender: d.gender || crp.gender,
+        dob: d.date_of_birth || d.dob || crp.dob,
+        status: crp.status,
+        district: d.district || crp.district,
+        taluka: d.taluka || crp.taluka,
+        bankName: d.bank_name || "",
+        branchName: d.branch_name || "",
+        accountNumber: d.account_number || "",
+        ifsc: d.ifsc || d.ifsc_code || "",
+        pan: d.pan_number || d.pan || "",
+        image: d.profile || d.profile_img || crp.image,
+        signatureStatus: crp.signatureStatus,
+      });
     } catch (err) {
       setViewCRPData({ error: "Failed to load CRP details." });
     } finally {
@@ -1664,12 +1663,12 @@ export default function CrpManagement() {
                   <div className="text-center py-10">
                     <p className="text-red-500 font-medium text-sm">{viewCRPData.error}</p>
                   </div>
-                 ) : viewCRPData && (
-                   <motion.div 
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     className="space-y-6"
-                   >
+                ) : viewCRPData && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="space-y-6"
+                  >
                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                       <img src={viewCRPData.image || `https://i.pravatar.cc/80?u=${viewCRPData.id}`}
                         alt={viewCRPData.name}
@@ -1678,15 +1677,15 @@ export default function CrpManagement() {
                       <div>
                         <p className="text-lg font-bold text-slate-900">{viewCRPData.name}</p>
                         <p className="text-xs text-slate-500 mt-0.5">CRP ID: {viewCRPData.id}</p>
-                         <div className="flex flex-col gap-2 mt-2">
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Adjust Status</p>
-                           <StatusToggle 
-                             id={viewCRPData.numericId} 
-                             currentStatus={viewCRPData.status} 
-                             onStatusChange={(newStatus) => setViewCRPData(prev => ({ ...prev, status: newStatus }))}
-                             fetchList={fetchCRPs}
-                           />
-                         </div>
+                        <div className="flex flex-col gap-2 mt-2">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Adjust Status</p>
+                          <StatusToggle
+                            id={viewCRPData.numericId}
+                            currentStatus={viewCRPData.status}
+                            onStatusChange={(newStatus) => setViewCRPData(prev => ({ ...prev, status: newStatus }))}
+                            fetchList={fetchCRPs}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -1724,9 +1723,9 @@ export default function CrpManagement() {
                           </div>
                         ))}
                       </div>
-                     </div>
-                   </motion.div>
-                 )}
+                    </div>
+                  </motion.div>
+                )}
               </div>
 
               <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
