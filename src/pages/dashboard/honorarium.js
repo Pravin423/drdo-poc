@@ -37,22 +37,27 @@ const StatusBadge = ({ status }) => {
 /* ════════════════════════════════════════
    SUMMARY CARD
 ════════════════════════════════════════ */
-const SummaryCard = memo(({ label, value, icon: Icon, index }) => (
+const SummaryCard = memo(({ label, value, icon: Icon, index, bg, ic }) => (
   <motion.section
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
-    className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay: index * 0.05, duration: 0.3 }}
+    className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
   >
-    <div className="p-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 w-fit">
-      <Icon size={20} />
+    {/* Icon Container */}
+    <div className={`p-2.5 rounded-xl ${bg} ${ic} w-fit shadow-sm`}>
+      <Icon size={20} strokeWidth={2.5} />
     </div>
-    <div className="mt-5 space-y-1">
-      <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
-      <p className="text-sm font-medium text-slate-500">{label}</p>
+
+    {/* Values */}
+    <div className="mt-5 space-y-1 relative z-10">
+      <p className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-2">{value}</p>
+      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest text-[10px]">{label}</p>
     </div>
-    <div className="absolute -right-2 -bottom-2 opacity-[0.04] transition-transform group-hover:scale-110">
-      <Icon size={80} />
+
+    {/* Background Decorative Icon (Watermark) */}
+    <div className={`absolute -right-3 -bottom-3 ${ic} opacity-[0.06] transition-transform group-hover:scale-110 group-hover:-rotate-12 duration-500`}>
+      <Icon size={100} strokeWidth={1} />
     </div>
   </motion.section>
 ));
@@ -168,16 +173,22 @@ const BreakdownContent = memo(function BreakdownContent({ calc, month }) {
       {/* Stats Summary */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Working Hours", value: `${totalWorkingHours} hrs`, ic: Clock, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Working Days", value: `${totalWorkingDays} days`, ic: Calendar, color: "text-indigo-600", bg: "bg-indigo-50" },
-          { label: "Days Payable", value: `${daysPayable} days`, ic: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "HRS WORKED",    value: `${totalWorkingHours} hrs`,  ic: Clock,        color: "text-blue-600",    bg: "bg-blue-50"    },
+          { label: "DAYS LOGGED",   value: `${totalWorkingDays} d`,    ic: Calendar,     color: "text-indigo-600",  bg: "bg-indigo-50"  },
+          { label: "WORKING DAYS",  value: `${daysPayable} d`,         ic: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
         ].map((f, i) => (
-          <div key={i} className="p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
-            <div className={`w-7 h-7 rounded-lg ${f.bg} ${f.color} flex items-center justify-center mb-2`}>
-              <f.ic size={14} strokeWidth={2.5} />
+          <div key={i} className="group relative overflow-hidden p-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-all h-full min-h-[85px] flex flex-col justify-between">
+            <div className={`w-8 h-8 rounded-lg ${f.bg} ${f.color} flex items-center justify-center shadow-sm relative z-10`}>
+              <f.ic size={16} strokeWidth={2.5} />
             </div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{f.label}</p>
-            <p className="text-base font-bold text-slate-900">{f.value}</p>
+            <div className="relative z-10">
+              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">{f.label}</p>
+              <p className="text-base font-black text-slate-900 leading-none">{f.value}</p>
+            </div>
+            {/* Tiny Background Icon */}
+            <div className={`absolute -right-2 -bottom-2 ${f.color} opacity-[0.05] transition-transform group-hover:scale-110 pointer-events-none`}>
+              <f.ic size={60} strokeWidth={1} />
+            </div>
           </div>
         ))}
       </div>
@@ -460,10 +471,10 @@ export default function HonorariumCalculation() {
   const paidCnt = filtered.filter(c => c.paymentStatus?.toLowerCase() === "paid").length;
 
   const summaryCards = [
-    { label: "Total CRPs", value: filtered.length, icon: Users, bg: "bg-blue-50/50", border: "border-blue-100/50", ic: "text-blue-500" },
-    { label: "Total Honorarium", value: fmtRs(totalAmt), icon: IndianRupee, bg: "bg-blue-50/50", border: "border-blue-100/50", ic: "text-blue-500" },
-    { label: "Paid", value: paidCnt, icon: CheckCircle2, bg: "bg-blue-50/50", border: "border-blue-100/50", ic: "text-blue-500" },
-    { label: "Pending", value: filtered.length - paidCnt, icon: Clock, bg: "bg-blue-50/50", border: "border-blue-100/50", ic: "text-blue-500" },
+    { label: "Total CRPs", value: filtered.length, icon: Users, bg: "bg-emerald-50", ic: "text-emerald-500" },
+    { label: "Total Honorarium", value: fmtRs(totalAmt), icon: IndianRupee, bg: "bg-blue-50", ic: "text-blue-500" },
+    { label: "Paid", value: paidCnt, icon: CheckCircle2, bg: "bg-indigo-50", ic: "text-indigo-500" },
+    { label: "Pending", value: filtered.length - paidCnt, icon: Clock, bg: "bg-rose-50", ic: "text-rose-500" },
   ];
 
   const exportCSV = () => {
