@@ -618,7 +618,7 @@ export default function HonorariumCalculation() {
                 <thead className="bg-slate-50/60 border-b border-slate-100">
                   <tr>
                     {["CRP Code", "Name", "Working Hrs", "Working Days", "Days Payable", "Regular Amt", "Special Amt", "Total Honorarium", "Status", ""].map(h => (
-                      <th key={h} className={`px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap ${h === "" ? "text-right" : "text-left"}`}>
+                      <th key={h} className={`px-2 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap ${h === "" ? "text-right" : "text-left"}`}>
                         {h}
                       </th>
                     ))}
@@ -682,9 +682,7 @@ export default function HonorariumCalculation() {
                   Showing <span className="font-bold text-slate-700">{filtered.length}</span> of{" "}
                   <span className="font-bold text-slate-700">{data.length}</span> records
                 </p>
-                <p className="text-xs font-bold text-slate-700">
-                  Total Payable: <span className="text-slate-900">{fmtRs(totalAmt)}</span>
-                </p>
+               
               </div>
             )}
           </div>
