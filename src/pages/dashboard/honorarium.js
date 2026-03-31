@@ -143,103 +143,121 @@ const BreakdownContent = memo(function BreakdownContent({ calc, month }) {
     : 0;
 
   /* ── LEFT column ── */
+  /* ── LEFT column ── */
   const LeftPanel = (
-    <div className="space-y-4">
-
-      {/* CRP info bar */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-        {crp?.profile
-          ? <img src={crp.profile} alt={crp.fullname} className="w-11 h-11 rounded-full object-cover ring-2 ring-white shadow shrink-0" />
-          : <div className="w-11 h-11 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-base shadow-sm shrink-0">
-            {(crp?.fullname || calc.name).charAt(0)}
+    <div className="space-y-6">
+      {/* Profile Section */}
+      <div>
+        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">CRP Profile</label>
+        <div className="flex items-center gap-5 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          {crp?.profile
+            ? <img src={crp.profile} alt={crp.fullname} className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50 shadow-sm shrink-0" />
+            : <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-lg shadow-sm shrink-0">
+                {(crp?.fullname || calc.name).charAt(0)}
+              </div>
+          }
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-bold text-slate-900 leading-tight mb-1">{crp?.fullname || calc.name}</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-slate-400 font-semibold">{crp?.crp_id || calc.crpCode}</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold border border-emerald-100">Active</span>
+            </div>
           </div>
-        }
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900">{crp?.fullname || calc.name}</p>
-          <p className="text-[11px] font-mono text-slate-400">{crp?.crp_id || calc.crpCode}</p>
+          <div className="hidden lg:flex flex-col items-end gap-1 px-6 border-l border-slate-100">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Working Days</p>
+            <p className="text-2xl font-black text-slate-900 leading-none">{totalWorkingDays}</p>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+      </div>
+
+      {/* Attendance Overview */}
+      <div className="space-y-3">
+        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Attendance Summary</label>
+        <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: Phone, v: crp?.mobile },
-            { icon: Building2, v: crp?.bank_name },
-            { icon: Hash, v: crp?.account_number, mono: true },
-          ].filter(f => f.v).map((f, i) => (
-            <div key={i} className="flex items-center gap-1.5">
-              <f.icon size={12} className="text-slate-400" />
-              <span className={`text-xs font-semibold text-slate-600 ${f.mono ? "font-mono" : ""}`}>{f.v}</span>
+            { icon: Clock,        label: "WORKING HOURS", value: `${totalWorkingHours} hrs`,  bg: "bg-blue-50/50",    border: "border-blue-100/50",    ic: "text-blue-500"    },
+            { icon: Calendar,     label: "WORKING DAYS",  value: `${totalWorkingDays} days`,  bg: "bg-violet-50/50",  border: "border-violet-100/50",  ic: "text-violet-500"  },
+            { icon: CheckCircle2, label: "DAYS PAYABLE",  value: `${daysPayable} days`,       bg: "bg-emerald-50/50", border: "border-emerald-100/50", ic: "text-emerald-500" },
+          ].map((f, i) => (
+            <div key={i} className={`flex flex-col gap-3 p-4 rounded-2xl border bg-white shadow-sm hover:shadow-md transition-shadow`}>
+              <div className="flex items-center justify-between">
+                <div className={`p-2 rounded-xl ${f.bg} ${f.ic}`}>
+                  <f.icon size={16} strokeWidth={2.5} />
+                </div>
+              </div>
+              <div>
+                <p className={`text-[9px] font-bold uppercase tracking-widest mb-1 text-slate-400`}>{f.label}</p>
+                <p className="text-xl font-extrabold text-slate-900 leading-tight">{f.value}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Attendance */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { icon: Clock, label: "WORKING HOURS", value: `${totalWorkingHours} hrs`, border: "border-blue-100", ic: "text-blue-500" },
-          { icon: Calendar, label: "WORKING DAYS", value: `${totalWorkingDays} days`, border: "border-violet-100", ic: "text-violet-500" },
-          { icon: CheckCircle2, label: "DAYS PAYABLE", value: `${daysPayable} days`, border: "border-emerald-100", ic: "text-emerald-500" },
-        ].map((f, i) => (
-          <div key={i} className={`flex items-center gap-3 p-3.5 rounded-2xl border ${f.bg} ${f.border}`}>
-            <div className={`p-1.5 rounded-xl bg-white/70 ${f.ic}`}>
-              <f.icon size={13} strokeWidth={2.5} />
+      {/* Task Breakdown */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between ml-1">
+          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">Task Breakdown</label>
+        </div>
+
+        {specialTasks.length > 0 ? (
+          <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+            <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600">Approved Special Tasks</p>
+              <span className="ml-auto text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{specialTasks.length}</span>
             </div>
-            <div>
-              <p className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${f.ic}`}>{f.label}</p>
-              <p className="text-lg font-extrabold text-slate-900 leading-tight">{f.value}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50/30 border-b border-slate-100">
+                  <tr>
+                    {["#", "Task Name", "Activity Form", "Amount"].map(h => (
+                      <th key={h} className="px-5 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 bg-white">
+                  {specialTasks.map((task, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-5 py-3 text-xs text-slate-400 font-medium">{i + 1}</td>
+                      <td className="px-5 py-3 text-xs font-bold text-slate-800">{task.task_name}</td>
+                      <td className="px-5 py-3 text-xs text-slate-500">{task.form_name}</td>
+                      <td className="px-5 py-3 text-xs font-bold text-amber-600">{fmtRs(task.honorarium_amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-        ))}
+        ) : (
+          <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+            <p className="text-xs font-medium text-slate-400">No special tasks for this period</p>
+          </div>
+        )}
       </div>
 
-      {/* Special Tasks */}
-      {specialTasks.length > 0 && (
-        <div className="rounded-2xl border border-slate-100 overflow-hidden">
-          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
-            
-            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600">Approved Special Tasks</p>
-            <span className="ml-auto text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{specialTasks.length}</span>
-          </div>
-          <table className="w-full">
-            <thead className="bg-white border-b border-slate-100">
-              <tr>
-                {["#", "Task Name", "Activity Form", "Task Date", "Submitted At", "Amount"].map(h => (
-                  <th key={h} className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50 bg-white">
-              {specialTasks.map((task, i) => (
-                <tr key={i} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="px-3 py-2.5 text-xs text-slate-400">{i + 1}</td>
-                  <td className="px-3 py-2.5 text-xs font-semibold text-slate-900">{task.task_name}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-500">{task.form_name}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">{fmtDate(task.task_date)}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-400 whitespace-nowrap">{fmtDT(task.submitted_at)}</td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-amber-600">{fmtRs(task.honorarium_amount)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
       {/* Amount Summary */}
-      <div className="rounded-2xl border border-slate-100 overflow-hidden">
-        <div className="divide-y divide-slate-100">
-          <div className="flex justify-between items-center px-4 py-3.5 bg-white hover:bg-slate-50/40 transition-colors">
-            <p className="text-sm text-slate-600">Total Special Amount</p>
-            <p className="text-sm font-bold text-amber-600">{fmtRs(specialAmount)}</p>
-          </div>
-          <div className="flex justify-between items-start px-4 py-3.5 bg-white hover:bg-slate-50/40 transition-colors">
-            <div>
-              <p className="text-sm text-slate-600">Total Regular Amount</p>
-              {ratePerDay > 0 && <p className="text-xs text-slate-400 mt-0.5">₹{ratePerDay}/day × {daysPayable} days</p>}
+      <div className="space-y-3">
+        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Calculation Details</label>
+        <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+          <div className="divide-y divide-slate-100">
+            <div className="flex justify-between items-center px-6 py-4 hover:bg-slate-50/40 transition-colors">
+              <p className="text-sm font-medium text-slate-600">Total Special Amount</p>
+              <p className="text-sm font-bold text-amber-600">{fmtRs(specialAmount)}</p>
             </div>
-            <p className="text-sm font-bold text-emerald-600">{fmtRs(regularAmount)}</p>
-          </div>
-          <div className="flex justify-between items-center px-4 py-4 bg-[#0f172a]">
-            <p className="text-sm font-bold text-white">Total Honorarium</p>
-            <p className="text-sm font-extrabold text-white">{fmtRs(totalHonorarium)}</p>
+            <div className="flex justify-between items-start px-6 py-4 hover:bg-slate-50/40 transition-colors">
+              <div>
+                <p className="text-sm font-medium text-slate-600">Total Regular Amount</p>
+                {ratePerDay > 0 && <p className="text-[10px] font-bold text-slate-400 mt-0.5 tracking-tight">₹{ratePerDay}/day × {daysPayable} days</p>}
+              </div>
+              <p className="text-sm font-bold text-emerald-600">{fmtRs(regularAmount)}</p>
+            </div>
+            <div className="flex justify-between items-center px-6 py-5 bg-[#0f172a]">
+              <p className="text-sm font-bold text-white uppercase tracking-widest">Total Honorarium</p>
+              <div className="text-right">
+                <p className="text-lg font-black text-white leading-none">{fmtRs(totalHonorarium)}</p>
+                <p className="text-[9px] text-white/50 font-bold mt-1 uppercase tracking-tighter">Gross Amount Payable</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -642,12 +660,13 @@ export default function HonorariumCalculation() {
                       <td className="px-4 py-4 text-sm text-slate-700 font-medium tabular-nums">{fmtRs(calc.specialAmount)}</td>
                       <td className="px-4 py-4 text-sm font-bold text-slate-900 tabular-nums">{fmtRs(calc.totalHonorarium)}</td>
                       <td className="px-4 py-4"><StatusBadge status={calc.paymentStatus} /></td>
-                      <td className="px-4 py-4 text-right">
+                      <td className="px-5 py-4 text-right">
                         <button
                           onClick={() => setModalCalc(calc)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900 transition-all"
+                          className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                          title="View Details"
                         >
-                          <Eye size={11} /> View
+                          <Eye size={15} strokeWidth={2.5} />
                         </button>
                       </td>
                     </motion.tr>
