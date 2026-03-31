@@ -179,7 +179,7 @@ const BreakdownContent = memo(function BreakdownContent({ calc, month }) {
             { icon: Calendar,     label: "WORKING DAYS",  value: `${totalWorkingDays} days`,  bg: "bg-violet-50/50",  border: "border-violet-100/50",  ic: "text-violet-500"  },
             { icon: CheckCircle2, label: "DAYS PAYABLE",  value: `${daysPayable} days`,       bg: "bg-emerald-50/50", border: "border-emerald-100/50", ic: "text-emerald-500" },
           ].map((f, i) => (
-            <div key={i} className={`flex flex-col gap-3 p-4 rounded-2xl border bg-white shadow-sm hover:shadow-md transition-shadow`}>
+            <div key={i} className={`flex flex-col gap-3 p-4 rounded-2xl  bg-white shadow-sm hover:shadow-md transition-shadow`}>
               <div className="flex items-center justify-between">
                 <div className={`p-2 rounded-xl ${f.bg} ${f.ic}`}>
                   <f.icon size={16} strokeWidth={2.5} />
