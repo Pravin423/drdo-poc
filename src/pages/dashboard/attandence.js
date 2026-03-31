@@ -1166,20 +1166,54 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
                 </div>
               </div>
 
-              <div className="w-full grid grid-cols-2 gap-3 mb-3">
-                <div className="border border-slate-200 rounded-xl p-3 text-center">
-                  <p className="text-xl font-black text-blue-500">{reportData?.regularTasksCount ?? 0}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Regular Tasks</p>
+              <div className="w-full grid grid-cols-2 gap-px bg-slate-100 border border-slate-100 rounded-[16px] overflow-hidden mb-5">
+                <div className="bg-white p-3.5 flex flex-col items-center justify-center">
+                  <p className="text-xl font-black text-slate-800">{reportData?.totalWorkingDays ?? 0}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Working Days</p>
                 </div>
-                <div className="border border-slate-200 rounded-xl p-3 text-center">
-                  <p className="text-xl font-black text-blue-500">{reportData?.specialTasksCount ?? 0}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Special Tasks</p>
+                <div className="bg-white p-3.5 flex flex-col items-center justify-center">
+                  <p className="text-xl font-black text-slate-800">{reportData?.totalWorkingHours ?? 0}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Total Hrs</p>
+                </div>
+                <div className="bg-white p-3.5 flex flex-col items-center justify-center">
+                  <p className="text-xl font-black text-slate-800">{reportData?.daysPayable ?? 0}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Days Payable</p>
+                </div>
+                <div className="bg-white p-3.5 flex flex-col items-center justify-center">
+                  <p className="text-xl font-black text-slate-800">{reportData?.totalTasksCount ?? 0}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Total Tasks</p>
                 </div>
               </div>
 
-              <div className="w-full border border-emerald-500/20 rounded-xl p-4 text-center bg-white max-w-sm">
-                <p className="text-2xl font-black text-emerald-600">₹ {(reportData?.totalHonorarium ?? 0).toLocaleString('en-IN')}</p>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Total Honorarium</p>
+              <div className="w-full mb-5 px-3">
+                 <div className="flex justify-between items-center py-2 border-b border-slate-100/80">
+                    <div className="flex items-center gap-2.5">
+                       <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]"></div>
+                       <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                         Regular Tasks <span className="text-slate-400 ml-0.5 tracking-normal">({reportData?.regularTasksCount ?? 0})</span>
+                       </span>
+                    </div>
+                    <span className="text-sm font-black text-slate-900">₹ {reportData?.regularAmount ?? 0}</span>
+                 </div>
+                 <div className="flex justify-between items-center py-2 mt-1">
+                    <div className="flex items-center gap-2.5">
+                       <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_5px_rgba(168,85,247,0.5)]"></div>
+                       <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                         Special Tasks <span className="text-slate-400 ml-0.5 tracking-normal">({reportData?.specialTasksCount ?? 0})</span>
+                       </span>
+                    </div>
+                    <span className="text-sm font-black text-slate-900">₹ {reportData?.specialAmount ?? 0}</span>
+                 </div>
+              </div>
+
+              <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 text-center shadow-[0_8px_20px_rgba(16,185,129,0.25)] border border-emerald-400/30">
+                <div className="absolute -right-4 -top-8 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
+                
+                <p className="text-[10px] font-extrabold text-emerald-100 uppercase tracking-widest mb-1 shadow-sm relative z-10">Total Honorarium</p>
+                <p className="text-[32px] font-black text-white relative z-10 drop-shadow-md tracking-tight leading-none">
+                  ₹ {(Number(reportData?.totalHonorarium) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
               </div>
 
             </div>
