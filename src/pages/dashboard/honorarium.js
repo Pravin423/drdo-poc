@@ -1,1812 +1,677 @@
 "use client";
 
-import { useState, useMemo, memo, useEffect } from "react";
+import { useState, useMemo, memo, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Users,
-  IndianRupee,
-  Calendar,
-  CheckCircle2,
-  Eye,
-  Edit,
-  History,
-  Download,
-  Upload,
-  Plus,
-  X,
-  ChevronDown,
-  Clock,
-  FileText,
-  RefreshCw,
-  Search,
-  Filter,
-  ArrowUpRight,
-  ArrowDownRight,
-  TrendingUp,
-  Activity,
-  AlertCircle,
-  ListTodo,
-  Settings,
-  CheckCircle,
+  Users, IndianRupee, Calendar, CheckCircle2, Eye, Download,
+  ChevronDown, Clock, Search, RefreshCw, Star, FileText,
+  AlertCircle, BadgeCheck, Building2, Hash, Phone, Landmark, X,
 } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
-import { exportToExcel } from "../../lib/exportToExcel";
 
-/* ---------------- MOCK DATA ---------------- */
+/* ── helpers ── */
+const fmtRs = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+const fmtDT = (d) => d ? new Date(d).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
 
-// Rate Master Data
-const RATE_DATA = [
-  {
-    id: 1,
-    taskType: "SHG Meeting Facilitation",
-    vertical: "Women Empowerment",
-    baseRate: 500,
-    bonusRate: 100,
-    effectiveFrom: "1/1/2026",
-    status: "Active",
-    version: "v2.1",
-  },
-  {
-    id: 2,
-    taskType: "Livelihood Training",
-    vertical: "Skill Development",
-    baseRate: 750,
-    bonusRate: 150,
-    effectiveFrom: "1/1/2026",
-    status: "Active",
-    version: "v1.8",
-  },
-  {
-    id: 3,
-    taskType: "Health Awareness Camp",
-    vertical: "Health & Nutrition",
-    baseRate: 600,
-    bonusRate: 120,
-    effectiveFrom: "1/1/2026",
-    status: "Active",
-    version: "v2.0",
-  },
-  {
-    id: 4,
-    taskType: "Agriculture Extension",
-    vertical: "Agriculture & Allied",
-    baseRate: 550,
-    bonusRate: 110,
-    effectiveFrom: "1/12/2025",
-    status: "Superseded",
-    version: "v1.5",
-  },
-  {
-    id: 5,
-    taskType: "Financial Literacy Session",
-    vertical: "Financial Inclusion",
-    baseRate: 650,
-    bonusRate: 130,
-    effectiveFrom: "1/1/2026",
-    status: "Active",
-    version: "v1.9",
-  },
-];
-
-// Calculation Summary Data
-const CALCULATION_DATA = [
-  {
-    id: 1,
-    name: "Priya Desai",
-    crpId: "CRP-NG-2024-001",
-    district: "North Goa",
-    block: "Bardez",
-    attendance: 26,
-    tasks: "18/18",
-    calculatedOn: "2026-01-28 10:30 AM",
-    baseAmount: 9000,
-    bonus: 1800,
-    deductions: 0,
-    netAmount: 10800,
-    status: "Calculated",
-  },
-  {
-    id: 2,
-    name: "Rajesh Naik",
-    crpId: "CRP-SG-2024-045",
-    district: "South Goa",
-    block: "Salcete",
-    attendance: 24,
-    tasks: "15/16",
-    calculatedOn: "2026-01-28 11:15 AM",
-    baseAmount: 8250,
-    bonus: 1500,
-    deductions: 250,
-    netAmount: 9500,
-    status: "Pending Review",
-  },
-  {
-    id: 3,
-    name: "Sunita Parab",
-    crpId: "CRP-NG-2024-012",
-    district: "North Goa",
-    block: "Pernem",
-    attendance: 25,
-    tasks: "20/20",
-    calculatedOn: "2026-01-28 09:45 AM",
-    baseAmount: 10000,
-    bonus: 2000,
-    deductions: 0,
-    netAmount: 12000,
-    status: "Calculated",
-  },
-];
-
-// Approval Workflow Data
-const APPROVAL_DATA = [
-  {
-    id: 1,
-    crpName: "Priya Desai",
-    crpId: "CRP-NG-2024-001",
-    month: "January 2026",
-    amount: 10800,
-    submittedBy: "CRP",
-    pendingWith: "Supervisor - Bardez",
-    status: "Supervisor Review",
-    approvalChain: [
-      {
-        stage: "CRP Submission",
-        approver: "Priya Desai",
-        status: "Completed",
-        timestamp: "2026-01-28 02:30 PM",
-      },
-      {
-        stage: "Supervisor Review",
-        approver: "Ramesh Kumar",
-        status: "Pending",
-      },
-      {
-        stage: "Block Manager",
-        approver: "Anjali Rane",
-        status: "Pending",
-      },
-      {
-        stage: "District Officer",
-        approver: "Suresh Naik",
-        status: "Pending",
-      },
-      {
-        stage: "Finance Approval",
-        approver: "Finance Officer",
-        status: "Pending",
-      },
-    ],
-    documents: [
-      { name: "Attendance_Jan2026.pdf", url: "#" },
-      { name: "Task_Completion_Report.pdf", url: "#" },
-    ],
-  },
-  {
-    id: 2,
-    crpName: "Rajesh Naik",
-    crpId: "CRP-SG-2024-045",
-    month: "January 2026",
-    amount: 9500,
-    submittedBy: "Supervisor",
-    pendingWith: "Block Manager - Salcete",
-    status: "Block Manager",
-    approvalChain: [
-      {
-        stage: "CRP Submission",
-        approver: "Rajesh Naik",
-        status: "Completed",
-        timestamp: "2026-01-28 03:45 PM",
-      },
-      {
-        stage: "Supervisor Review",
-        approver: "Kavita Desai",
-        status: "Completed",
-        timestamp: "2026-01-29 10:15 AM",
-      },
-      {
-        stage: "Block Manager",
-        approver: "Prakash Gaonkar",
-        status: "Pending",
-      },
-      {
-        stage: "District Officer",
-        approver: "Maria Fernandes",
-        status: "Pending",
-      },
-      {
-        stage: "Finance Approval",
-        approver: "Finance Officer",
-        status: "Pending",
-      },
-    ],
-    documents: [
-      { name: "Attendance_Jan2026.pdf", url: "#" },
-      { name: "Task_Report.pdf", url: "#" },
-      { name: "Supervisor_Remarks.pdf", url: "#" },
-    ],
-  },
-  {
-    id: 3,
-    crpName: "Sunita Parab",
-    crpId: "CRP-NG-2024-012",
-    month: "January 2026",
-    amount: 12000,
-    submittedBy: "Block Manager",
-    pendingWith: "District Officer - North Goa",
-    status: "District Officer",
-    approvalChain: [
-      {
-        stage: "CRP Submission",
-        approver: "Sunita Parab",
-        status: "Completed",
-        timestamp: "2026-01-28 01:20 PM",
-      },
-      {
-        stage: "Supervisor Review",
-        approver: "Anil Verma",
-        status: "Completed",
-        timestamp: "2026-01-29 09:30 AM",
-      },
-      {
-        stage: "Block Manager",
-        approver: "Rita D'Souza",
-        status: "Completed",
-        timestamp: "2026-01-30 11:00 AM",
-      },
-      {
-        stage: "District Officer",
-        approver: "Carlos Silva",
-        status: "Pending",
-      },
-      {
-        stage: "Finance Approval",
-        approver: "Finance Officer",
-        status: "Pending",
-      },
-    ],
-    documents: [
-      { name: "Attendance_Jan2026.pdf", url: "#" },
-      { name: "Task_Completion_Report.pdf", url: "#" },
-    ],
-  },
-];
-
-// Payment Status Data
-const PAYMENT_DATA = [
-  {
-    id: 1,
-    crpName: "Priya Desai",
-    crpId: "CRP-NG-2024-001",
-    month: "January 2026",
-    amount: 10800,
-    bankAccount: "XXXX-XXXX-1234",
-    paymentDate: "30/1/2026",
-    transactionId: "TXN20260130B001",
-    processedBy: "Finance Officer - North Goa",
-    status: "Processed",
-  },
-  {
-    id: 2,
-    crpName: "Sunita Parab",
-    crpId: "CRP-NG-2024-012",
-    month: "January 2026",
-    amount: 12000,
-    bankAccount: "XXXX-XXXX-5678",
-    paymentDate: "30/1/2026",
-    transactionId: "TXN20260130B002",
-    processedBy: "Finance Officer - North Goa",
-    status: "Processed",
-  },
-  {
-    id: 3,
-    crpName: "Rajesh Naik",
-    crpId: "CRP-SG-2024-045",
-    month: "January 2026",
-    amount: 9500,
-    bankAccount: "XXXX-XXXX-9012",
-    status: "Pending",
-  },
-];
-
-/* ---------------- STATS CARD COMPONENT ---------------- */
-const StatsCard = memo(function StatsCard({
-  icon: Icon,
-  label,
-  value,
-  subValue,
-  delta,
-  isPositive,
-  accent,
-}) {
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200"
-    >
-      {/* Top Row */}
-      <div className="flex justify-between items-start relative z-10">
-        <div className={`p-2 rounded-lg ${accent} border`}>
-          <Icon size={18} strokeWidth={2} />
-        </div>
-
-        {isPositive !== null && (
-          <div
-            className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-md 
-            ${isPositive
-                ? "text-emerald-700 bg-emerald-50"
-                : "text-rose-700 bg-rose-50"
-              }`}
-          >
-            {isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-            {delta}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="mt-5 space-y-0.5 relative z-10">
-        <div className="flex items-baseline gap-2">
-          <h4 className="text-2xl font-bold text-slate-900 tracking-tight">
-            {value}
-          </h4>
-          {subValue && (
-            <span className="text-xs font-semibold text-slate-400">{subValue}</span>
-          )}
-        </div>
-        <p className="text-[13px] font-semibold text-slate-500 uppercase tracking-wider">
-          {label}
-        </p>
-      </div>
-
-      {/* Background Decorative Icon */}
-      <div className="absolute -right-2 -bottom-2 opacity-[0.06] text-slate-900 pointer-events-none">
-        <Icon size={100} strokeWidth={2} />
-      </div>
-    </motion.section>
-  );
-});
-
-/* ---------------- STATUS BADGE COMPONENT ---------------- */
+/* ════════════════════════════════════════
+   STATUS BADGE
+════════════════════════════════════════ */
 const StatusBadge = ({ status }) => {
+  const s = (status || "").toLowerCase();
   const styles = {
-    Active: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    Superseded: "bg-slate-100 text-slate-600 border-slate-200",
-    Calculated: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    "Pending Review": "bg-amber-50 text-amber-700 border-amber-100",
-    "Supervisor Review": "bg-blue-50 text-blue-700 border-blue-100",
-    "Block Manager": "bg-blue-50 text-blue-700 border-blue-100",
-    "District Officer": "bg-blue-50 text-blue-700 border-blue-100",
-    Processed: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    Pending: "bg-amber-50 text-amber-700 border-amber-100",
-    Exception: "bg-red-50 text-red-700 border-red-100",
-    Completed: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    paid: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    pending: "bg-slate-100 text-slate-600 border-slate-200",
+    failed: "bg-red-50 text-red-600 border-red-100",
+    processing: "bg-slate-100 text-slate-600 border-slate-200",
   };
-
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${styles[status] || "bg-slate-100 text-slate-600 border-slate-200"
-        }`}
-    >
-      {status === "Completed" && <span className="text-lg">✓</span>}
-      {status}
+    <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${styles[s] || "bg-slate-100 text-slate-600 border-slate-200"}`}>
+      {(status || "").charAt(0).toUpperCase() + (status || "").slice(1)}
     </span>
   );
 };
 
-/* ---------------- MAIN PAGE COMPONENT ---------------- */
+/* ════════════════════════════════════════
+   SUMMARY CARD
+════════════════════════════════════════ */
+const SummaryCard = memo(({ label, value, icon: Icon, index }) => (
+  <motion.section
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.08, duration: 0.4, ease: "easeOut" }}
+    className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300"
+  >
+    <div className="p-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 w-fit">
+      <Icon size={20} />
+    </div>
+    <div className="mt-5 space-y-1">
+      <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+    </div>
+    <div className="absolute -right-2 -bottom-2 opacity-[0.04] transition-transform group-hover:scale-110">
+      <Icon size={80} />
+    </div>
+  </motion.section>
+));
+
+/* ════════════════════════════════════════
+   TABLE SKELETON
+════════════════════════════════════════ */
+const TableSkeleton = () => (
+  <>
+    {Array.from({ length: 4 }).map((_, i) => (
+      <tr key={i} className="animate-pulse">
+        {Array.from({ length: 9 }).map((_, j) => (
+          <td key={j} className="px-4 py-4">
+            <div className="h-4 bg-slate-100 rounded-lg" style={{ width: j === 1 ? "120px" : j === 2 ? "90px" : "70px" }} />
+          </td>
+        ))}
+      </tr>
+    ))}
+  </>
+);
+
+/* ════════════════════════════════════════
+   BREAKDOWN SKELETON
+════════════════════════════════════════ */
+const BreakdownSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    <div className="h-14 bg-slate-100 rounded-2xl" />
+    <div className="grid grid-cols-3 gap-3">
+      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-slate-100 rounded-2xl" />)}
+    </div>
+    <div className="h-40 bg-slate-100 rounded-2xl" />
+    <div className="h-32 bg-slate-100 rounded-2xl" />
+  </div>
+);
+
+/* ════════════════════════════════════════
+   BREAKDOWN CONTENT  (used inside modal)
+════════════════════════════════════════ */
+const BreakdownContent = memo(function BreakdownContent({ calc, month }) {
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const fetched = useRef(false);
+
+  useEffect(() => {
+    if (fetched.current) return;
+    fetched.current = true;
+    (async () => {
+      try {
+        const [mName, mYear] = month.split(" ");
+        const mNum = new Date(`${mName} 1, ${mYear}`).getMonth() + 1;
+        const res = await fetch(`/api/honorarium/show/${calc.id}?month=${mNum}&year=${parseInt(mYear)}`);
+        const json = await res.json();
+        console.log("[BreakdownContent]", json);
+        if (json.status === 1 && json.data) setDetail(json.data);
+        else setError(json.message || "No data returned");
+      } catch (e) {
+        console.error(e);
+        setError("Failed to load. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [calc.id, month]);
+
+  if (loading) return <BreakdownSkeleton />;
+
+  if (error) return (
+    <div className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+      <AlertCircle size={15} className="text-slate-400 mt-0.5 shrink-0" />
+      <div>
+        <p className="text-sm font-semibold text-slate-700">Failed to load breakdown</p>
+        <p className="text-xs text-slate-400 mt-0.5">{error}</p>
+      </div>
+    </div>
+  );
+
+  const {
+    crp, specialTasks = [], payment,
+    totalWorkingHours, totalWorkingDays, daysPayable,
+    regularAmount, specialAmount, totalHonorarium,
+  } = detail;
+
+  const ratePerDay = daysPayable > 0 ? Math.round(regularAmount / daysPayable) : 0;
+  const isPaid = payment?.payment_status?.toLowerCase() === "paid";
+  const paidAmt = payment
+    ? parseFloat(payment.total_amount || 0) + parseFloat(payment.bonus || 0) - parseFloat(payment.deduction_amount || 0)
+    : 0;
+
+  /* ── LEFT column ── */
+  const LeftPanel = (
+    <div className="space-y-4">
+
+      {/* CRP info bar */}
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+        {crp?.profile
+          ? <img src={crp.profile} alt={crp.fullname} className="w-11 h-11 rounded-full object-cover ring-2 ring-white shadow shrink-0" />
+          : <div className="w-11 h-11 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-base shadow-sm shrink-0">
+            {(crp?.fullname || calc.name).charAt(0)}
+          </div>
+        }
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-slate-900">{crp?.fullname || calc.name}</p>
+          <p className="text-[11px] font-mono text-slate-400">{crp?.crp_id || calc.crpCode}</p>
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+          {[
+            { icon: Phone, v: crp?.mobile },
+            { icon: Building2, v: crp?.bank_name },
+            { icon: Hash, v: crp?.account_number, mono: true },
+          ].filter(f => f.v).map((f, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <f.icon size={12} className="text-slate-400" />
+              <span className={`text-xs font-semibold text-slate-600 ${f.mono ? "font-mono" : ""}`}>{f.v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Attendance */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { icon: Clock, label: "WORKING HOURS", value: `${totalWorkingHours} hrs`, border: "border-blue-100", ic: "text-blue-500" },
+          { icon: Calendar, label: "WORKING DAYS", value: `${totalWorkingDays} days`, border: "border-violet-100", ic: "text-violet-500" },
+          { icon: CheckCircle2, label: "DAYS PAYABLE", value: `${daysPayable} days`, border: "border-emerald-100", ic: "text-emerald-500" },
+        ].map((f, i) => (
+          <div key={i} className={`flex items-center gap-3 p-3.5 rounded-2xl border ${f.bg} ${f.border}`}>
+            <div className={`p-1.5 rounded-xl bg-white/70 ${f.ic}`}>
+              <f.icon size={13} strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${f.ic}`}>{f.label}</p>
+              <p className="text-lg font-extrabold text-slate-900 leading-tight">{f.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Special Tasks */}
+      {specialTasks.length > 0 && (
+        <div className="rounded-2xl border border-slate-100 overflow-hidden">
+          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+            
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600">Approved Special Tasks</p>
+            <span className="ml-auto text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{specialTasks.length}</span>
+          </div>
+          <table className="w-full">
+            <thead className="bg-white border-b border-slate-100">
+              <tr>
+                {["#", "Task Name", "Activity Form", "Task Date", "Submitted At", "Amount"].map(h => (
+                  <th key={h} className="px-3 py-2 text-[9px] font-bold text-slate-400 uppercase tracking-wider text-left whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50 bg-white">
+              {specialTasks.map((task, i) => (
+                <tr key={i} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="px-3 py-2.5 text-xs text-slate-400">{i + 1}</td>
+                  <td className="px-3 py-2.5 text-xs font-semibold text-slate-900">{task.task_name}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-500">{task.form_name}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">{fmtDate(task.task_date)}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-400 whitespace-nowrap">{fmtDT(task.submitted_at)}</td>
+                  <td className="px-3 py-2.5 text-xs font-bold text-amber-600">{fmtRs(task.honorarium_amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Amount Summary */}
+      <div className="rounded-2xl border border-slate-100 overflow-hidden">
+        <div className="divide-y divide-slate-100">
+          <div className="flex justify-between items-center px-4 py-3.5 bg-white hover:bg-slate-50/40 transition-colors">
+            <p className="text-sm text-slate-600">Total Special Amount</p>
+            <p className="text-sm font-bold text-amber-600">{fmtRs(specialAmount)}</p>
+          </div>
+          <div className="flex justify-between items-start px-4 py-3.5 bg-white hover:bg-slate-50/40 transition-colors">
+            <div>
+              <p className="text-sm text-slate-600">Total Regular Amount</p>
+              {ratePerDay > 0 && <p className="text-xs text-slate-400 mt-0.5">₹{ratePerDay}/day × {daysPayable} days</p>}
+            </div>
+            <p className="text-sm font-bold text-emerald-600">{fmtRs(regularAmount)}</p>
+          </div>
+          <div className="flex justify-between items-center px-4 py-4 bg-[#0f172a]">
+            <p className="text-sm font-bold text-white">Total Honorarium</p>
+            <p className="text-sm font-extrabold text-white">{fmtRs(totalHonorarium)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ── RIGHT column: Payment ── */
+  const RightPanel = payment ? (
+    <div className="h-full">
+      {/* Payment header */}
+      <div className={`flex items-center justify-between px-4 py-3.5 rounded-t-2xl ${isPaid ? "bg-emerald-600" : "bg-slate-700"}`}>
+        <div className="flex items-center gap-2">
+          <BadgeCheck size={14} className="text-white" />
+          <p className="text-sm font-bold text-white">Payment {isPaid ? "Completed" : "Pending"}</p>
+        </div>
+        {isPaid && payment.paid_at && (
+          <p className="text-[11px] text-white/75 font-medium">Paid on {fmtDate(payment.paid_at)}</p>
+        )}
+      </div>
+
+      {/* Payment body */}
+      <div className="p-4 border border-t-0 border-slate-100 rounded-b-2xl bg-white space-y-4">
+        {/* Bank details */}
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: Hash, label: "Transaction No.", value: payment.transaction_number, mono: true },
+            { icon: Building2, label: "Bank Name", value: payment.bank_name },
+            { icon: Hash, label: "Account No.", value: payment.account_number, mono: true },
+            { icon: Landmark, label: "IFSC Code", value: payment.ifsc_code, mono: true },
+          ].map((f, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <f.icon size={11} className="text-slate-300 mt-1 shrink-0" />
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{f.label}</p>
+                <p className={`text-sm font-semibold text-slate-800 ${f.mono ? "font-mono" : ""}`}>{f.value || "—"}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-slate-100" />
+
+        {/* Amount chips — 2×3 */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {[
+            { label: "Status", custom: <StatusBadge status={payment.payment_status} /> },
+            { label: "Total Amount", value: fmtRs(payment.total_amount), color: "text-slate-900" },
+            { label: "Bonus", value: fmtRs(payment.bonus), color: "text-emerald-600" },
+            { label: "Deduction", value: fmtRs(payment.deduction_amount), color: "text-red-500" },
+            { label: "Paid Amount", value: fmtRs(paidAmt), color: "text-slate-900 font-extrabold" },
+            { label: "Paid At", value: fmtDT(payment.paid_at), color: "text-slate-600", small: true },
+          ].map((f, i) => (
+            <div key={i} className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{f.label}</p>
+              {f.custom ? f.custom : (
+                <p className={`font-bold ${f.small ? "text-xs leading-snug" : "text-sm"} ${f.color}`}>{f.value}</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Remarks */}
+        {payment.remarks && (
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Remarks</p>
+            <p className="text-sm text-slate-600 italic">"{payment.remarks}"</p>
+          </div>
+        )}
+
+        {/* Payment Slip */}
+        {payment.payment_slip && (
+          <a
+            href={`https://goadrda.runtime-solutions.net/public/uploads/payment_slips/${payment.payment_slip}`}
+            target="_blank" rel="noreferrer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm w-full"
+          >
+            <FileText size={13} className="text-slate-400" />
+            View Payment Slip
+          </a>
+        )}
+      </div>
+    </div>
+  ) : (
+    <div className="flex flex-col items-center justify-center h-full min-h-[200px] border border-dashed border-slate-200 rounded-2xl text-slate-400">
+      <BadgeCheck size={30} className="opacity-20 mb-2" />
+      <p className="text-sm font-medium">No payment recorded</p>
+    </div>
+  );
+
+  return (
+    <div className="grid grid-cols-5 gap-5">
+      <div className="col-span-3">{LeftPanel}</div>
+      <div className="col-span-2">{RightPanel}</div>
+    </div>
+  );
+});
+
+
+/* ════════════════════════════════════════
+   BREAKDOWN MODAL  (portalled to body)
+════════════════════════════════════════ */
+function BreakdownModal({ calc, month, onClose }) {
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  useEffect(() => {
+    const h = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+
+  const modal = (
+    <AnimatePresence>
+      <motion.div
+        key="overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4 py-8 overflow-y-auto"
+        onClick={e => e.target === e.currentTarget && onClose()}
+      >
+        <motion.div
+          key="panel"
+          initial={{ opacity: 0, y: 28, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 16, scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 320, damping: 30 }}
+          className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden my-auto"
+        >
+          {/* Dark navy header — matches SHG Details reference */}
+          <div className="flex items-center justify-between px-6 py-5" style={{ background: "#0f172a" }}>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                <Eye size={18} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white">Honorarium Details</h2>
+                <p className="text-xs text-slate-400">{calc.crpCode} · {month}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-white"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="p-6 bg-white max-h-[80vh] overflow-y-auto">
+            <BreakdownContent calc={calc} month={month} />
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-5 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-white transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+
+  if (typeof document === "undefined") return null;
+  return createPortal(modal, document.body);
+}
+
+/* ════════════════════════════════════════
+   MAIN PAGE
+════════════════════════════════════════ */
 export default function HonorariumCalculation() {
-  const [rates, setRates] = useState(RATE_DATA);
-  const [activeTab, setActiveTab] = useState("rateMaster");
+  const [selectedMonth, setSelectedMonth] = useState("March 2026");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All Status");
+  const [modalCalc, setModalCalc] = useState(null);   // open modal for this calc
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Rate Master States
-  const [isAddRateOpen, setIsAddRateOpen] = useState(false);
-  const [isImportRatesOpen, setIsImportRatesOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rateFile, setRateFile] = useState(null);
+  useEffect(() => {
+    const run = async () => {
+      setLoading(true);
+      setModalCalc(null);
+      try {
+        const [mn, yr] = selectedMonth.split(" ");
+        const m = new Date(`${mn} 1, ${yr}`).getMonth() + 1;
+        const res = await fetch(`/api/honorarium?month=${m}&year=${yr}`);
+        const json = await res.json();
+        if (json.status === 1 && json.data) {
+          setData(json.data.map((item, idx) => ({
+            id: item.crp_id ?? idx,
+            name: item.crp_name ?? "N/A",
+            crpCode: item.crp_code ?? `CRP-${idx}`,
+            totalWorkingHours: Number(item.total_working_hours) || 0,
+            totalWorkingDays: Number(item.total_working_days) || 0,
+            daysPayable: Number(item.days_payable) || 0,
+            regularAmount: Number(item.regular_amount) || 0,
+            approvedRegularCount: Number(item.approved_regular_count) || 0,
+            approvedSpecialCount: Number(item.approved_special_count) || 0,
+            specialAmount: Number(item.special_amount) || 0,
+            totalHonorarium: Number(item.total_honorarium) || 0,
+            paymentStatus: item.payment_status ?? "Pending",
+          })));
+        } else setData([]);
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    };
+    run();
+  }, [selectedMonth]);
 
-  // Calculation Summary States
-  const [selectedMonth, setSelectedMonth] = useState("January 2026");
-  const [selectedDistrict, setSelectedDistrict] = useState("All Districts");
-  const [expandedCalculation, setExpandedCalculation] = useState(null);
+  const filtered = useMemo(() => data.filter(c => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || c.crpCode.toLowerCase().includes(q);
+    const matchStatus = statusFilter === "All Status" || c.paymentStatus?.toLowerCase() === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
+  }), [data, search, statusFilter]);
 
-  // Payment Status States
-  const [selectedStatus, setSelectedStatus] = useState("All Status");
+  const totalAmt = filtered.reduce((s, c) => s + c.totalHonorarium, 0);
+  const paidCnt = filtered.filter(c => c.paymentStatus?.toLowerCase() === "paid").length;
 
-  const [rateForm, setRateForm] = useState({
-    taskType: "",
-    vertical: "",
-    baseRate: "",
-    bonusRate: "",
-    effectiveFrom: "",
-  });
-  const [addRateError, setAddRateError] = useState("");
-
-  const tabs = [
-    { id: "rateMaster", label: "Rate Master", icon: Settings },
-    { id: "calculations", label: "Calculations", icon: Activity },
-    { id: "approvals", label: "Approvals", icon: CheckCircle },
-    { id: "payments", label: "Payments", icon: IndianRupee },
+  const summaryCards = [
+    { label: "Total CRPs", value: filtered.length, icon: Users },
+    { label: "Total Honorarium", value: fmtRs(totalAmt), icon: IndianRupee },
+    { label: "Paid", value: paidCnt, icon: CheckCircle2 },
+    { label: "Pending", value: filtered.length - paidCnt, icon: Clock },
   ];
 
-  // Disable background scroll when modal is open
-  useEffect(() => {
-    if (isAddRateOpen || isImportRatesOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isAddRateOpen, isImportRatesOpen]);
-
-  // Export Rates to CSV
-  const exportRatesToCSV = () => {
-    exportToExcel({
-      title: "Goa Honorarium — Rate Master Report",
-      headers: ["Task Type", "Vertical", "Base Rate (₹)", "Bonus Rate (₹)", "Effective From", "Status", "Version"],
-      rows: rates.map(rate => [
-        rate.taskType, rate.vertical, rate.baseRate,
-        rate.bonusRate, rate.effectiveFrom, rate.status, rate.version,
-      ]),
-      filename: "goa_honorarium_rates_report",
-    });
+  const exportCSV = () => {
+    const h = ["CRP Code", "CRP Name", "Working Hrs", "Working Days", "Days Payable", "Regular Amt", "Special Amt", "Total Honorarium", "Payment Status"];
+    const r = filtered.map(c => [c.crpCode, c.name, c.totalWorkingHours, c.totalWorkingDays, c.daysPayable, c.regularAmount, c.specialAmount, c.totalHonorarium, c.paymentStatus]);
+    const csv = [h, ...r].map(row => row.join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    Object.assign(document.createElement("a"), { href: url, download: `Honorarium_${selectedMonth.replace(/ /g, "_")}.csv` }).click();
+    URL.revokeObjectURL(url);
   };
-
-  // Handle Add Rate Submit
-  const handleAddRate = (e) => {
-    e.preventDefault();
-    setAddRateError("");
-
-    if (parseFloat(rateForm.baseRate) <= 0) {
-      setAddRateError("Base Rate must be greater than 0.");
-      return;
-    }
-    if (parseFloat(rateForm.bonusRate) < 0) {
-      setAddRateError("Bonus Rate cannot be negative.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // Simulate API delay
-    setTimeout(() => {
-      const newRate = {
-        id: Date.now(),
-        ...rateForm,
-        status: "Active",
-        version: `v${(Math.random() * 3).toFixed(1)}`,
-      };
-
-      setRates((prev) => [newRate, ...prev]);
-      setRateForm({
-        taskType: "",
-        vertical: "",
-        baseRate: "",
-        bonusRate: "",
-        effectiveFrom: "",
-      });
-      setIsSubmitting(false);
-      setIsAddRateOpen(false);
-    }, 800);
-  };
-
-  // Calculate stats
-  const stats = useMemo(() => {
-    const activeRates = rates.filter((r) => r.status === "Active").length;
-    const totalCalculations = CALCULATION_DATA.length;
-    const totalAmount = CALCULATION_DATA.reduce((sum, c) => sum + c.netAmount, 0);
-    const pendingApprovals = APPROVAL_DATA.length;
-    const processedPayments = PAYMENT_DATA.filter(
-      (p) => p.status === "Processed"
-    ).length;
-
-    return [
-      {
-        label: "Active Rates",
-        value: activeRates.toString(),
-        delta: "2",
-        isPositive: true,
-        accent: "text-emerald-600 bg-emerald-50 border-emerald-200",
-        icon: Settings,
-      },
-      {
-        label: "Total Calculations",
-        value: totalCalculations.toString(),
-        delta: "1",
-        isPositive: true,
-        accent: "text-blue-600 bg-blue-50 border-blue-200",
-        icon: Activity,
-      },
-      {
-        label: "Pending Approvals",
-        value: pendingApprovals.toString(),
-        delta: null,
-        isPositive: null,
-        accent: "text-amber-600 bg-amber-50 border-amber-200",
-        icon: Clock,
-      },
-      {
-        label: "Processed Payments",
-        value: processedPayments.toString(),
-        delta: "2",
-        isPositive: true,
-        accent: "text-purple-600 bg-purple-50 border-purple-200",
-        icon: CheckCircle2,
-      },
-      {
-        label: "Total Amount",
-        value: `₹${(totalAmount / 1000).toFixed(1)}K`,
-        delta: "8%",
-        isPositive: true,
-        accent: "text-indigo-600 bg-indigo-50 border-indigo-200",
-        icon: IndianRupee,
-      },
-    ];
-  }, []);
 
   return (
     <ProtectedRoute allowedRole="super-admin">
-      {/* Add New Rate Modal */}
-      <AnimatePresence>
-        {isAddRateOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-md px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden"
-            >
-              <div className="flex items-center justify-between px-6 py-5 border-b">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Add New Rate</h2>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Configure honorarium rate for task type and vertical
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsAddRateOpen(false)}
-                  className="p-2 rounded-full hover:bg-slate-100 transition"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleAddRate} className="p-6 space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">
-                      Task Type <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      required
-                      value={rateForm.taskType}
-                      onChange={(e) =>
-                        setRateForm({ ...rateForm, taskType: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                    >
-                      <option value="">Select Task Type</option>
-                      <option>SHG Meeting Facilitation</option>
-                      <option>Livelihood Training</option>
-                      <option>Health Awareness Camp</option>
-                      <option>Agriculture Extension</option>
-                      <option>Financial Literacy Session</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">
-                      Vertical <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      required
-                      value={rateForm.vertical}
-                      onChange={(e) =>
-                        setRateForm({ ...rateForm, vertical: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                    >
-                      <option value="">Select Vertical</option>
-                      <option>Women Empowerment</option>
-                      <option>Skill Development</option>
-                      <option>Health & Nutrition</option>
-                      <option>Agriculture & Allied</option>
-                      <option>Financial Inclusion</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">
-                      Base Rate (₹) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      required
-                      type="number"
-                      value={rateForm.baseRate}
-                      onChange={(e) =>
-                        setRateForm({ ...rateForm, baseRate: e.target.value })
-                      }
-                      placeholder="500"
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">
-                      Bonus Rate (₹) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      required
-                      type="number"
-                      value={rateForm.bonusRate}
-                      onChange={(e) =>
-                        setRateForm({ ...rateForm, bonusRate: e.target.value })
-                      }
-                      placeholder="100"
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                    />
-                  </div>
-
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 ml-1">
-                      Effective From <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      required
-                      type="date"
-                      value={rateForm.effectiveFrom}
-                      onChange={(e) =>
-                        setRateForm({
-                          ...rateForm,
-                          effectiveFrom: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-blue-500 transition-all outline-none text-sm"
-                    />
-                  </div>
-                  {addRateError && (
-                    <div className="col-span-2 p-2">
-                       <p className="text-sm font-medium text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100">
-                          {addRateError}
-                       </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddRateOpen(false)}
-                    className="px-4 py-2 rounded-xl border text-sm font-semibold hover:bg-slate-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    disabled={isSubmitting}
-                    type="submit"
-                    className={`px-5 py-2 rounded-xl text-white text-sm font-semibold transition ${isSubmitting ? "bg-slate-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
-                  >
-                    {isSubmitting ? "Adding..." : "Add Rate"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Import Rates Modal */}
-      <AnimatePresence>
-        {isImportRatesOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 backdrop-blur-md px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden"
-            >
-              <div className="flex items-center justify-between px-6 py-5 border-b">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Import Rates</h2>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Upload rate configurations using a CSV file
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsImportRatesOpen(false)}
-                  className="p-2 rounded-full hover:bg-slate-100 transition"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <label className="group flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 p-8 cursor-pointer transition hover:border-slate-400 hover:bg-slate-50">
-                  <Upload
-                    size={34}
-                    className="text-slate-400 group-hover:text-slate-600 mb-3 transition"
-                  />
-
-                  {!rateFile ? (
-                    <>
-                      <p className="text-sm font-medium text-slate-700">
-                        Click to upload or drag & drop
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        CSV file (max 5MB)
-                      </p>
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-white border rounded-xl px-4 py-2">
-                      <span className="text-sm font-medium text-slate-700 truncate max-w-[200px]">
-                        {rateFile.name}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setRateFile(null);
-                        }}
-                        className="text-slate-400 hover:text-red-500"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  )}
-
-                  <input
-                    type="file"
-                    accept=".csv"
-                    className="hidden"
-                    onChange={(e) => setRateFile(e.target.files[0])}
-                  />
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 px-6 py-4 border-t bg-slate-50">
-                <button
-                  onClick={() => {
-                    setIsImportRatesOpen(false);
-                    setRateFile(null);
-                  }}
-                  className="px-4 py-2 rounded-xl border text-sm font-semibold hover:bg-white transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={!rateFile}
-                  onClick={() => {
-                    console.log("Importing rates from:", rateFile);
-                    setRateFile(null);
-                    setIsImportRatesOpen(false);
-                  }}
-                  className={`px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition ${!rateFile
-                      ? "bg-slate-300 text-white cursor-not-allowed"
-                      : "bg-emerald-600 text-white hover:bg-emerald-700"
-                    }`}
-                >
-                  <Upload size={16} />
-                  Import Rates
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Modal — portalled to document.body, outside DashboardLayout */}
+      {modalCalc && (
+        <BreakdownModal
+          calc={modalCalc}
+          month={selectedMonth}
+          onClose={() => setModalCalc(null)}
+        />
+      )}
 
       <DashboardLayout>
-        <div className="min-h-screen p-2 lg:p-3 xl:p-4">
-          <div className="max-w-[1600px] mx-auto space-y-8">
-            {/* Page Header */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        <div className="max-w-[1600px] mx-auto space-y-8 p-6">
+
+          {/* Header */}
+          <motion.header
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+          >
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">
+                Honorarium{" "}
+                <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
+                  Calculation
+                </span>
+              </h1>
+              <p className="text-slate-500 font-medium mt-0.5">
+                Automated honorarium processing for Community Resource Persons
+              </p>
+            </div>
+            <button
+              onClick={exportCSV}
+              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50 transition-colors text-slate-700"
             >
-              <div className="space-y-1">
+              <Download size={15} /> Export CSV
+            </button>
+          </motion.header>
 
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                  Honorarium Calculation{" "}
-                  <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
-                    Engine
-                  </span>
-                </h1>
-                <p className="text-slate-500 font-medium">
-                  Comprehensive rate configuration and automated payment processing
-                </p>
-              </div>
+          {/* Summary Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {summaryCards.map((card, i) => <SummaryCard key={card.label} {...card} index={i} />)}
+          </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
-                  <div className="bg-indigo-50 p-2 rounded-xl">
-                    <Calendar className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div className="pr-4 hidden md:block">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                      Status Date
-                    </p>
-                    <p className="text-sm font-bold text-slate-700">
-                      {new Date().toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      })}
-                    </p>
+          {/* Filter Panel */}
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Filter Records</h3>
+            </div>
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row items-end gap-5">
+                {/* Search */}
+                <div className="flex-1 w-full">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Search</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Search size={15} className="text-slate-400 group-focus-within:text-slate-600 transition-colors" />
+                    </div>
+                    <input
+                      placeholder="CRP name or code..."
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-4 focus:ring-slate-200 focus:border-slate-400 transition-all outline-none bg-slate-50/30 focus:bg-white"
+                    />
                   </div>
                 </div>
+
+                {/* Month */}
+                <div className="w-full md:w-44">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Month</label>
+                  <div className="relative">
+                    <select
+                      value={selectedMonth}
+                      onChange={e => setSelectedMonth(e.target.value)}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-4 focus:ring-slate-200 focus:border-slate-400 outline-none appearance-none bg-slate-50/30 focus:bg-white cursor-pointer"
+                    >
+                      <option>January 2026</option>
+                      <option>February 2026</option>
+                      <option>March 2026</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="w-full md:w-44">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Status</label>
+                  <div className="relative">
+                    <select
+                      value={statusFilter}
+                      onChange={e => setStatusFilter(e.target.value)}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-4 focus:ring-slate-200 focus:border-slate-400 outline-none appearance-none bg-slate-50/30 focus:bg-white cursor-pointer"
+                    >
+                      {["All Status", "Paid", "Pending", "Failed", "Processing"].map(o => <option key={o}>{o}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Clear */}
+                <button
+                  onClick={() => { setSearch(""); setStatusFilter("All Status"); }}
+                  className="w-full md:w-auto text-slate-500 border border-slate-200 hover:text-slate-800 hover:bg-slate-50 rounded-xl px-5 py-2.5 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <RefreshCw size={14} /> Clear
+                </button>
               </div>
-            </motion.div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {stats.map((card, index) => (
-                <StatsCard key={card.label} {...card} />
-              ))}
             </div>
-
-            {/* Navigation Tabs */}
-            <div className="flex p-1.5 bg-slate-200/50 rounded-2xl w-fit backdrop-blur-sm border border-slate-200/50">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300
-                      ${activeTab === tab.id
-                        ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200"
-                        : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
-                      }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Content Area with Animation */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-6"
-              >
-                {activeTab === "rateMaster" && (
-                  <RateMasterTab
-                    rates={rates}
-                    onAddRate={() => setIsAddRateOpen(true)}
-                    onImportRates={() => setIsImportRatesOpen(true)}
-                    onExportRates={exportRatesToCSV}
-                  />
-                )}
-                {activeTab === "calculations" && (
-                  <CalculationsTab
-                    data={CALCULATION_DATA}
-                    selectedMonth={selectedMonth}
-                    setSelectedMonth={setSelectedMonth}
-                    selectedDistrict={selectedDistrict}
-                    setSelectedDistrict={setSelectedDistrict}
-                    expandedCalculation={expandedCalculation}
-                    setExpandedCalculation={setExpandedCalculation}
-                  />
-                )}
-                {activeTab === "approvals" && (
-                  <ApprovalsTab data={APPROVAL_DATA} />
-                )}
-                {activeTab === "payments" && (
-                  <PaymentsTab
-                    data={PAYMENT_DATA}
-                    selectedStatus={selectedStatus}
-                    setSelectedStatus={setSelectedStatus}
-                    selectedMonth={selectedMonth}
-                    setSelectedMonth={setSelectedMonth}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
           </div>
+
+          {/* Table */}
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px]">
+                <thead className="bg-slate-50/60 border-b border-slate-100">
+                  <tr>
+                    {["CRP Code", "Name", "Working Hrs", "Working Days", "Days Payable", "Regular Amt", "Special Amt", "Total Honorarium", "Status", ""].map(h => (
+                      <th key={h} className={`px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap ${h === "" ? "text-right" : "text-left"}`}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {loading ? <TableSkeleton /> : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="px-4 py-16 text-center">
+                        <div className="flex flex-col items-center gap-3 text-slate-400">
+                          <Users size={34} className="opacity-25" />
+                          <p className="text-sm font-semibold">No records found</p>
+                          <p className="text-xs opacity-70">Try adjusting your filters</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filtered.map((calc, idx) => (
+                    <motion.tr
+                      key={calc.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="hover:bg-slate-50/60 transition-colors"
+                    >
+                      <td className="px-4 py-4 text-xs font-mono text-slate-500">{calc.crpCode}</td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                            {calc.name.charAt(0)}
+                          </div>
+                          <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">{calc.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-slate-600 tabular-nums">{calc.totalWorkingHours} hrs</td>
+                      <td className="px-4 py-4 text-sm text-slate-600 tabular-nums">{calc.totalWorkingDays} days</td>
+                      <td className="px-4 py-4 text-sm text-slate-600 tabular-nums">{calc.daysPayable} days</td>
+                      <td className="px-4 py-4 text-sm text-slate-700 font-medium tabular-nums">{fmtRs(calc.regularAmount)}</td>
+                      <td className="px-4 py-4 text-sm text-slate-700 font-medium tabular-nums">{fmtRs(calc.specialAmount)}</td>
+                      <td className="px-4 py-4 text-sm font-bold text-slate-900 tabular-nums">{fmtRs(calc.totalHonorarium)}</td>
+                      <td className="px-4 py-4"><StatusBadge status={calc.paymentStatus} /></td>
+                      <td className="px-4 py-4 text-right">
+                        <button
+                          onClick={() => setModalCalc(calc)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-900 transition-all"
+                        >
+                          <Eye size={11} /> View
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            {!loading && filtered.length > 0 && (
+              <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/40 flex justify-between items-center">
+                <p className="text-xs text-slate-500">
+                  Showing <span className="font-bold text-slate-700">{filtered.length}</span> of{" "}
+                  <span className="font-bold text-slate-700">{data.length}</span> records
+                </p>
+                <p className="text-xs font-bold text-slate-700">
+                  Total Payable: <span className="text-slate-900">{fmtRs(totalAmt)}</span>
+                </p>
+              </div>
+            )}
+          </div>
+
         </div>
       </DashboardLayout>
     </ProtectedRoute>
   );
 }
-
-/* ---------------- RATE MASTER TAB ---------------- */
-const RateMasterTab = memo(function RateMasterTab({
-  rates,
-  onAddRate,
-  onImportRates,
-  onExportRates,
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-200">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              Rate Master Configuration
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Manage honorarium rates by task type and vertical with version control
-            </p>
-          </div>
-          <button
-            onClick={onAddRate}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            <Plus size={16} />
-            Add New Rate
-          </button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-100">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Task Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Vertical
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Base Rate (₹)
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Bonus Rate (₹)
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Effective From
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Version
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rates.map((rate, index) => (
-              <motion.tr
-                key={rate.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="hover:bg-slate-50/50 transition-colors"
-              >
-                <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                  {rate.taskType}
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-600">
-                  {rate.vertical}
-                </td>
-                <td className="px-6 py-4 text-sm font-semibold text-slate-900">
-                  ₹{rate.baseRate}
-                </td>
-                <td className="px-6 py-4 text-sm font-semibold text-emerald-600">
-                  ₹{rate.bonusRate}
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-600">
-                  {rate.effectiveFrom}
-                </td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={rate.status} />
-                </td>
-                <td className="px-6 py-4 text-sm font-medium text-slate-600">
-                  {rate.version}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <button className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors">
-                      <Edit size={16} className="text-slate-600" />
-                    </button>
-                    <button className="p-2 hover:bg-slate-100 rounded-lg transition">
-                      <History size={16} className="text-slate-600" />
-                    </button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Footer */}
-      <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-        <p className="text-sm text-slate-500">
-          Showing {rates.filter((r) => r.status === "Active").length} active rate
-          configurations
-        </p>
-        <div className="flex gap-3">
-          <button
-            onClick={onExportRates}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <Download size={16} />
-            Export Rates
-          </button>
-          <button
-            onClick={onImportRates}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <Upload size={16} />
-            Import Rates
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-});
-const handleExportSummaryCSV = (selectedMonth, selectedDistrict, metrics) => {
-  exportToExcel({
-    title: `Goa CRP Monthly Summary — ${selectedMonth}`,
-    headers: ["Field", "Value"],
-    rows: [
-      ["Month", selectedMonth],
-      ["District", selectedDistrict],
-      ["Total CRPs", metrics.totalCRPs],
-      ["Total Amount (₹)", metrics.totalAmount],
-      ["Average Attendance (days)", metrics.avgAttendance],
-      ["Task Completion (%)", metrics.taskCompletion],
-    ],
-    filename: `goa_crp_summary_${selectedMonth.replace(/\s+/g, '_')}`,
-  });
-};
-
-/* ---------------- CALCULATIONS TAB ---------------- */
-const CalculationsTab = memo(function CalculationsTab({
-  data,
-  selectedMonth,
-  setSelectedMonth,
-  selectedDistrict,
-  setSelectedDistrict,
-  expandedCalculation,
-  setExpandedCalculation,
-}) {
-  const metrics = useMemo(() => {
-    return {
-      totalCRPs: data.length,
-      totalAmount: data.reduce((sum, c) => sum + c.netAmount, 0),
-      avgAttendance: Math.round(
-        data.reduce((sum, c) => sum + c.attendance, 0) / data.length
-      ),
-      taskCompletion: 97,
-    };
-  }, [data]);
-
-  return (
-    <>
-      {/* Header with Filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              Monthly Calculation Summary
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Auto-generated honorarium calculations with attendance dependency
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3 justify-end">
-            <button
-              onClick={() => {
-                const headers = [
-                  "CRP Name",
-                  "CRP ID",
-                  "District",
-                  "Block",
-                  "Attendance",
-                  "Tasks",
-                  "Base Amount",
-                  "Bonus",
-                  "Deductions",
-                  "Net Amount",
-                  "Status",
-                  "Calculated On"
-                ];
-                const rows = data.map(calc => [
-                  calc.name, calc.crpId, calc.district, calc.block, calc.attendance,
-                  calc.tasks, calc.baseAmount, calc.bonus, calc.deductions,
-                  calc.netAmount, calc.status, calc.calculatedOn
-                ]);
-                const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-                const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `CRP_Calculations_${selectedMonth.replace(/\s+/g, '_')}.csv`;
-                link.click();
-              }}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
-            >
-              <Download size={16} /> Export All Calculations
-            </button>
-            <div className="relative">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white pr-10"
-              >
-                <option>January 2026</option>
-                <option>February 2026</option>
-                <option>March 2026</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-            <div className="relative">
-              <select
-                value={selectedDistrict}
-                onChange={(e) => setSelectedDistrict(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white pr-10"
-              >
-                <option>All Districts</option>
-                <option>North Goa</option>
-                <option>South Goa</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Metric Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              label: "Total CRPs",
-              value: metrics.totalCRPs,
-              icon: Users,
-              bg: "bg-blue-50",
-              text: "text-blue-600",
-              border: "border-blue-200",
-            },
-            {
-              label: "Total Amount",
-              value: `₹${metrics.totalAmount.toLocaleString()}`,
-              icon: IndianRupee,
-              bg: "bg-emerald-50",
-              text: "text-emerald-600",
-              border: "border-emerald-200",
-            },
-            {
-              label: "Avg. Attendance",
-              value: `${metrics.avgAttendance} days`,
-              icon: Calendar,
-              bg: "bg-amber-50",
-              text: "text-amber-600",
-              border: "border-amber-200",
-            },
-            {
-              label: "Task Completion",
-              value: `${metrics.taskCompletion}%`,
-              icon: CheckCircle2,
-              bg: "bg-purple-50",
-              text: "text-purple-600",
-              border: "border-purple-200",
-            },
-          ].map((card, index) => (
-            <div
-              key={card.label}
-              className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div
-                  className={`p-2 rounded-lg border ${card.bg} ${card.text} ${card.border}`}
-                >
-                  <card.icon size={18} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-2xl font-bold text-slate-900">{card.value}</p>
-                <p className="text-sm font-medium text-slate-500">{card.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CRP Calculation Cards */}
-      <div className="space-y-4">
-        {data.map((calc, index) => (
-          <motion.div
-            key={calc.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-          >
-            {/* Card Header */}
-            <div className="px-6 py-4 flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-bold text-slate-900">{calc.name}</h3>
-                  <StatusBadge status={calc.status} />
-                </div>
-                <p className="text-sm text-slate-500 font-medium">{calc.crpId}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    setExpandedCalculation(
-                      expandedCalculation === calc.id ? null : calc.id
-                    )
-                  }
-                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  <Eye size={16} />
-                  View Breakdown
-                </button>
-                <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                  <RefreshCw size={16} />
-                  Recalculate
-                </button>
-              </div>
-            </div>
-
-            {/* Card Details */}
-            <div className="px-6 pb-4">
-              <div className="grid grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">
-                    District/Block
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {calc.district} / {calc.block}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">
-                    Attendance
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {calc.attendance} days
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">Tasks</p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {calc.tasks}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium mb-1">
-                    Calculated On
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {calc.calculatedOn}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-
-            {/* Expanded Breakdown */}
-            <AnimatePresence>
-              {expandedCalculation === calc.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-6 pb-6">
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5">
-                      <div className="grid grid-cols-4 gap-4">
-                        <div>
-                          <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                            Base Amount
-                          </p>
-                          <p className="text-lg font-bold text-slate-900">
-                            ₹{calc.baseAmount.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                            Bonus
-                          </p>
-                          <p className="text-lg font-bold text-emerald-600">
-                            +₹{calc.bonus.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                            Deductions
-                          </p>
-                          <p className="text-lg font-bold text-red-600">
-                            -₹{calc.deductions.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                            Net Amount
-                          </p>
-                          <p className="text-lg font-bold text-slate-900">
-                            ₹{calc.netAmount.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-          </motion.div>
-        ))}
-      </div>
-    </>
-  );
-});
-
-/* ---------------- APPROVALS TAB ---------------- */
-const ApprovalsTab = memo(function ApprovalsTab({ data }) {
-  const [expandedId, setExpandedId] = useState(null);
-
-  return (
-    <>
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Approval Workflow</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Multi-level approval chain with justification requirements
-            </p>
-          </div>
-          <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-xs font-bold">
-            {data.length} Pending
-          </span>
-        </div>
-      </div>
-
-      {/* Approval Cards */}
-      <div className="space-y-4">
-        {data.map((approval, index) => (
-          <motion.div
-            key={approval.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-          >
-            {/* Card Header */}
-            <div
-              onClick={() => setExpandedId(expandedId === approval.id ? null : approval.id)}
-              className="px-6 py-4 flex justify-between items-center cursor-pointer hover:bg-slate-50/50 transition-colors"
-            >
-              <div>
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {approval.crpName}
-                  </h3>
-                  <p className="text-sm text-slate-500 font-medium hidden md:block">
-                    {approval.crpId}
-                  </p>
-                  <StatusBadge status={approval.status} />
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold text-slate-900">₹{approval.amount.toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">{approval.month}</p>
-                </div>
-                <motion.div
-                  animate={{ rotate: expandedId === approval.id ? 180 : 0 }}
-                  className="p-2 rounded-full bg-slate-100 text-slate-500"
-                >
-                  <ChevronDown size={18} />
-                </motion.div>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {expandedId === approval.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="border-t border-slate-100"
-                >
-                  {/* Card Details */}
-                  <div className="px-6 py-4 bg-slate-50">
-                    <div className="grid grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                          Month
-                        </p>
-                        <p className="font-medium text-slate-900">{approval.month}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                          Amount
-                        </p>
-                        <p className="font-bold text-slate-900">
-                          ₹{approval.amount.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                          Submitted By
-                        </p>
-                        <p className="font-medium text-slate-900">
-                          {approval.submittedBy}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                          Pending With
-                        </p>
-                        <p className="font-medium text-slate-900">
-                          {approval.pendingWith}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Approval Chain Progress */}
-                  <div className="px-6 py-5">
-                    <h4 className="text-sm font-bold text-slate-900 mb-4">
-                      Approval Chain Progress
-                    </h4>
-                    <div className="space-y-3">
-                      {approval.approvalChain.map((step, stepIndex) => (
-                        <div key={stepIndex} className="flex items-start gap-3 relative">
-                          {/* Icon */}
-                          <div
-                            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${step.status === "Completed"
-                                ? "bg-emerald-100 text-emerald-600"
-                                : "bg-slate-100 text-slate-400"
-                              }`}
-                          >
-                            {step.status === "Completed" ? (
-                              <CheckCircle2 size={16} />
-                            ) : (
-                              <Clock size={16} />
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-sm font-bold text-slate-900">
-                                  {step.stage}
-                                </p>
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                  {step.approver}
-                                </p>
-                                {step.timestamp && (
-                                  <p className="text-xs text-slate-400 mt-0.5">
-                                    {step.timestamp}
-                                  </p>
-                                )}
-                              </div>
-                              <StatusBadge status={step.status} />
-                            </div>
-                          </div>
-
-                          {/* Connector Line */}
-                          {stepIndex < approval.approvalChain.length - 1 && (
-                            <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-slate-200 -mb-3" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Attached Documents */}
-                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
-                    <h4 className="text-sm font-bold text-slate-900 mb-3">
-                      Attached Documents
-                    </h4>
-                    <div className="flex flex-wrap gap-3">
-                      {approval.documents.map((doc, docIndex) => (
-                        <a
-                          key={docIndex}
-                          href={doc.url}
-                          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
-                        >
-                          <FileText size={16} className="text-blue-500" />
-                          {doc.name}
-                          <Download size={14} className="text-slate-400" />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="px-6 py-4 flex justify-end gap-3 bg-slate-50/50">
-                    <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                      <History size={16} />
-                      History
-                    </button>
-                    <button className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                      <Eye size={16} />
-                      Review & Action
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ))}
-      </div>
-    </>
-  );
-});
-
-/* ---------------- PAYMENTS TAB ---------------- */
-const PaymentsTab = memo(function PaymentsTab({
-  data,
-  selectedStatus,
-  setSelectedStatus,
-  selectedMonth,
-  setSelectedMonth,
-}) {
-  const metrics = useMemo(() => {
-    return {
-      totalAmount: data.reduce((sum, p) => sum + p.amount, 0),
-      processed: data
-        .filter((p) => p.status === "Processed")
-        .reduce((sum, p) => sum + p.amount, 0),
-      pending: data
-        .filter((p) => p.status === "Pending")
-        .reduce((sum, p) => sum + p.amount, 0),
-      exceptions: 7950,
-    };
-  }, [data]);
-
-  const filteredPayments =
-    selectedStatus === "All Status"
-      ? data
-      : data.filter((p) => p.status === selectedStatus);
-
-  const handleDownloadReceipt = (payment) => {
-    const receiptContent = `
-      HONORARIUM PAYMENT RECEIPT
-      --------------------------
-      Transaction ID: ${payment.transactionId}
-      Date: ${payment.paymentDate}
-      
-      CRP Name: ${payment.crpName}
-      CRP ID: ${payment.crpId}
-      Month: ${payment.month}
-      Amount Paid: ₹${payment.amount.toLocaleString()}
-      Bank Account: ${payment.bankAccount}
-      
-      Status: ${payment.status}
-      Processed By: ${payment.processedBy}
-    `;
-    const blob = new Blob([receiptContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Receipt_${payment.transactionId}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <>
-      {/* Header with Filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              Payment Status Dashboard
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Track processed, pending, and exception payments with MIS export
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white pr-10"
-              >
-                <option>January 2026</option>
-                <option>February 2026</option>
-                <option>March 2026</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-            <div className="relative">
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none bg-white pr-10"
-              >
-                <option>All Status</option>
-                <option>Processed</option>
-                <option>Pending</option>
-                <option>Exception</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        {/* Payment Metric Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              label: "Total Amount",
-              value: `₹${metrics.totalAmount.toLocaleString()}`,
-              subtext: `${data.length} total payments`,
-              icon: IndianRupee,
-              bg: "bg-blue-50",
-              text: "text-blue-600",
-              border: "border-blue-200",
-            },
-            {
-              label: "Processed",
-              value: `₹${metrics.processed.toLocaleString()}`,
-              subtext: "2 payments completed",
-              icon: CheckCircle2,
-              bg: "bg-emerald-50",
-              text: "text-emerald-600",
-              border: "border-emerald-200",
-            },
-            {
-              label: "Pending",
-              value: `₹${metrics.pending.toLocaleString()}`,
-              subtext: "1 awaiting processing",
-              icon: Clock,
-              bg: "bg-amber-50",
-              text: "text-amber-600",
-              border: "border-amber-200",
-            },
-            {
-              label: "Exceptions",
-              value: `₹${metrics.exceptions.toLocaleString()}`,
-              subtext: "1 require attention",
-              icon: AlertCircle,
-              bg: "bg-red-50",
-              text: "text-red-600",
-              border: "border-red-200",
-            },
-          ].map((card, index) => (
-            <div
-              key={card.label}
-              className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div
-                  className={`p-2 rounded-lg border ${card.bg} ${card.text} ${card.border}`}
-                >
-                  <card.icon size={18} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-2xl font-bold text-slate-900">{card.value}</p>
-                <p className="text-sm font-medium text-slate-500">{card.label}</p>
-                <p className="text-xs text-slate-400">{card.subtext}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Payment Records */}
-      <div className="space-y-4">
-        {filteredPayments.map((payment, index) => (
-          <motion.div
-            key={payment.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm"
-          >
-            {/* Card Header */}
-            <div className="px-6 py-4 flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-bold text-slate-900">
-                    {payment.crpName}
-                  </h3>
-                  <StatusBadge status={payment.status} />
-                </div>
-                <p className="text-sm text-slate-500 font-medium">
-                  {payment.crpId}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button className="p-1.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                  <Eye size={16} />
-                  View Details
-                </button>
-                {payment.status === "Processed" && (
-                  <button
-                    onClick={() => handleDownloadReceipt(payment)}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
-                  >
-                    <Download size={16} />
-                    Receipt
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Card Details */}
-            <div className="px-6 pb-4">
-              <div className="grid grid-cols-3 gap-4 text-sm mb-4">
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Month
-                  </p>
-                  <p className="font-medium text-slate-900">{payment.month}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Amount
-                  </p>
-                  <p className="font-bold text-slate-900">
-                    ₹{payment.amount.toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                    Bank Account
-                  </p>
-                  <p className="font-medium text-slate-900">
-                    {payment.bankAccount}
-                  </p>
-                </div>
-              </div>
-
-              {/* Transaction Details (only for processed) */}
-              {payment.status === "Processed" && (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                        Payment Date
-                      </p>
-                      <p className="font-medium text-slate-900">
-                        {payment.paymentDate}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                        Transaction ID
-                      </p>
-                      <p className="font-medium text-slate-900">
-                        {payment.transactionId}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
-                        Processed By
-                      </p>
-                      <p className="font-medium text-slate-900">
-                        {payment.processedBy}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </>
-  );
-});
