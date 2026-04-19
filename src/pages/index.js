@@ -30,7 +30,6 @@ export default function Home() {
       </Head>
       {/* Professional Header */}
       <Navbar />
-      
 
       {/* Hero Section - Professional & Institutional */}
      <Hero />
