@@ -11,16 +11,22 @@ export const Workflow = () => {
     return (
         <section className="px-6 py-32 bg-[#f8f9fc] min-h-screen flex flex-col items-center">
             {/* Header */}
-            <div className="text-center mb-20 relative z-10">
-                <h4 className={`text-[#293e90] text-sm font-bold tracking-[0.2em] uppercase mb-4 ${poppins.className}`}>
-                    Organizational Structure
-                </h4>
-                <h2 className={`text-4xl md:text-[54px] font-extrabold text-[#0f172a] mb-6 tracking-tight leading-tight ${poppins.className}`}>
-                    Strategic Governance
-                </h2>
-                <p className={`text-[17px] text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed ${poppins.className}`}>
-                    A streamlined flow of accountability and operations, ensuring policies formulated at the State level are effectively executed across every community.
-                </p>
+            <div className="w-full max-w-5xl mb-24 relative z-10 flex flex-col md:flex-row justify-between items-start gap-8 md:gap-12">
+                <div className="text-left flex-1 relative">
+                    {/* Subtle glow behind the title */}
+                    <div className="absolute -top-12 -left-12 w-48 h-48 bg-[#293e90]/10 rounded-full blur-3xl pointer-events-none" />
+                    <h4 className={`text-[#293e90] text-sm font-bold tracking-[0.2em] uppercase mb-3 relative z-10 ${poppins.className}`}>
+                        Organizational Structure
+                    </h4>
+                    <h2 className={`text-4xl md:text-[54px] font-extrabold text-[#0f172a] tracking-tight leading-tight relative z-10 ${poppins.className}`}>
+                        Strategic Governance
+                    </h2>
+                </div>
+                <div className="max-w-md pl-6 md:pl-8 border-l-[3px] border-[#293e90]/30 flex-shrink-0 mt-2 md:mt-4">
+                    <p className={`text-[16px] text-slate-500 font-medium text-left leading-relaxed ${poppins.className}`}>
+                        A streamlined flow of accountability and operations, ensuring policies formulated at the State level are effectively executed across every community.
+                    </p>
+                </div>
             </div>
 
             {/* Tree Container */}
