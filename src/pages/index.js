@@ -6,6 +6,7 @@ import { Navbar } from "@/components/HomePage/Navbar";
 import { Hero } from "@/components/HomePage/Hero";
 import { Workflow } from "@/components/HomePage/Workflow";
 import { Stats } from "@/components/HomePage/Stats";
+import { Impact } from "@/components/HomePage/Impact";
 import {
   Shield,
   Users,
@@ -41,6 +42,9 @@ export default function Home() {
 
       {/* Statistics Section */}
       <Stats />
+
+      {/* Impact Grid Section */}
+      <Impact />
 
       {/* CTA Section */}
       <section className="px-6 py-20 lg:px-8 bg-gradient-to-br from-tech-blue-600 via-steel-600 to-tech-blue-700 relative overflow-hidden">

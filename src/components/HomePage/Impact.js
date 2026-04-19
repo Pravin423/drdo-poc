@@ -1,0 +1,74 @@
+import React from 'react';
+import ScrollStack, { ScrollStackItem } from './ScrollStack';
+import { ArrowRight } from 'lucide-react';
+import { Poppins } from 'next/font/google';
+
+const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'] });
+
+const impactStories = [
+  {
+    category: "PONDA BLOCK",
+    title: "Empowering Women Entrepreneurs through Micro-loans",
+    bgClass: "bg-gradient-to-br from-[#d99f73] via-[#b36a3e] to-[#20273a]",
+    // Using a nice gradient instead of images for now since we don't have the assets
+  },
+  {
+    category: "DATA INSIGHTS",
+    title: "How Digitization Accelerated Honorarium by 40%",
+    bgClass: "bg-gradient-to-br from-[#121f1d] via-[#111e24] to-[#0d141e]",
+  },
+  {
+    category: "INFRASTRUCTURE",
+    title: "Building Sustainable Community Hubs",
+    bgClass: "bg-gradient-to-br from-[#274029] via-[#1a2e1d] to-[#111812]",
+  },
+  {
+    category: "CANACONA BLOCK",
+    title: "Organic Farming: A New Horizon for Rural Youth",
+    bgClass: "bg-gradient-to-br from-[#537e28] via-[#2d4d16] to-[#0a1208]",
+  }
+];
+
+export const Impact = () => {
+  return (
+    <section className={`pt-24 bg-[#f8f9fc] ${poppins.className}`}>
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start md:items-end mb-8">
+        <div>
+          <h4 className="text-[#1e2b58] font-extrabold text-sm tracking-[0.15em] uppercase mb-3">Stories of Change</h4>
+          <h2 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold text-[#0f172a] tracking-tight">The Impact Grid</h2>
+        </div>
+        <button className="flex items-center gap-2 text-[#293e90] font-bold hover:text-tech-blue-600 transition-colors mt-6 md:mt-0 group">
+          View All Stories <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+      </div>
+
+      <div className="w-full relative">
+        <ScrollStack 
+          useWindowScroll={true} 
+          itemDistance={40} 
+          itemStackDistance={35}
+          className="max-w-5xl mx-auto"
+        >
+          {impactStories.map((story, idx) => (
+            <ScrollStackItem 
+              key={idx} 
+              itemClassName={`flex flex-col justify-end p-10 md:p-14 text-white overflow-hidden ${story.bgClass}`}
+            >
+              {/* Optional: We can add an overlay to ensure text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none rounded-[40px]" />
+              
+              <div className="relative z-10">
+                <span className="text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase mb-3 block opacity-80">
+                  {story.category}
+                </span>
+                <h3 className="text-3xl md:text-4xl font-bold leading-tight max-w-2xl text-white drop-shadow-lg">
+                  {story.title}
+                </h3>
+              </div>
+            </ScrollStackItem>
+          ))}
+        </ScrollStack>
+      </div>
+    </section>
+  );
+};
