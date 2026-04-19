@@ -1,3 +1,4 @@
+import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -22,6 +23,10 @@ import {
 export default function Home() {
   return (
     <div className="min-h-screen bg-white relative">
+      <Head>
+        <title>DRDA GOA</title>
+        <link rel="icon" href="/Seal_of_Goa.webp" />
+      </Head>
       {/* Professional Header */}
       <Navbar />
       
