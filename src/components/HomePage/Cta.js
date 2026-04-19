@@ -5,7 +5,7 @@ import { Lock, ArrowRight, Shield } from 'lucide-react';
 
 export const Cta = () => {
     return (
-        <section className="px-6 py-20 lg:px-8 bg-gradient-to-br from-tech-blue-600 via-steel-600 to-tech-blue-700 relative overflow-hidden">
+        <section className="px-6 pt-20 pb-40 lg:px-8 bg-gradient-to-br from-tech-blue-600 via-steel-600 to-tech-blue-700 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 left-0 w-full h-full" style={{
                     backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
