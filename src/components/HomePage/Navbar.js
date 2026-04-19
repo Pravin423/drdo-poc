@@ -92,7 +92,7 @@ export const Navbar = () => {
 
                     {/* Center: Navigation Links */}
                     <nav className="hidden lg:flex items-center gap-8">
-                        {['About Us', 'Services', 'Schemes', 'Tenders', 'Contact'].map((item) => {
+                        {['Our Journey', 'Pillars', 'Initiatives', 'Impact'].map((item) => {
                             const isActive = item === 'Schemes';
                             return (
                                 <Link
