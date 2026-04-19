@@ -61,6 +61,7 @@ const BorderGlow = ({
   glowIntensity = 1.0,
   coneSpread = 25,
   animated = false,
+  continuous = false,
   colors = ['#c084fc', '#f472b6', '#38bdf8'],
   fillOpacity = 0.5,
 }) => {
@@ -109,6 +110,25 @@ const BorderGlow = ({
 
   useEffect(() => {
     if (!animated) return;
+
+    if (continuous) {
+      setSweepActive(true);
+      setEdgeProximity(1); // Make it fully visible
+      let frameId;
+      const startTime = performance.now();
+
+      const rotate = (now) => {
+        const elapsed = now - startTime;
+        // 360 degrees every 3 seconds
+        const angle = (elapsed / 3000) * 360;
+        setCursorAngle(angle % 360);
+        frameId = requestAnimationFrame(rotate);
+      };
+
+      frameId = requestAnimationFrame(rotate);
+      return () => cancelAnimationFrame(frameId);
+    }
+
     const angleStart = 110;
     const angleEnd = 465;
     setSweepActive(true);
@@ -125,7 +145,7 @@ const BorderGlow = ({
       onUpdate: v => setEdgeProximity(v / 100),
       onEnd: () => setSweepActive(false),
     });
-  }, [animated]);
+  }, [animated, continuous]);
 
   const colorSensitivity = edgeSensitivity + 20;
   const isVisible = isHovered || sweepActive;

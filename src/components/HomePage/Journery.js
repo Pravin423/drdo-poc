@@ -34,16 +34,18 @@ export default function Journery() {
                         backgroundColor="#f8f9fc"
                         borderRadius={999}
                         glowColor="210 100 60"
-                        glowIntensity={2.5}
+                        glowIntensity={3.5}
                         fillOpacity={0.9}
                         colors={['#1e40af', '#3b82f6', '#60a5fa']}
                         animated={true}
+                        continuous={true}
+                        coneSpread={35}
                     >
                         <div className="w-full h-full flex items-center justify-center p-10 lg:p-14 relative overflow-hidden">
                             <img
                                 src="/Seal_of_Goa.webp"
                                 alt="Seal of Goa"
-                                className="w-full h-full object-contain drop-shadow-2xl scale-125 transition-transform duration-700 hover:scale-110"
+                                className="w-full h-full object-contain drop-shadow-2xl scale-125"
                                 onError={(e) => {
                                     // Fallback if image doesn't exist yet
                                     e.target.style.display = 'none';
