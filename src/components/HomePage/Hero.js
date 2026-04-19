@@ -20,7 +20,7 @@ export const Hero = () => {
           className="w-full h-full object-cover"
         />
         {/* Dark Overlay for text readability */}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/30" />
         
         {/* Bottom fade to white */}
         <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-white via-white/80 to-transparent" />
