@@ -50,7 +50,7 @@ export const Hero = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className={`text-lg md:text-xl text-white/95 text-center max-w-3xl mx-auto leading-relaxed mb-12 ${poppins.className} font-medium`}
+                    className={`text-lg md:text-xl text-white/95 text-center max-w-3xl mx-auto leading-relaxed mb-10 ${poppins.className} font-medium`}
                 >
                     Connecting dedicated Community Resource Persons with village<br className="hidden md:block" />
                     elders and Self-Help Groups to build a resilient and vibrant future for<br className="hidden md:block" />
@@ -62,7 +62,7 @@ export const Hero = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
-                    className="flex flex-col sm:flex-row gap-5 mb-24"
+                    className="flex flex-col sm:flex-row gap-5 mb-17"
                 >
                     <button className={`px-8 py-3.5 rounded-full bg-[#293e90] text-white font-semibold text-lg hover:bg-[#1e2b58] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 ${poppins.className}`}>
                         Explore Our Journey
