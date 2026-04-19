@@ -13,12 +13,12 @@ export const Navbar = () => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
-        <header className={`sticky top-0 z-50 border-b transition-all duration-700 ease-in-out ${
+        <header className={`sticky top-0 z-50 border-b transition-colors duration-700 ease-in-out ${
             isScrolled ? 'border-transparent shadow-lg' : 'border-slate-200 shadow-none'
         }`}>
             {/* Solid White Background Overlay */}
@@ -35,19 +35,29 @@ export const Navbar = () => {
                 }`} 
             />
 
-            <div className={`relative z-10 max-w-7xl mx-auto px-6 lg:px-8 transition-all duration-700 ease-in-out ${isScrolled ? 'py-3' : 'py-4'}`}>
+            <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-3.5">
                 <div className="flex items-center justify-between">
 
                     {/* Left: Logo + Title */}
                     <div className="flex items-center gap-4">
-                        <div className="h-18 w-18">
+                        <div className="relative h-[63px] w-[63px]">
+                            {/* Standard Logo */}
                             <Image
                                 src="/Seal_of_Goa.webp"
                                 alt="Government of Goa Seal"
-                                width={63}
-                                height={63}
+                                fill
+                                sizes="63px"
                                 priority
-                                className={`object-contain transition-all duration-700 ${isScrolled ? 'brightness-0 invert' : ''}`}
+                                className={`object-contain transition-opacity duration-700 ease-in-out ${isScrolled ? 'opacity-0' : 'opacity-100'}`}
+                            />
+                            {/* White Inverted Logo for Scrolled State */}
+                            <Image
+                                src="/Seal_of_Goa.webp"
+                                alt="Government of Goa Seal"
+                                fill
+                                sizes="63px"
+                                priority
+                                className={`object-contain brightness-0 invert transition-opacity duration-700 ease-in-out ${isScrolled ? 'opacity-100' : 'opacity-0'}`}
                             />
                         </div>
 

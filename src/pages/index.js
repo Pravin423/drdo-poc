@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/HomePage/Navbar";
+import { Hero } from "@/components/HomePage/Hero";
 import {
   Shield,
   Users,
@@ -32,130 +33,7 @@ export default function Home() {
       
 
       {/* Hero Section - Professional & Institutional */}
-      <section className="relative px-6 py-16 lg:py-24 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-tech-blue-100 rounded-full mix-blend-multiply filter blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-steel-100 rounded-full mix-blend-multiply filter blur-3xl" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            {/* Left Content */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-                Community Resource Person Management System
-              </h1>
-
-              <p className="text-lg text-slate-700 leading-relaxed mb-8">
-                A centralized digital platform for efficient management and monitoring of
-                Community Resource Persons (CRPs) under the District Rural Development Agency,
-                Government of Goa. Designed to streamline administrative processes, enhance
-                transparency, and improve rural development program delivery.
-              </p>
-
-              <div className="space-y-4 mb-8">
-                <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center mt-0.5">
-                    <CheckCircle2 size={18} className="text-emerald-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Role-Based Access Control</h3>
-                    <p className="text-sm text-slate-600">
-                      Secure authentication for State Administrators, District Officials, Finance Teams, Supervisors, and CRPs
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-tech-blue-100 flex items-center justify-center mt-0.5">
-                    <CheckCircle2 size={18} className="text-tech-blue-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Real-Time Data Synchronization</h3>
-                    <p className="text-sm text-slate-600">
-                      Automated data collection and reporting for attendance, task management, and honorarium processing
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-steel-100 flex items-center justify-center mt-0.5">
-                    <CheckCircle2 size={18} className="text-steel-700" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-1">Comprehensive Analytics</h3>
-                    <p className="text-sm text-slate-600">
-                      Dashboard insights and performance metrics for data-driven decision making
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-tech-blue-500 text-white font-semibold hover:bg-tech-blue-600 transition-all duration-300 shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40"
-                >
-                  <Lock size={18} />
-                  Access Secure Portal
-                  <ArrowRight size={18} />
-                </Link>
-                <button className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white border-2 border-slate-300 text-slate-700 font-semibold hover:border-tech-blue-400 hover:bg-tech-blue-50 hover:text-tech-blue-700 transition-all duration-300">
-                  <FileCheck size={18} />
-                  System Documentation
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Right Side - Professional Info Cards */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-6"
-            >
-              {/* Image Card */}
-              <div className="h-[420px] rounded-3xl border-2 border-slate-200 bg-white shadow-xl overflow-hidden flex items-center justify-center">
-                <img
-                  src="/Seal_of_Goa.webp"
-                  alt="Seal of Goa"
-                  className="max-w-[85%] max-h-[85%] object-contain"
-                />
-              </div>
-
-              {/* Security & Compliance */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="h-10 w-10 rounded-xl bg-rose-100 flex items-center justify-center mb-3">
-                    <Lock size={20} className="text-rose-600" />
-                  </div>
-                  <p className="font-bold text-slate-900 mb-1">Secure Access</p>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    256-bit encryption & role-based authentication
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center mb-3">
-                    <Database size={20} className="text-emerald-600" />
-                  </div>
-                  <p className="font-bold text-slate-900 mb-1">Data Integrity</p>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Automated backups & audit trail logging
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
-          </div>
-        </div>
-      </section>
+     <Hero />
 
       {/* Key Features Section */}
       <section className="px-6 py-20 lg:px-8 bg-slate-50">
