@@ -9,11 +9,14 @@ const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700
 export const Hero = () => {
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-20 pb-32 px-6">
-      {/* Background Image */}
+      {/* Background Video */}
       <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1506057213367-028a17ec52e5?q=80&w=2070&auto=format&fit=crop" 
-          alt="Tropical Leaves Background" 
+        <video 
+          src="/herobackground.mp4" 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="w-full h-full object-cover"
         />
         {/* Dark Overlay for text readability */}

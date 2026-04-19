@@ -54,18 +54,18 @@ export const Navbar = () => {
                 }`} 
             />
 
-            <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-3.5">
+            <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-2.5">
                 <div className="flex items-center justify-between">
 
                     {/* Left: Logo + Title */}
                     <div className="flex items-center gap-4">
-                        <div className="relative h-[63px] w-[63px]">
+                        <div className="relative h-[54px] w-[54px]">
                             {/* Standard Logo */}
                             <Image
                                 src="/Seal_of_Goa.webp"
                                 alt="Government of Goa Seal"
                                 fill
-                                sizes="63px"
+                                sizes="54px"
                                 priority
                                 className={`object-contain transition-opacity duration-700 ease-in-out ${isScrolled ? 'opacity-0' : 'opacity-100'}`}
                             />
@@ -74,7 +74,7 @@ export const Navbar = () => {
                                 src="/Seal_of_Goa.webp"
                                 alt="Government of Goa Seal"
                                 fill
-                                sizes="63px"
+                                sizes="54px"
                                 priority
                                 className={`object-contain brightness-0 invert transition-opacity duration-700 ease-in-out ${isScrolled ? 'opacity-100' : 'opacity-0'}`}
                             />
