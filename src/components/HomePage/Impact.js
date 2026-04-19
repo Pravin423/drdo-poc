@@ -7,24 +7,23 @@ const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700
 
 const impactStories = [
   {
-    category: "PONDA BLOCK",
-    title: "Empowering Women Entrepreneurs through Micro-loans",
+    category: "CRP NETWORK",
+    title: "How Automated Tracking Reduced Honorarium Delays by 60%",
     bgClass: "bg-gradient-to-br from-[#d99f73] via-[#b36a3e] to-[#20273a]",
-    // Using a nice gradient instead of images for now since we don't have the assets
   },
   {
-    category: "DATA INSIGHTS",
-    title: "How Digitization Accelerated Honorarium by 40%",
+    category: "NORTH GOA DISTRICT",
+    title: "Digitizing Panchayat Records: A Leap Towards 100% Transparency",
     bgClass: "bg-gradient-to-br from-[#121f1d] via-[#111e24] to-[#0d141e]",
   },
   {
-    category: "INFRASTRUCTURE",
-    title: "Building Sustainable Community Hubs",
+    category: "BARDEZ TALUKA",
+    title: "Empowering Local Self-Help Groups with Real-Time Micro-loans",
     bgClass: "bg-gradient-to-br from-[#274029] via-[#1a2e1d] to-[#111812]",
   },
   {
-    category: "CANACONA BLOCK",
-    title: "Organic Farming: A New Horizon for Rural Youth",
+    category: "SOUTH GOA DISTRICT",
+    title: "Sustainable Rural Infrastructure: Upgrading 50+ Village Centers",
     bgClass: "bg-gradient-to-br from-[#537e28] via-[#2d4d16] to-[#0a1208]",
   }
 ];
