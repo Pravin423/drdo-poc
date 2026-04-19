@@ -10,6 +10,7 @@ import { Pillars } from "@/components/HomePage/Pillars";
 import { Impact } from "@/components/HomePage/Impact";
 import Journery from "@/components/HomePage/Journery";
 import { Cta } from "@/components/HomePage/Cta";
+import Voices from '@/components/HomePage/Voices';
 import {
   Shield,
   Users,
@@ -54,6 +55,8 @@ export default function Home() {
 
       {/* Shared Journey Section */}
       <Journery />
+
+      <Voices/>
 
       {/* CTA Section */}
       <Cta />
