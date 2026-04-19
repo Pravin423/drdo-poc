@@ -88,13 +88,13 @@ export const Navbar = () => {
                     <Link
                         href="/login"
                         aria-label="Login to CRP Portal"
-                        className={`inline-flex items-center gap-2.5 px-4 py-2 sm:px-6 sm:py-2 rounded-full border-2 font-semibold text-sm transition-all duration-700 ${
+                        className={`group inline-flex items-center gap-2.5 px-4 py-2 sm:px-6 sm:py-2 rounded-full border-2 font-semibold text-sm transition-all duration-300 ease-out hover:scale-105 hover:shadow-md active:scale-95 ${
                             isScrolled
-                                ? 'bg-white border-white text-[#293e90] hover:bg-slate-100'
-                                : 'bg-[#f6f8fb] border-[#d0d7e8] text-[#293e90] hover:bg-[#ebf0f7]'
+                                ? 'bg-white border-white text-[#293e90] hover:bg-slate-50 hover:shadow-white/20'
+                                : 'bg-[#f6f8fb] border-[#d0d7e8] text-[#293e90] hover:bg-white hover:border-[#293e90]'
                         }`}
                     >
-                        <LogIn size={18} strokeWidth={2} />
+                        <LogIn size={18} strokeWidth={2} className="transition-transform duration-300 group-hover:translate-x-1" />
                         <span className="hidden sm:inline">Login</span>
                     </Link>
 
