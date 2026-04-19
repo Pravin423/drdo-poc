@@ -28,25 +28,13 @@ export const Hero = () => {
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center w-full max-w-5xl mx-auto mt-12">
-        
-        {/* Top Badge */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <span className="px-5 py-2 rounded-full bg-[#1e2b58]/80 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold tracking-widest uppercase shadow-lg">
-            Village Development Agency
-          </span>
-        </motion.div>
 
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-center mb-8"
+          className="text-center mt-[50px] mb-8"
         >
           <h1 className={`text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.15] tracking-tight ${poppins.className}`}>
             Empowering Rural <span className="relative inline-block">
