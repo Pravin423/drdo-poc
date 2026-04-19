@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Navbar } from "@/components/HomePage/Navbar";
 import { Hero } from "@/components/HomePage/Hero";
 import { Workflow } from "@/components/HomePage/Workflow";
+import { Stats } from "@/components/HomePage/Stats";
 import {
   Shield,
   Users,
@@ -39,42 +40,7 @@ export default function Home() {
       <Workflow />
 
       {/* Statistics Section */}
-      <section className="px-6 py-20 lg:px-8 bg-white border-y border-slate-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              System Performance Metrics
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Current statistics from the CRP Management System
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { label: "Districts Covered", value: "6", icon: Globe, color: "tech-blue" },
-              { label: "Active CRPs", value: "12,847", icon: Users, color: "emerald" },
-              { label: "Average Attendance", value: "87.3%", icon: Activity, color: "amber" },
-              { label: "System Uptime", value: "98.5%", icon: Shield, color: "rose" }
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center p-8 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:border-tech-blue-300 transition-all duration-300"
-              >
-                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-xl bg-${stat.color}-100 mb-4`}>
-                  <stat.icon size={28} className={`text-${stat.color}-600`} />
-                </div>
-                <p className="text-4xl font-bold text-slate-900 mb-2">{stat.value}</p>
-                <p className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{stat.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Stats />
 
       {/* CTA Section */}
       <section className="px-6 py-20 lg:px-8 bg-gradient-to-br from-tech-blue-600 via-steel-600 to-tech-blue-700 relative overflow-hidden">
