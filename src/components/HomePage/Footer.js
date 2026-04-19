@@ -51,17 +51,20 @@ const Footer = () => {
             {/* Brand Column — wider */}
             <div className="lg:col-span-4 flex flex-col gap-8">
               <div>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 border border-white/20 flex items-center justify-center">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-xl flex items-center justify-center p-2">
                     <Image
                       src="/Seal_of_Goa.webp"
                       alt="Seal of Goa"
-                      width={36}
-                      height={36}
-                      className="object-contain brightness-200"
+                      width={52}
+                      height={52}
+                      className="object-contain"
                     />
                   </div>
-                  <h3 className="text-2xl font-black text-white tracking-tight">DRDA Goa</h3>
+                  <div className="flex flex-col">
+                    <h3 className="text-2xl font-black text-white tracking-tight leading-none mb-1">DRDA Goa</h3>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em]">Government of Goa</p>
+                  </div>
                 </div>
                 <p className="text-slate-400 leading-[1.8] text-[15px] max-w-sm">
                   District Rural Development Agency, Government of Goa — committed to building
