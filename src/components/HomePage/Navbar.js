@@ -8,19 +8,38 @@ const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700
 
 export const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isHidden, setIsHidden] = useState(false);
+    const lastScrollY = React.useRef(0);
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
+            const currentScrollY = window.scrollY;
+            
+            // Color change threshold
+            setIsScrolled(currentScrollY > 20);
+            
+            // Smart collapse logic: hide when scrolling down past 300px, show when scrolling up
+            if (currentScrollY > 600) {
+                if (currentScrollY > lastScrollY.current) {
+                    setIsHidden(true);
+                } else {
+                    setIsHidden(false);
+                }
+            } else {
+                setIsHidden(false);
+            }
+            
+            lastScrollY.current = currentScrollY;
         };
+        
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
-        <header className={`sticky top-0 z-50 border-b transition-colors duration-700 ease-in-out ${
+        <header className={`sticky top-0 z-50 border-b transition-all duration-700 ease-in-out ${
             isScrolled ? 'border-transparent shadow-lg' : 'border-slate-200 shadow-none'
-        }`}>
+        } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
             {/* Solid White Background Overlay */}
             <div 
                 className={`absolute inset-0 bg-white transition-opacity duration-700 ease-in-out pointer-events-none ${
