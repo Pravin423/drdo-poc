@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/HomePage/Navbar";
 import { Hero } from "@/components/HomePage/Hero";
+import { Workflow } from "@/components/HomePage/Workflow";
 import {
   Shield,
   Users,
@@ -32,77 +33,10 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section - Professional & Institutional */}
-     <Hero />
-
-      {/* Key Features Section */}
-      <section className="px-6 py-20 lg:px-8 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              System Capabilities
-            </h2>
-            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-              Comprehensive tools designed to support rural development initiatives and streamline administrative workflows
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Users,
-                title: "CRP Database Management",
-                description: "Centralized repository of all Community Resource Persons with detailed profiles, qualifications, and assignment history.",
-                color: "tech-blue"
-              },
-              {
-                icon: MapPin,
-                title: "Geographic Coverage Tracking",
-                description: "Monitor CRP distribution and field activities across all districts with geo-tagged attendance and task verification.",
-                color: "steel"
-              },
-              {
-                icon: TrendingUp,
-                title: "Performance Analytics",
-                description: "Real-time dashboards displaying attendance trends, task completion rates, and program effectiveness metrics.",
-                color: "emerald"
-              },
-              {
-                icon: FileCheck,
-                title: "Honorarium Calculation",
-                description: "Automated computation of honorariums based on attendance, task completion, and approved rates with audit trails.",
-                color: "amber"
-              },
-              {
-                icon: Shield,
-                title: "Audit & Compliance",
-                description: "Comprehensive logging of all system activities with role-based access controls ensuring data security and accountability.",
-                color: "rose"
-              },
-              {
-                icon: Globe,
-                title: "Multi-Level Access",
-                description: "Hierarchical access system for State, District, Block, and Field level officials with customized views and permissions.",
-                color: "purple"
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-tech-blue-300 hover:shadow-lg transition-all duration-300"
-              >
-                <div className={`h-12 w-12 rounded-xl bg-${feature.color}-100 flex items-center justify-center mb-4`}>
-                  <feature.icon size={24} className={`text-${feature.color}-600`} />
-                </div>
-                <h3 className="font-bold text-slate-900 mb-2 text-lg">{feature.title}</h3>
-                <p className="text-sm text-slate-600 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Hero />
+      
+      {/* Organization Workflow */}
+      <Workflow />
 
       {/* Statistics Section */}
       <section className="px-6 py-20 lg:px-8 bg-white border-y border-slate-200">
