@@ -6,6 +6,7 @@ import { Navbar } from "@/components/HomePage/Navbar";
 import { Hero } from "@/components/HomePage/Hero";
 import { Workflow } from "@/components/HomePage/Workflow";
 import { Stats } from "@/components/HomePage/Stats";
+import { Pillars } from "@/components/HomePage/Pillars";
 import { Impact } from "@/components/HomePage/Impact";
 import Journery from "@/components/HomePage/Journery";
 import { Cta } from "@/components/HomePage/Cta";
@@ -44,6 +45,9 @@ export default function Home() {
 
       {/* Statistics Section */}
       <Stats />
+
+      {/* Operational Pillars Section */}
+      <Pillars />
 
       {/* Impact Grid Section */}
       <Impact />
