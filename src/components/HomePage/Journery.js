@@ -26,24 +26,24 @@ export default function Journery() {
                     className="w-full lg:w-1/2 relative"
                 >
                     {/* Shadow glow */}
-                    <div className="absolute inset-0 bg-[#293e90]/10 blur-[60px] rounded-[3rem] transform -rotate-3 scale-105" />
+                    <div className="absolute inset-0 bg-[#293e90]/10 blur-[60px] rounded-full transform -rotate-3 scale-105" />
 
                     {/* Main Image Container */}
                     <BorderGlow
-                        className="relative aspect-square w-full max-w-[500px] mx-auto shadow-[0_20px_50px_-15px_rgba(41,62,144,0.15)] bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0]"
+                        className="relative aspect-square w-full max-w-[380px] mx-auto shadow-[0_20px_50px_-15px_rgba(41,62,144,0.15)] bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0]"
                         backgroundColor="#f8f9fc"
-                        borderRadius={40}
+                        borderRadius={999}
                         glowColor="210 100 60"
                         glowIntensity={2.5}
                         fillOpacity={0.9}
                         colors={['#1e40af', '#3b82f6', '#60a5fa']}
                         animated={true}
                     >
-                        <div className="w-full h-full flex items-center justify-center p-8 lg:p-12 relative overflow-hidden">
+                        <div className="w-full h-full flex items-center justify-center p-10 lg:p-14 relative overflow-hidden">
                             <img
                                 src="/Seal_of_Goa.webp"
                                 alt="Seal of Goa"
-                                className="w-full h-full object-contain drop-shadow-2xl"
+                                className="w-full h-full object-contain drop-shadow-2xl scale-125 transition-transform duration-700 hover:scale-110"
                                 onError={(e) => {
                                     // Fallback if image doesn't exist yet
                                     e.target.style.display = 'none';
