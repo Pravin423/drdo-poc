@@ -43,9 +43,11 @@ export const Workflow = () => {
                     transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
                     className="max-w-[420px] p-7 md:p-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_40px_-15px_rgba(41,62,144,0.08)] border border-white flex-shrink-0 mt-4 md:mt-6 relative overflow-hidden group hover:shadow-[0_20px_40px_-15px_rgba(41,62,144,0.12)] transition-shadow duration-500"
                 >
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#293e90] to-[#4361ee] group-hover:w-2 transition-all duration-300" />
-                    <p className={`text-[16px] text-slate-500 font-medium text-left leading-relaxed ${poppins.className}`}>
-                        A streamlined flow of accountability and operations, ensuring policies formulated at the <strong className="text-[#1e2b58]">State level</strong> are effectively executed across every <strong className="text-[#1e2b58]">community</strong>.
+                    {/* Expanding Background on Hover */}
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-r from-[#1e2b58] to-[#293e90] group-hover:w-full transition-all duration-500 ease-out z-0" />
+                    
+                    <p className={`text-[16px] text-slate-500 group-hover:text-white/90 font-medium text-left leading-relaxed relative z-10 transition-colors duration-500 ${poppins.className}`}>
+                        A streamlined flow of accountability and operations, ensuring policies formulated at the <strong className="text-[#1e2b58] group-hover:text-white transition-colors duration-500">State level</strong> are effectively executed across every <strong className="text-[#1e2b58] group-hover:text-white transition-colors duration-500">community</strong>.
                     </p>
                 </motion.div>
             </motion.div>
