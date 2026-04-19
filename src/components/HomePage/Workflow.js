@@ -28,48 +28,49 @@ export const Workflow = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-[#293e90] text-white px-12 py-5 rounded-full font-bold text-lg shadow-[0_8px_30px_rgb(41,62,144,0.3)] z-10"
+          className="bg-[#293e90] text-white px-12 py-5 rounded-full font-bold text-lg shadow-[0_8px_30px_rgb(41,62,144,0.3)] z-10 relative"
         >
           State Headquarters (DRDA)
         </motion.div>
 
-        {/* Line down */}
-        <div className="w-px h-12 bg-slate-300" />
+        {/* Stem down from State HQ */}
+        <div className="w-0 h-10 border-l-[2.5px] border-dashed border-slate-300" />
 
-        {/* Level 2 Container */}
+        {/* Level 2 Container (Districts) */}
         <div className="flex w-full max-w-4xl justify-center relative">
-          {/* Horizontal connection */}
-          <div className="absolute top-0 left-1/4 right-1/4 h-px bg-slate-300" />
 
-          {/* North Goa Branch */}
-          <div className="flex-1 flex flex-col items-center relative px-4">
-            <div className="w-px h-10 bg-slate-300 absolute top-0 left-1/2 -translate-x-1/2" />
+          {/* North Goa Branch (Left) */}
+          <div className="flex-1 flex flex-col items-center relative px-2 sm:px-4">
+            {/* Curvy Dotted Connection */}
+            <div className="absolute top-0 right-0 w-[50%] h-12 border-t-[2.5px] border-l-[2.5px] border-dashed border-slate-300 rounded-tl-[2rem]" />
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="mt-10 bg-white border border-slate-200/60 px-10 py-8 rounded-[2.5rem] text-[#293e90] font-bold text-lg shadow-[0_10px_40px_rgb(0,0,0,0.04)] w-full max-w-[320px] text-center z-10"
+              className="mt-12 bg-white border border-slate-200/60 px-10 py-8 rounded-[2.5rem] text-[#293e90] font-bold text-lg shadow-[0_10px_40px_rgb(0,0,0,0.04)] w-full max-w-[320px] text-center z-10 relative"
             >
               North Goa District
             </motion.div>
 
-            <div className="w-px h-12 bg-slate-300" />
+            {/* Stem down from North Goa */}
+            <div className="w-0 h-10 border-l-[2.5px] border-dashed border-slate-300" />
 
             {/* North Goa Talukas */}
-            <div className="flex w-full justify-center relative gap-4 sm:gap-6">
-              <div className="absolute top-0 left-1/4 right-1/4 h-px bg-slate-300" />
+            <div className="flex w-full justify-center">
               
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="flex-1 flex flex-col items-center relative"
+                className="flex-1 flex flex-col items-center relative px-2 sm:px-3"
               >
-                <div className="w-px h-8 bg-slate-300 absolute top-0 left-1/2 -translate-x-1/2" />
-                <div className="mt-8 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50">
+                {/* Left curve */}
+                <div className="absolute top-0 right-0 w-[50%] h-10 border-t-[2.5px] border-l-[2.5px] border-dashed border-slate-300 rounded-tl-3xl" />
+                
+                <div className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10">
                   TALUKA LEVEL
                 </div>
               </motion.div>
@@ -79,45 +80,50 @@ export const Workflow = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="flex-1 flex flex-col items-center relative opacity-80"
+                className="flex-1 flex flex-col items-center relative px-2 sm:px-3 opacity-80"
               >
-                <div className="w-px h-8 bg-slate-300 absolute top-0 left-1/2 -translate-x-1/2" />
-                <div className="mt-8 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50">
+                {/* Right curve */}
+                <div className="absolute top-0 left-0 w-[50%] h-10 border-t-[2.5px] border-r-[2.5px] border-dashed border-slate-300 rounded-tr-3xl" />
+
+                <div className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10">
                   TALUKA LEVEL
                 </div>
               </motion.div>
             </div>
           </div>
 
-          {/* South Goa Branch */}
-          <div className="flex-1 flex flex-col items-center relative px-4">
-            <div className="w-px h-10 bg-slate-300 absolute top-0 left-1/2 -translate-x-1/2" />
+          {/* South Goa Branch (Right) */}
+          <div className="flex-1 flex flex-col items-center relative px-2 sm:px-4">
+            {/* Curvy Dotted Connection */}
+            <div className="absolute top-0 left-0 w-[50%] h-12 border-t-[2.5px] border-r-[2.5px] border-dashed border-slate-300 rounded-tr-[2rem]" />
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
-              className="mt-10 bg-white border border-slate-200/60 px-10 py-8 rounded-[2.5rem] text-[#293e90] font-bold text-lg shadow-[0_10px_40px_rgb(0,0,0,0.04)] w-full max-w-[320px] text-center z-10"
+              className="mt-12 bg-white border border-slate-200/60 px-10 py-8 rounded-[2.5rem] text-[#293e90] font-bold text-lg shadow-[0_10px_40px_rgb(0,0,0,0.04)] w-full max-w-[320px] text-center z-10 relative"
             >
               South Goa District
             </motion.div>
 
-            <div className="w-px h-12 bg-slate-300" />
+            {/* Stem down from South Goa */}
+            <div className="w-0 h-10 border-l-[2.5px] border-dashed border-slate-300" />
 
             {/* South Goa Talukas */}
-            <div className="flex w-full justify-center relative gap-4 sm:gap-6">
-              <div className="absolute top-0 left-1/4 right-1/4 h-px bg-slate-300" />
+            <div className="flex w-full justify-center">
               
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="flex-1 flex flex-col items-center relative opacity-50"
+                className="flex-1 flex flex-col items-center relative px-2 sm:px-3 opacity-50"
               >
-                <div className="w-px h-8 bg-slate-300 absolute top-0 left-1/2 -translate-x-1/2" />
-                <div className="mt-8 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50">
+                {/* Left curve */}
+                <div className="absolute top-0 right-0 w-[50%] h-10 border-t-[2.5px] border-l-[2.5px] border-dashed border-slate-300 rounded-tl-3xl" />
+                
+                <div className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10">
                   TALUKA LEVEL
                 </div>
               </motion.div>
@@ -127,10 +133,12 @@ export const Workflow = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.5 }}
-                className="flex-1 flex flex-col items-center relative opacity-30"
+                className="flex-1 flex flex-col items-center relative px-2 sm:px-3 opacity-30"
               >
-                <div className="w-px h-8 bg-slate-300 absolute top-0 left-1/2 -translate-x-1/2" />
-                <div className="mt-8 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50">
+                {/* Right curve */}
+                <div className="absolute top-0 left-0 w-[50%] h-10 border-t-[2.5px] border-r-[2.5px] border-dashed border-slate-300 rounded-tr-3xl" />
+                
+                <div className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10">
                   TALUKA LEVEL
                 </div>
               </motion.div>
