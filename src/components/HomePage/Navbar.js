@@ -19,7 +19,7 @@ export const Navbar = () => {
             setIsScrolled(currentScrollY > 20);
             
             // Smart collapse logic: hide when scrolling down past 300px, show when scrolling up
-            if (currentScrollY > 600) {
+            if (currentScrollY > 500) {
                 if (currentScrollY > lastScrollY.current) {
                     setIsHidden(true);
                 } else {
