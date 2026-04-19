@@ -1,210 +1,310 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Poppins } from 'next/font/google';
+import { Building2, Map, MapPin, Home } from 'lucide-react';
 
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800', '900'] });
 
 export const Workflow = () => {
-  return (
-    <section className="px-6 py-24 bg-[#f8f9fc] min-h-screen flex flex-col items-center overflow-hidden">
-      {/* Header */}
-      <div className="text-center mb-16 relative z-10 mt-10">
-        <h4 className={`text-[#293e90] text-sm font-bold tracking-[0.2em] uppercase mb-4 ${poppins.className}`}>
-          Organizational Structure
-        </h4>
-        <h2 className={`text-4xl md:text-[54px] font-extrabold text-[#0f172a] mb-6 tracking-tight leading-tight ${poppins.className}`}>
-          Strategic Governance
-        </h2>
-        <p className={`text-[17px] text-slate-500 font-medium ${poppins.className}`}>
-          Flow of accountability from State to Community
-        </p>
-      </div>
+    const lineStyle = "border-dashed border-[#293e90]/30";
 
-      {/* Tree Container */}
-      <div className={`flex flex-col items-center w-full max-w-5xl relative z-10 ${poppins.className}`}>
-        
-        {/* Level 1: State HQ */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: -10 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-          className="bg-[#293e90] text-white px-12 py-5 rounded-full font-bold text-lg shadow-[0_8px_30px_rgb(41,62,144,0.3)] z-10 relative"
-        >
-          State Headquarters (DRDA)
-        </motion.div>
-
-        {/* Stem down from State HQ */}
-        <motion.div 
-          initial={{ scaleY: 0 }}
-          whileInView={{ scaleY: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.4, ease: "easeInOut" }}
-          style={{ transformOrigin: 'top' }}
-          className="w-0 h-10 border-l-[2.5px] border-dashed border-slate-300" 
-        />
-
-        {/* Level 2 Container (Districts) */}
-        <div className="flex w-full max-w-4xl justify-center relative">
-
-          {/* North Goa Branch (Left) */}
-          <div className="flex-1 flex flex-col items-center relative px-2 sm:px-4">
-            {/* Curvy Dotted Connection */}
-            <motion.div 
-              initial={{ clipPath: 'inset(0 0 100% 100%)' }}
-              whileInView={{ clipPath: 'inset(0 0 0 0)' }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.8, ease: "easeInOut" }}
-              className="absolute top-0 right-0 w-[50%] h-12 border-t-[2.5px] border-l-[2.5px] border-dashed border-slate-300 rounded-tl-[2rem]" 
-            />
-            
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 1.3 }}
-              className="mt-12 bg-white border border-slate-200/60 px-10 py-8 rounded-[2.5rem] text-[#293e90] font-bold text-lg shadow-[0_10px_40px_rgb(0,0,0,0.04)] w-full max-w-[320px] text-center z-10 relative"
-            >
-              North Goa District
-            </motion.div>
-
-            {/* Stem down from North Goa */}
-            <motion.div 
-              initial={{ scaleY: 0 }}
-              whileInView={{ scaleY: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 1.7, ease: "easeInOut" }}
-              style={{ transformOrigin: 'top' }}
-              className="w-0 h-10 border-l-[2.5px] border-dashed border-slate-300" 
-            />
-
-            {/* North Goa Talukas */}
-            <div className="flex w-full justify-center">
-              
-              <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3">
-                {/* Left curve */}
-                <motion.div 
-                  initial={{ clipPath: 'inset(0 0 100% 100%)' }}
-                  whileInView={{ clipPath: 'inset(0 0 0 0)' }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 2.1, ease: "easeInOut" }}
-                  className="absolute top-0 right-0 w-[50%] h-10 border-t-[2.5px] border-l-[2.5px] border-dashed border-slate-300 rounded-tl-3xl" 
-                />
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 2.6 }}
-                  className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10"
-                >
-                  TALUKA LEVEL
-                </motion.div>
-              </div>
-              
-              <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3 opacity-80">
-                {/* Right curve */}
-                <motion.div 
-                  initial={{ clipPath: 'inset(0 100% 100% 0)' }}
-                  whileInView={{ clipPath: 'inset(0 0 0 0)' }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 2.1, ease: "easeInOut" }}
-                  className="absolute top-0 left-0 w-[50%] h-10 border-t-[2.5px] border-r-[2.5px] border-dashed border-slate-300 rounded-tr-3xl" 
-                />
-
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 2.6 }}
-                  className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10"
-                >
-                  TALUKA LEVEL
-                </motion.div>
-              </div>
+    return (
+        <section className="px-6 py-32 bg-[#f8f9fc] min-h-screen flex flex-col items-center">
+            {/* Header */}
+            <div className="text-center mb-20 relative z-10">
+                <h4 className={`text-[#293e90] text-sm font-bold tracking-[0.2em] uppercase mb-4 ${poppins.className}`}>
+                    Organizational Structure
+                </h4>
+                <h2 className={`text-4xl md:text-[54px] font-extrabold text-[#0f172a] mb-6 tracking-tight leading-tight ${poppins.className}`}>
+                    Strategic Governance
+                </h2>
+                <p className={`text-[17px] text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed ${poppins.className}`}>
+                    A streamlined flow of accountability and operations, ensuring policies formulated at the State level are effectively executed across every community.
+                </p>
             </div>
-          </div>
 
-          {/* South Goa Branch (Right) */}
-          <div className="flex-1 flex flex-col items-center relative px-2 sm:px-4">
-            {/* Curvy Dotted Connection */}
-            <motion.div 
-              initial={{ clipPath: 'inset(0 100% 100% 0)' }}
-              whileInView={{ clipPath: 'inset(0 0 0 0)' }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.8, ease: "easeInOut" }}
-              className="absolute top-0 left-0 w-[50%] h-12 border-t-[2.5px] border-r-[2.5px] border-dashed border-slate-300 rounded-tr-[2rem]" 
-            />
-            
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 1.3 }}
-              className="mt-12 bg-white border border-slate-200/60 px-10 py-8 rounded-[2.5rem] text-[#293e90] font-bold text-lg shadow-[0_10px_40px_rgb(0,0,0,0.04)] w-full max-w-[320px] text-center z-10 relative"
-            >
-              South Goa District
-            </motion.div>
+            {/* Tree Container */}
+            <div className={`flex flex-col items-center w-full max-w-5xl relative z-10 ${poppins.className}`}>
 
-            {/* Stem down from South Goa */}
-            <motion.div 
-              initial={{ scaleY: 0 }}
-              whileInView={{ scaleY: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 1.7, ease: "easeInOut" }}
-              style={{ transformOrigin: 'top' }}
-              className="w-0 h-10 border-l-[2.5px] border-dashed border-slate-300" 
-            />
-
-            {/* South Goa Talukas */}
-            <div className="flex w-full justify-center">
-              
-              <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3 opacity-50">
-                {/* Left curve */}
-                <motion.div 
-                  initial={{ clipPath: 'inset(0 0 100% 100%)' }}
-                  whileInView={{ clipPath: 'inset(0 0 0 0)' }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 2.1, ease: "easeInOut" }}
-                  className="absolute top-0 right-0 w-[50%] h-10 border-t-[2.5px] border-l-[2.5px] border-dashed border-slate-300 rounded-tl-3xl" 
-                />
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 2.6 }}
-                  className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10"
+                {/* Level 1: State HQ */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
+                    className="relative z-10"
                 >
-                  TALUKA LEVEL
+                    <div className="flex items-center gap-4 bg-gradient-to-r from-[#1e2b58] to-[#293e90] text-white px-10 py-5 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(41,62,144,0.5)] border border-white/10 backdrop-blur-sm">
+                        <div className="p-2.5 bg-white/10 rounded-2xl border border-white/10 shadow-inner">
+                            <Building2 className="w-6 h-6 text-blue-50" />
+                        </div>
+                        <span className="font-bold text-[19px] tracking-wide">State Headquarters (DRDA)</span>
+                    </div>
                 </motion.div>
-              </div>
-              
-              <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3 opacity-30">
-                {/* Right curve */}
-                <motion.div 
-                  initial={{ clipPath: 'inset(0 100% 100% 0)' }}
-                  whileInView={{ clipPath: 'inset(0 0 0 0)' }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 2.1, ease: "easeInOut" }}
-                  className="absolute top-0 left-0 w-[50%] h-10 border-t-[2.5px] border-r-[2.5px] border-dashed border-slate-300 rounded-tr-3xl" 
+
+                {/* Stem down from State HQ */}
+                <motion.div
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.3, ease: "linear" }}
+                    style={{ transformOrigin: 'top' }}
+                    className={`w-0 h-10 border-l-[2px] ${lineStyle}`}
                 />
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 2.6 }}
-                  className="mt-10 bg-[#f4f6fa] text-[#293e90] px-6 py-3 rounded-full text-xs font-bold tracking-widest whitespace-nowrap border border-blue-50/50 relative z-10"
-                >
-                  TALUKA LEVEL
-                </motion.div>
-              </div>
+
+                {/* Level 2 Container (Districts) */}
+                <div className="flex w-full max-w-4xl justify-center relative">
+
+                    {/* North Goa Branch (Left) */}
+                    <div className="flex-1 flex flex-col items-center relative px-2 sm:px-4">
+                        {/* Curvy Dotted Connection */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.7, ease: "linear" }}
+                            className={`absolute top-0 right-0 w-[50%] h-12 border-t-[2px] border-l-[2px] rounded-tl-[2rem] ${lineStyle}`}
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.1 }}
+                            className="mt-12 bg-white/90 backdrop-blur-xl border border-[#293e90]/10 px-8 py-7 rounded-[2rem] text-[#1e2b58] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-full max-w-[320px] flex flex-col items-center gap-4 relative z-10 hover:-translate-y-1 transition-transform duration-300 cursor-default"
+                        >
+                            <div className="w-14 h-14 bg-gradient-to-br from-[#f8f9fc] to-blue-50/50 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-[#293e90]/10">
+                                <Map className="w-6 h-6 text-[#293e90]" strokeWidth={2.5} />
+                            </div>
+                            <span className="font-bold text-xl tracking-tight">North Goa District</span>
+                        </motion.div>
+
+                        {/* Stem down from North Goa */}
+                        <motion.div
+                            initial={{ scaleY: 0 }}
+                            whileInView={{ scaleY: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.4, delay: 1.4, ease: "linear" }}
+                            style={{ transformOrigin: 'top' }}
+                            className={`w-0 h-10 border-l-[2px] ${lineStyle}`}
+                        />
+
+                        {/* North Goa Talukas */}
+                        <div className="flex w-full justify-center">
+
+                            <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.6, delay: 1.8, ease: "linear" }}
+                                    className={`absolute top-0 right-0 w-[50%] h-10 border-t-[2px] border-l-[2px] rounded-tl-3xl ${lineStyle}`}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 2.2 }}
+                                    className="mt-10 bg-white/80 backdrop-blur-md px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
+                                >
+                                    <MapPin className="w-4 h-4 text-[#293e90]/60" />
+                                    <span>TALUKA LEVEL</span>
+                                </motion.div>
+
+                                {/* Stem down to Village */}
+                                <motion.div
+                                    initial={{ scaleY: 0 }}
+                                    whileInView={{ scaleY: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: 2.6, ease: "linear" }}
+                                    style={{ transformOrigin: 'top' }}
+                                    className={`w-0 h-8 border-l-[2px] ${lineStyle}`}
+                                />
+
+                                {/* Village Level Node */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 3.0 }}
+                                    className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
+                                >
+                                    <Home className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Village Panchayat</span>
+                                </motion.div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.6, delay: 1.8, ease: "linear" }}
+                                    className={`absolute top-0 left-0 w-[50%] h-10 border-t-[2px] border-r-[2px] rounded-tr-3xl ${lineStyle}`}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 2.2 }}
+                                    className="mt-10 bg-white/80 backdrop-blur-md px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
+                                >
+                                    <MapPin className="w-4 h-4 text-[#293e90]/60" />
+                                    <span>TALUKA LEVEL</span>
+                                </motion.div>
+
+                                {/* Stem down to Village */}
+                                <motion.div
+                                    initial={{ scaleY: 0 }}
+                                    whileInView={{ scaleY: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: 2.6, ease: "linear" }}
+                                    style={{ transformOrigin: 'top' }}
+                                    className={`w-0 h-8 border-l-[2px] ${lineStyle}`}
+                                />
+
+                                {/* Village Level Node */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 3.0 }}
+                                    className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
+                                >
+                                    <Home className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Village Panchayat</span>
+                                </motion.div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* South Goa Branch (Right) */}
+                    <div className="flex-1 flex flex-col items-center relative px-2 sm:px-4">
+                        {/* Curvy Dotted Connection */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.7, ease: "linear" }}
+                            className={`absolute top-0 left-0 w-[50%] h-12 border-t-[2px] border-r-[2px] rounded-tr-[2rem] ${lineStyle}`}
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.1 }}
+                            className="mt-12 bg-white/90 backdrop-blur-xl border border-[#293e90]/10 px-8 py-7 rounded-[2rem] text-[#1e2b58] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-full max-w-[320px] flex flex-col items-center gap-4 relative z-10 hover:-translate-y-1 transition-transform duration-300 cursor-default"
+                        >
+                            <div className="w-14 h-14 bg-gradient-to-br from-[#f8f9fc] to-blue-50/50 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-[#293e90]/10">
+                                <Map className="w-6 h-6 text-[#293e90]" strokeWidth={2.5} />
+                            </div>
+                            <span className="font-bold text-xl tracking-tight">South Goa District</span>
+                        </motion.div>
+
+                        {/* Stem down from South Goa */}
+                        <motion.div
+                            initial={{ scaleY: 0 }}
+                            whileInView={{ scaleY: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.4, delay: 1.4, ease: "linear" }}
+                            style={{ transformOrigin: 'top' }}
+                            className={`w-0 h-10 border-l-[2px] ${lineStyle}`}
+                        />
+
+                        {/* South Goa Talukas */}
+                        <div className="flex w-full justify-center">
+
+                            <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.6, delay: 1.8, ease: "linear" }}
+                                    className={`absolute top-0 right-0 w-[50%] h-10 border-t-[2px] border-l-[2px] rounded-tl-3xl ${lineStyle}`}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 2.2 }}
+                                    className="mt-10 bg-white/80 backdrop-blur-md px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
+                                >
+                                    <MapPin className="w-4 h-4 text-[#293e90]/60" />
+                                    <span>TALUKA LEVEL</span>
+                                </motion.div>
+
+                                {/* Stem down to Village */}
+                                <motion.div
+                                    initial={{ scaleY: 0 }}
+                                    whileInView={{ scaleY: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: 2.6, ease: "linear" }}
+                                    style={{ transformOrigin: 'top' }}
+                                    className={`w-0 h-8 border-l-[2px] ${lineStyle}`}
+                                />
+
+                                {/* Village Level Node */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 3.0 }}
+                                    className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
+                                >
+                                    <Home className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Village Panchayat</span>
+                                </motion.div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col items-center relative px-2 sm:px-3">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.6, delay: 1.8, ease: "linear" }}
+                                    className={`absolute top-0 left-0 w-[50%] h-10 border-t-[2px] border-r-[2px] rounded-tr-3xl ${lineStyle}`}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -15 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 2.2 }}
+                                    className="mt-10 bg-white/80 backdrop-blur-md px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
+                                >
+                                    <MapPin className="w-4 h-4 text-[#293e90]/60" />
+                                    <span>TALUKA LEVEL</span>
+                                </motion.div>
+
+                                {/* Stem down to Village */}
+                                <motion.div
+                                    initial={{ scaleY: 0 }}
+                                    whileInView={{ scaleY: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: 2.6, ease: "linear" }}
+                                    style={{ transformOrigin: 'top' }}
+                                    className={`w-0 h-8 border-l-[2px] ${lineStyle}`}
+                                />
+
+                                {/* Village Level Node */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: 3.0 }}
+                                    className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
+                                >
+                                    <Home className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Village Panchayat</span>
+                                </motion.div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
             </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-  );
+        </section>
+    );
 };
