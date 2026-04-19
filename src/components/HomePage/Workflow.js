@@ -34,7 +34,7 @@ export const Workflow = () => {
                     transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
                     className="relative z-10"
                 >
-                    <div className="flex items-center gap-4 bg-gradient-to-r from-[#1e2b58] to-[#293e90] text-white px-10 py-5 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(41,62,144,0.5)] border border-white/10 backdrop-blur-sm">
+                    <div className="flex items-center gap-4 bg-gradient-to-r from-[#1e2b58] to-[#293e90] text-white px-10 py-5 rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(41,62,144,0.5)] border border-white/10">
                         <div className="p-2.5 bg-white/10 rounded-2xl border border-white/10 shadow-inner">
                             <Building2 className="w-6 h-6 text-blue-50" />
                         </div>
@@ -71,7 +71,7 @@ export const Workflow = () => {
                             whileInView={{ opacity: 1, scale: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.1 }}
-                            className="mt-12 bg-white/90 backdrop-blur-xl border border-[#293e90]/10 px-8 py-7 rounded-[2rem] text-[#1e2b58] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-full max-w-[320px] flex flex-col items-center gap-4 relative z-10 hover:-translate-y-1 transition-transform duration-300 cursor-default"
+                            className="mt-12 bg-white border border-[#293e90]/10 px-8 py-7 rounded-[2rem] text-[#1e2b58] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] w-full max-w-[320px] flex flex-col items-center gap-4 relative z-10 hover:-translate-y-1 transition-transform duration-300 cursor-default"
                         >
                             <div className="w-14 h-14 bg-gradient-to-br from-[#f8f9fc] to-blue-50/50 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] border border-[#293e90]/10">
                                 <Map className="w-6 h-6 text-[#293e90]" strokeWidth={2.5} />
@@ -105,7 +105,7 @@ export const Workflow = () => {
                                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ type: "spring", stiffness: 100, damping: 20, delay: 2.2 }}
-                                    className="mt-10 bg-white/80 backdrop-blur-md px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
+                                    className="mt-10 bg-white px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
                                 >
                                     <MapPin className="w-4 h-4 text-[#293e90]/60" />
                                     <span>TALUKA LEVEL</span>
@@ -127,7 +127,7 @@ export const Workflow = () => {
                                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ type: "spring", stiffness: 100, damping: 20, delay: 3.0 }}
-                                    className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
+                                    className="bg-white px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
                                 >
                                     <Home className="w-3.5 h-3.5 text-slate-400" />
                                     <span>Village Panchayat</span>
@@ -147,7 +147,7 @@ export const Workflow = () => {
                                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ type: "spring", stiffness: 100, damping: 20, delay: 2.2 }}
-                                    className="mt-10 bg-white/80 backdrop-blur-md px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
+                                    className="mt-10 bg-white px-5 py-3 rounded-xl text-[#293e90] text-[13px] font-bold tracking-[0.15em] whitespace-nowrap border border-[#293e90]/15 shadow-sm flex items-center gap-2.5 relative z-10"
                                 >
                                     <MapPin className="w-4 h-4 text-[#293e90]/60" />
                                     <span>TALUKA LEVEL</span>
@@ -169,7 +169,7 @@ export const Workflow = () => {
                                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ type: "spring", stiffness: 100, damping: 20, delay: 3.0 }}
-                                    className="bg-white/60 backdrop-blur-sm px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
+                                    className="bg-white px-4 py-2 rounded-lg text-slate-600 text-[12px] font-semibold tracking-wide whitespace-nowrap border border-slate-200/50 flex items-center gap-2 relative z-10 shadow-sm"
                                 >
                                     <Home className="w-3.5 h-3.5 text-slate-400" />
                                     <span>Village Panchayat</span>
