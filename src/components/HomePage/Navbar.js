@@ -81,10 +81,10 @@ export const Navbar = () => {
                         </div>
 
                         <div className="leading-tight ">
-                            <h1 className={`text-xl ${poppins.className} font-bold transition-colors duration-700 ${isScrolled ? 'text-white' : 'text-slate-900'}`}>
-                                DRDA Goa
+                            <h1 className={`text-[15px] ${poppins.className} font-bold transition-colors duration-700 ${isScrolled ? 'text-white' : 'text-slate-900'}`}>
+                               Department of Goa Rural Development Agency
                             </h1>
-                            <p className={`text-[12px] ${poppins.className} uppercase font-medium tracking-widest mt-[-4px] transition-colors duration-700 ${isScrolled ? 'text-blue-100' : 'text-slate-600'}`}>
+                            <p className={`text-[12px] ${poppins.className} uppercase font-medium tracking-widest mt-[-2px] transition-colors duration-700 ${isScrolled ? 'text-blue-100' : 'text-slate-600'}`}>
                                 Government of Goa
                             </p>
                         </div>
