@@ -92,25 +92,32 @@ export const Navbar = () => {
 
                     {/* Center: Navigation Links */}
                     <nav className="hidden lg:flex items-center gap-8">
-                        {['Our Journey', 'Pillars', 'Initiatives', 'Impact'].map((item) => {
-                            const isActive = item === 'Schemes';
-                            return (
-                                <Link
-                                    key={item}
-                                    href={`#${item.toLowerCase().replace(' ', '-')}`}
-                                    className={`relative text-[15px] transition-colors duration-700 py-1 ${poppins.className} ${
-                                        isActive 
-                                            ? (isScrolled ? 'text-white font-semibold' : 'text-[#293e90] font-semibold')
-                                            : (isScrolled ? 'text-blue-100 hover:text-white font-medium' : 'text-slate-500 hover:text-slate-800 font-medium')
-                                    }`}
-                                >
-                                    {item}
-                                    {isActive && (
-                                        <span className={`absolute -bottom-1.5 left-0 right-0 h-[2.5px] rounded-full transition-colors duration-700 ${isScrolled ? 'bg-white' : 'bg-[#293e90]'}`} />
-                                    )}
-                                </Link>
-                            );
-                        })}
+                        {[
+                            { label: 'Structure',   id: 'structure'   },
+                            { label: 'Pillars',     id: 'pillars'     },
+                            { label: 'Impact',      id: 'impact'      },
+                            { label: 'Initiatives', id: 'initiatives' },
+                            { label: 'Voices',      id: 'voices'      },
+                        ].map(({ label, id }) => (
+                            <a
+                                key={id}
+                                href={`#${id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const el = document.getElementById(id);
+                                    if (el) {
+                                        const offset = 80; // navbar height
+                                        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+                                        window.scrollTo({ top, behavior: 'smooth' });
+                                    }
+                                }}
+                                className={`relative text-[15px] transition-colors duration-700 py-1 cursor-pointer ${poppins.className} ${
+                                    isScrolled ? 'text-blue-100 hover:text-white font-medium' : 'text-slate-500 hover:text-slate-800 font-medium'
+                                }`}
+                            >
+                                {label}
+                            </a>
+                        ))}
                     </nav>
 
                     {/* Right: Login */}

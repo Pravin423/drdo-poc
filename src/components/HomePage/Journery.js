@@ -14,7 +14,7 @@ export default function Journery() {
     ];
 
     return (
-        <section className="px-6 py-28 bg-[#f8f9fc] flex justify-center items-center overflow-hidden">
+        <section id="initiatives" className="px-6 py-28 bg-[#f8f9fc] flex justify-center items-center overflow-hidden">
             <div className="max-w-6xl w-full mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
 
                 {/* Left Side - Image/Visual */}

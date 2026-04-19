@@ -71,7 +71,7 @@ const Voices = () => {
     };
 
     return (
-        <section className={`py-24 bg-[#f8fafc] relative overflow-hidden ${poppins.className}`}>
+        <section id="voices" className={`py-24 bg-[#f8fafc] relative overflow-hidden ${poppins.className}`}>
             {/* Decorative Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
                 <div className="absolute top-1/4 -left-12 w-64 h-64 bg-blue-100/50 blur-[100px] rounded-full" />

@@ -9,7 +9,7 @@ export const Workflow = () => {
     const lineStyle = "border-dashed border-[#293e90]/30";
 
     return (
-        <section className="px-6 py-32 bg-[#f8f9fc] min-h-screen flex flex-col items-center">
+        <section id="structure" className="px-6 py-32 bg-[#f8f9fc] min-h-screen flex flex-col items-center">
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}

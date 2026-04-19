@@ -30,7 +30,7 @@ const impactStories = [
 
 export const Impact = () => {
     return (
-        <section className={`pt-24 bg-gray-100 ${poppins.className}`}>
+        <section id="impact" className={`pt-24 bg-gray-100 ${poppins.className}`}>
             <div className="max-w-6xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start md:items-end mb-8">
                 <div>
                     <h4 className="text-[#1e2b58] font-extrabold text-sm tracking-[0.15em] uppercase mb-3">Stories of Change</h4>

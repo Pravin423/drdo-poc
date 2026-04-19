@@ -34,7 +34,7 @@ const pillars = [
 
 export const Pillars = () => {
   return (
-    <section className={`py-24 bg-[#f8fafc] relative overflow-hidden ${poppins.className}`}>
+    <section id="pillars" className={`py-24 bg-[#f8fafc] relative overflow-hidden ${poppins.className}`}>
       <div className="max-w-7xl mx-auto px-6">
         {/* Header matching the image style */}
         <div className="max-w-6xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
