@@ -11,23 +11,44 @@ export const Workflow = () => {
     return (
         <section className="px-6 py-32 bg-[#f8f9fc] min-h-screen flex flex-col items-center">
             {/* Header */}
-            <div className="w-full max-w-5xl mb-24 relative z-10 flex flex-col md:flex-row justify-between items-start gap-8 md:gap-12">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, ease: "easeOut" }}
+                className="w-full max-w-5xl mb-28 relative z-10 flex flex-col md:flex-row justify-between items-start gap-10 md:gap-12"
+            >
                 <div className="text-left flex-1 relative">
                     {/* Subtle glow behind the title */}
-                    <div className="absolute -top-12 -left-12 w-48 h-48 bg-[#293e90]/10 rounded-full blur-3xl pointer-events-none" />
-                    <h4 className={`text-[#293e90] text-sm font-bold tracking-[0.2em] uppercase mb-3 relative z-10 ${poppins.className}`}>
+                    <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#293e90]/10 rounded-full blur-[80px] pointer-events-none" />
+
+                    {/* Subtitle */}
+                    <h4 className={`text-[#293e90] text-sm font-bold tracking-[0.2em] uppercase mb-4 relative z-10 ${poppins.className}`}>
                         Organizational Structure
                     </h4>
-                    <h2 className={`text-4xl md:text-[54px] font-extrabold text-[#0f172a] tracking-tight leading-tight relative z-10 ${poppins.className}`}>
-                        Strategic Governance
+
+                    {/* Title */}
+                    <h2 className={`text-4xl md:text-[64px] font-black tracking-tight leading-[1.05] relative z-10 ${poppins.className}`}>
+                        <span className="text-[#0f172a]">Strategic
+                            Governance
+                        </span>
                     </h2>
                 </div>
-                <div className="max-w-md pl-6 md:pl-8 border-l-[3px] border-[#293e90]/30 flex-shrink-0 mt-2 md:mt-4">
+
+                {/* Right side floating card */}
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+                    className="max-w-[420px] p-7 md:p-8 bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_40px_-15px_rgba(41,62,144,0.08)] border border-white flex-shrink-0 mt-4 md:mt-6 relative overflow-hidden group hover:shadow-[0_20px_40px_-15px_rgba(41,62,144,0.12)] transition-shadow duration-500"
+                >
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#293e90] to-[#4361ee] group-hover:w-2 transition-all duration-300" />
                     <p className={`text-[16px] text-slate-500 font-medium text-left leading-relaxed ${poppins.className}`}>
-                        A streamlined flow of accountability and operations, ensuring policies formulated at the State level are effectively executed across every community.
+                        A streamlined flow of accountability and operations, ensuring policies formulated at the <strong className="text-[#1e2b58]">State level</strong> are effectively executed across every <strong className="text-[#1e2b58]">community</strong>.
                     </p>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
 
             {/* Tree Container */}
             <div className={`flex flex-col items-center w-full max-w-5xl relative z-10 ${poppins.className}`}>
