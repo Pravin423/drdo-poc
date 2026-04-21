@@ -36,9 +36,7 @@ export const Impact = () => {
                     <h4 className="text-[#1e2b58] font-extrabold text-sm tracking-[0.15em] uppercase mb-3">Stories of Change</h4>
                     <h2 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold text-[#0f172a] tracking-tight">The Impact Grid</h2>
                 </div>
-                <button className="flex items-center gap-2 text-[#293e90] font-bold hover:text-tech-blue-600 transition-colors mt-6 md:mt-0 group">
-                    View All Stories <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
+               
             </div>
 
             <div className="w-full relative">
