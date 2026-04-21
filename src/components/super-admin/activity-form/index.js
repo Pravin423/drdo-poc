@@ -9,3 +9,4 @@ export { default as ViewFormHeader } from './ViewFormHeader';
 export { default as FormStats } from './FormStats';
 export { default as FieldsList } from './FieldsList';
 export { default as CreateFormModal } from './CreateFormModal';
+export { default as AllFormsStats } from './AllFormsStats';

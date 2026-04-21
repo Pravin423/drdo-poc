@@ -12,7 +12,7 @@ export default function AllFormsHeader({ onOpenCreateModal, onExport }) {
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
           Activity Form{" "}
-          <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-b from-[#3b52ab] to-[#2c4191] bg-clip-text text-transparent">
             Management
           </span>
         </h1>

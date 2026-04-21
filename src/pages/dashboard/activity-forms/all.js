@@ -11,7 +11,8 @@ import {
   AllFormsHeader, 
   FormsTable, 
   DeleteFormModal,
-  CreateFormModal
+  CreateFormModal,
+  AllFormsStats
 } from "../../../components/super-admin/activity-form";
 
 export default function AllForms() {
@@ -133,6 +134,11 @@ export default function AllForms() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
   const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+  const stats = {
+    total: forms.length,
+    active: forms.filter(f => f.status === "Active").length,
+    inactive: forms.filter(f => f.status === "Inactive").length
+  };
 
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -140,6 +146,8 @@ export default function AllForms() {
         <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
           <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} />
+
+          <AllFormsStats stats={stats} />
 
           <FormsTable 
             search={search}
