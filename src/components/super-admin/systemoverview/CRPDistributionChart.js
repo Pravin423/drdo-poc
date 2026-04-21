@@ -40,7 +40,7 @@ function CustomTooltip({ active, payload }) {
  * Includes a 30-day / 6-month toggle and a legend.
  */
 export default function CRPDistributionChart() {
-  const [range, setRange]       = useState("30");
+  const [range, setRange] = useState("30");
   const [chartData, setChartData] = useState(CITY_DATA_30_DAYS);
 
   const handleRangeChange = (e) => {
@@ -88,11 +88,11 @@ export default function CRPDistributionChart() {
           <AreaChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="northGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#2563EB" stopOpacity={0.4} />
+                <stop offset="5%" stopColor="#2563EB" stopOpacity={0.4} />
                 <stop offset="95%" stopColor="#2563EB" stopOpacity={0.05} />
               </linearGradient>
               <linearGradient id="southGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#10B981" stopOpacity={0.4} />
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
                 <stop offset="95%" stopColor="#10B981" stopOpacity={0.05} />
               </linearGradient>
             </defs>
