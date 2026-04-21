@@ -118,14 +118,26 @@ export default function AllForms() {
     fetchForms(); // Refresh the list
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   const filtered = forms.filter((f) =>
     f.title.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
+  const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
   return (
     <ProtectedRoute allowedRole="super-admin">
       <DashboardLayout>
-        <div className="max-w-5xl mx-auto space-y-8 p-4">
+        <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
           <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} />
 
@@ -133,11 +145,19 @@ export default function AllForms() {
             search={search}
             setSearch={setSearch}
             isLoading={isLoading}
-            filtered={filtered}
+            filtered={paginatedData}
             forms={forms}
             router={router}
             handleDeleteClick={handleDeleteClick}
             onEditForm={handleEditForm}
+            footerProps={{
+              totalRecords: filtered.length,
+              currentPage,
+              totalPages,
+              startIndex: startIndex + 1,
+              endIndex,
+              onPageChange: setCurrentPage
+            }}
           />
 
         </div>
