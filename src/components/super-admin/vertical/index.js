@@ -189,6 +189,8 @@ export default function VerticalManagementComponent() {
                     <VerticalTable
                         isLoading={isLoading}
                         filteredData={filteredData}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
                         onView={handleViewClick}
                         onEdit={handleEditClick}
                     />

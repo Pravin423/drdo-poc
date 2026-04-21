@@ -15,7 +15,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function VerticalTable({ isLoading, filteredData, onView, onEdit }) {
+export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit }) {
     // Define columns for the universal table
     const columns = [
         {
@@ -121,6 +121,11 @@ export default function VerticalTable({ isLoading, filteredData, onView, onEdit 
             columns={columns}
             data={filteredData}
             isLoading={isLoading}
+            searchProps={{
+                placeholder: "Search verticals...",
+                value: searchQuery,
+                onChange: setSearchQuery
+            }}
             actions={actions}
             emptyState={{
                 icon: Layers,

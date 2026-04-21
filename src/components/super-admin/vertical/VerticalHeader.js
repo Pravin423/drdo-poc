@@ -35,19 +35,7 @@ export default function VerticalHeader({ searchQuery, setSearchQuery, onAddClick
                 </div>
             </motion.header>
 
-            {/* Search Bar */}
-            <div className="relative group w-full sm:w-[320px]">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search size={18} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                </div>
-                <input
-                    type="text"
-                    placeholder="Search verticals..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full border border-slate-200 rounded-2xl pl-11 pr-4 py-2.5 text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none bg-white font-medium text-slate-700"
-                />
-            </div>
+           
         </>
     );
 }
