@@ -84,10 +84,18 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
     {
       header: "Date Range",
       key: "startDate",
+      align: "center",
       render: (start, task) => (
-        <div className="flex flex-col text-[13px] leading-tight font-medium">
-          <span className="text-slate-700 text-[14px]">{start}</span>
-          <span className="text-slate-400 mt-0.5">to {task.endDate}</span>
+        <div className="flex items-center justify-center gap-2.5 whitespace-nowrap">
+          <div className="flex flex-col items-center">
+            <span className="text-[13px] font-bold text-slate-700">{start}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Start Date</span>
+          </div>
+          <div className="h-px w-4 bg-slate-200"></div>
+          <div className="flex flex-col items-center">
+            <span className="text-[13px] font-bold text-slate-700">{task.endDate}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">End Date</span>
+          </div>
         </div>
       )
     },
@@ -99,9 +107,8 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
     {
       header: "Status",
       key: "status",
-      render: (status) => <StatusBadge status={status} />,
-      headerClassName: "text-center",
-      className: "text-center"
+      align: "center",
+      render: (status) => <StatusBadge status={status} />
     }
   ];
 

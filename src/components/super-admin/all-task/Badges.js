@@ -44,9 +44,9 @@ export const TaskTypeBadge = ({ type }) => {
 
 export const ActivityFormBadge = ({ formName }) => {
   return (
-    <span
+    <span 
       title={formName}
-      className=" text-[12px] font-medium inline-block  tracking-tight max-w-[160px]  overflow-hidden align-middle"
+      className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full text-[11px] font-bold inline-block uppercase tracking-tight max-w-[140px] truncate whitespace-nowrap overflow-hidden align-middle"
     >
       {formName}
     </span>
