@@ -1,16 +1,22 @@
+"use client";
+
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { motion } from "framer-motion";
-import { FileText, ArrowLeft, Send } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+
+// Extracted Components
+import { 
+  ViewFormHeader, 
+  FormStats, 
+  FieldsList 
+} from "../../../components/super-admin/activity-form";
 
 export default function ViewForm() {
   const router = useRouter();
   const [form, setForm] = useState(null);
-  const [formData, setFormData] = useState({});
-
   const [error, setError] = useState(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     const fetchFormDetails = async () => {
@@ -32,7 +38,6 @@ export default function ViewForm() {
 
         const result = await response.json();
         
-        // Assemble format for the UI
         setForm({
             ...result.data,
             title: result.data.form_name,
@@ -48,20 +53,8 @@ export default function ViewForm() {
     fetchFormDetails();
   }, [router.query.id]);
 
-  const handleInputChange = (label, value) => {
-    setFormData((prev) => ({ ...prev, [label]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Submitted:", formData);
-    alert("Form submitted successfully! (Simulated)");
-    router.push("/dashboard/activity-forms/all");
-  };
-
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-
   const toggleStatus = async () => {
+    if (!form) return;
     setIsUpdatingStatus(true);
     const newStatus = form.status === 1 ? 0 : 1;
     try {
@@ -118,97 +111,21 @@ export default function ViewForm() {
       <DashboardLayout>
         <div className="max-w-3xl mx-auto space-y-6 p-4">
           
-          <motion.header
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-4"
-          >
-            <button
-              onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">{form.title}</h1>
-              <p className="text-slate-500 text-sm font-medium">{form.description || "No description provided."}</p>
-            </div>
-          </motion.header>
+          <ViewFormHeader 
+            router={router}
+            title={form.title}
+            description={form.description}
+          />
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="grid grid-cols-3 gap-4 pb-2"
-          >
-             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-center">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</p>
-                <div className="flex items-center gap-3">
-                    <button 
-                        onClick={toggleStatus} 
-                        disabled={isUpdatingStatus}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${form.status === 1 ? 'bg-emerald-500' : 'bg-slate-300'} ${isUpdatingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <span 
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.status === 1 ? 'translate-x-6' : 'translate-x-1'}`} 
-                        />
-                    </button>
-                    <p className={`text-sm font-semibold tracking-wide ${form.status === 1 ? 'text-emerald-700' : 'text-slate-600'} ${isUpdatingStatus ? 'opacity-50' : ''}`}>
-                        {form.status === 1 ? 'Active' : 'Inactive'}
-                    </p>
-                </div>
-             </div>
-             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Created By</p>
-                <p className="text-sm font-semibold text-slate-800">{form.created_by_name || form.created_by || 'Unknown'}</p>
-             </div>
-             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Created At</p>
-                <p className="text-sm font-semibold text-slate-800">{form.created_at ? new Date(form.created_at).toLocaleString() : 'N/A'}</p>
-             </div>
-          </motion.div>
+          <FormStats 
+            form={form}
+            toggleStatus={toggleStatus}
+            isUpdatingStatus={isUpdatingStatus}
+          />
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-          >
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60">
-              <h2 className="text-base font-bold text-slate-800">Fields on this form</h2>
-            </div>
-
-            <div className="p-6 space-y-4">
-              {form.fields && form.fields.length > 0 ? (
-                form.fields.map((field, idx) => {
-                  const isReq = field.is_required === 1;
-                  return (
-                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-bold text-slate-800 capitalize">
-                        {field.label || field.name || `Field ${idx + 1}`}
-                        {isReq && <span className="text-red-500 ml-1" title="Required">*</span>}
-                        </label>
-                        <span className="text-xs font-semibold px-2 py-1 bg-white border border-slate-200 rounded-lg text-slate-500 capitalize">{field.type}</span>
-                    </div>
-                    
-                    <div className="text-xs text-slate-500 font-medium">
-                        <p>Internal Name: <span className="text-slate-700">{field.name}</span></p>
-                        {Array.isArray(field.options) && field.options.length > 0 && (
-                            <p className="mt-1">Options: <span className="text-slate-700">{field.options.join(", ")}</span></p>
-                        )}
-                    </div>
-                  </div>
-                )})
-              ) : (
-                <div className="py-8 text-center text-slate-500 text-sm">
-                  This form currently has no fields attached to it.
-                </div>
-              )}
-            </div>
-          </motion.div>
+          <FieldsList 
+            fields={form.fields}
+          />
 
         </div>
       </DashboardLayout>
