@@ -61,14 +61,16 @@ export default function DataTable({
             {(searchProps || filterProps || headerActions) && (
                 <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
                     {searchProps && (
-                        <div className="relative max-w-md w-full">
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <div className="relative group max-w-[320px] w-full">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Search size={18} className="text-slate-400 group-focus-within:text-tech-blue-500 transition-colors" />
+                            </div>
                             <input
                                 type="text"
                                 placeholder={searchProps.placeholder || "Search..."}
                                 value={searchProps.value}
                                 onChange={(e) => searchProps.onChange(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 transition-all font-medium"
+                                className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-tech-blue-500/10 focus:border-tech-blue-500 transition-all font-medium text-slate-700 shadow-sm"
                             />
                         </div>
                     )}
