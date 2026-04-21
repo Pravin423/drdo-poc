@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { Layers } from "lucide-react";
 import VerticalHeader from "./VerticalHeader";
 import VerticalTable from "./VerticalTable";
 import DashboardLayout from "../../DashboardLayout";
+import SummaryCard from "../../common/SummaryCard";
 import { AddVerticalModal, EditVerticalModal, ViewVerticalModal } from "../../VerticalModals";
 
 // ─── Data fetching helpers ────────────────────────────────────────────────────
@@ -194,6 +196,17 @@ export default function VerticalManagementComponent() {
                         setSearchQuery={setSearchQuery}
                         onAddClick={handleAddClick}
                     />
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <SummaryCard 
+                            title="Total Verticals"
+                            value={verticals.length}
+                            icon={Layers}
+                            variant="indigo"
+                            delay={0.1}
+                        />
+                    </div>
+
                     <VerticalTable
                         isLoading={isLoading}
                         filteredData={paginatedData}
