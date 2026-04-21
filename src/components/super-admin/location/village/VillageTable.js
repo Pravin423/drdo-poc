@@ -11,8 +11,6 @@ export default function VillageTable({
     isLoading,
     searchQuery,
     onSearchChange,
-    currentPage,
-    onPageChange,
     districts,
     talukasOptions,
     selectedDistrict,
@@ -24,21 +22,17 @@ export default function VillageTable({
     onView,
     onEdit,
     onDelete,
+    footerProps,
 }) {
-    const totalPages = Math.ceil(filteredVillages.length / ROWS_PER_PAGE);
-    const paginatedVillages = filteredVillages.slice(
-        (currentPage - 1) * ROWS_PER_PAGE,
-        currentPage * ROWS_PER_PAGE
-    );
 
     // Define columns for the universal table
     const columns = [
         {
             header: "ID",
             key: "id",
-            render: (_, village) => (
+            render: (_, __, idx) => (
                 <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                    {villages.findIndex((v) => v.id === village.id) + 1}
+                    {footerProps.startIndex + idx}
                 </span>
             )
         },
@@ -202,7 +196,7 @@ export default function VillageTable({
     return (
         <DataTable
             columns={columns}
-            data={paginatedVillages}
+            data={filteredVillages}
             isLoading={isLoading}
             searchProps={{
                 placeholder: "Search villages by name, taluka, district, or code...",
@@ -212,13 +206,8 @@ export default function VillageTable({
             headerActions={headerActions}
             actions={actions}
             footerProps={{
-                totalRecords: filteredVillages.length,
-                showPagination: true,
-                onPageChange: onPageChange,
-                currentPage: currentPage,
-                totalPages: totalPages,
-                startIndex: Math.min((currentPage - 1) * ROWS_PER_PAGE + 1, filteredVillages.length),
-                endIndex: Math.min(currentPage * ROWS_PER_PAGE, filteredVillages.length)
+                ...footerProps,
+                showPagination: true
             }}
             emptyState={{
                 icon: Home,

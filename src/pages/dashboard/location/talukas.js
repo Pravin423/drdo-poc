@@ -288,12 +288,24 @@ export default function TalukasManagement() {
     }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen, viewModalOpen]);
 
     // ─── Filtered Data ────────────────────────────────────────────────────────────
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedDistrict]);
+
     const filteredTalukas = talukas.filter(
         (t) =>
             t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             t.censusCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
             t.districtName.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const totalPages = Math.ceil(filteredTalukas.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredTalukas.length);
+    const paginatedTalukas = filteredTalukas.slice(startIndex, startIndex + itemsPerPage);
 
     // ─── Export ───────────────────────────────────────────────────────────────────
     const handleExport = () => {
@@ -320,7 +332,7 @@ export default function TalukasManagement() {
                         {/* Data Table */}
                         <TalukaTable
                             talukas={talukas}
-                            filteredTalukas={filteredTalukas}
+                            filteredTalukas={paginatedTalukas}
                             isLoading={isLoading}
                             searchQuery={searchQuery}
                             onSearchChange={setSearchQuery}
@@ -332,6 +344,14 @@ export default function TalukasManagement() {
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
+                            footerProps={{
+                                totalRecords: filteredTalukas.length,
+                                currentPage,
+                                totalPages,
+                                startIndex: startIndex + 1,
+                                endIndex,
+                                onPageChange: setCurrentPage
+                            }}
                         />
                     </div>
                 </DashboardLayout>

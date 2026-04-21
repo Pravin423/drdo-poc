@@ -250,6 +250,13 @@ export default function DistrictsManagement() {
     }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen, viewModalOpen]);
 
     // ─── Filtered Data ────────────────────────────────────────────────────────────
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
+
     const filteredDistricts = districts.filter((d) => {
         const name = d?.name || "";
         const censusCode = d?.censusCode || "";
@@ -258,6 +265,11 @@ export default function DistrictsManagement() {
             censusCode.toLowerCase().includes(searchQuery.toLowerCase())
         );
     });
+
+    const totalPages = Math.ceil(filteredDistricts.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredDistricts.length);
+    const paginatedDistricts = filteredDistricts.slice(startIndex, startIndex + itemsPerPage);
 
     // ─── Export ───────────────────────────────────────────────────────────────────
     const handleExport = () => {
@@ -284,13 +296,21 @@ export default function DistrictsManagement() {
                         {/* Data Table */}
                         <DistrictTable
                             districts={districts}
-                            filteredDistricts={filteredDistricts}
+                            filteredDistricts={paginatedDistricts}
                             isLoading={isLoading}
                             searchQuery={searchQuery}
                             onSearchChange={setSearchQuery}
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
+                            footerProps={{
+                                totalRecords: filteredDistricts.length,
+                                currentPage,
+                                totalPages,
+                                startIndex: startIndex + 1,
+                                endIndex,
+                                onPageChange: setCurrentPage
+                            }}
                         />
                     </div>
                 </DashboardLayout>

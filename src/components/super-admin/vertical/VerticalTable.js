@@ -15,7 +15,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit }) {
+export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit, footerProps }) {
     // Define columns for the universal table
     const columns = [
         {
@@ -23,7 +23,7 @@ export default function VerticalTable({ isLoading, filteredData, searchQuery, se
             key: "id",
             render: (_, __, idx) => (
                 <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                    {idx + 1}
+                    {footerProps.startIndex + idx}
                 </span>
             )
         },
@@ -132,8 +132,8 @@ export default function VerticalTable({ isLoading, filteredData, searchQuery, se
                 message: "No verticals found."
             }}
             footerProps={{
-                totalRecords: filteredData.length,
-                showPagination: false
+                ...footerProps,
+                showPagination: true
             }}
         />
     );

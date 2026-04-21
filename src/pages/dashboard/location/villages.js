@@ -19,7 +19,6 @@ export default function VillagesManagement() {
     // ─── Data State ───────────────────────────────────────────────────────────────
     const [villages, setVillages] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState("");
 
     const [districts, setDistricts] = useState([]);
@@ -384,6 +383,13 @@ export default function VillagesManagement() {
     }, [addModalOpen, editModalOpen, saveConfirmOpen, deleteConfirmOpen, importModalOpen, viewModalOpen]);
 
     // ─── Filtered Data ────────────────────────────────────────────────────────────
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedDistrict, selectedTaluka]);
+
     const filteredVillages = villages.filter(
         (v) =>
             v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -392,9 +398,13 @@ export default function VillagesManagement() {
             v.censusCode.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const totalPages = Math.ceil(filteredVillages.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredVillages.length);
+    const paginatedVillages = filteredVillages.slice(startIndex, startIndex + itemsPerPage);
+
     const handleSearchChange = (val) => {
         setSearchQuery(val);
-        setCurrentPage(1);
     };
 
     // ─── Export ───────────────────────────────────────────────────────────────────
@@ -427,12 +437,10 @@ export default function VillagesManagement() {
 
                         <VillageTable
                             villages={villages}
-                            filteredVillages={filteredVillages}
+                            filteredVillages={paginatedVillages}
                             isLoading={isLoading}
                             searchQuery={searchQuery}
                             onSearchChange={handleSearchChange}
-                            currentPage={currentPage}
-                            onPageChange={setCurrentPage}
                             districts={districts}
                             talukasOptions={talukasOptions}
                             selectedDistrict={selectedDistrict}
@@ -444,6 +452,14 @@ export default function VillagesManagement() {
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
+                            footerProps={{
+                                totalRecords: filteredVillages.length,
+                                currentPage,
+                                totalPages,
+                                startIndex: startIndex + 1,
+                                endIndex,
+                                onPageChange: setCurrentPage
+                            }}
                         />
                     </div>
                 </DashboardLayout>

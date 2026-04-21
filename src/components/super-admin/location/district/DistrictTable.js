@@ -11,15 +11,16 @@ export default function DistrictTable({
     onView,
     onEdit,
     onDelete,
+    footerProps,
 }) {
     // Define columns for the universal table
     const columns = [
         {
             header: "ID",
             key: "id",
-            render: (_, district) => (
+            render: (_, __, idx) => (
                 <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-                    {districts.findIndex((d) => d.id === district.id) + 1}
+                    {footerProps.startIndex + idx}
                 </span>
             )
         },
@@ -78,9 +79,8 @@ export default function DistrictTable({
             }}
             actions={actions}
             footerProps={{
-                totalRecords: filteredDistricts.length,
-                showPagination: true,
-                onPageChange: (dir) => console.log("Page change", dir)
+                ...footerProps,
+                showPagination: true
             }}
             emptyState={{
                 icon: Map,

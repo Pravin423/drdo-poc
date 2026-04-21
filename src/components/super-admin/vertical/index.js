@@ -42,6 +42,8 @@ export default function VerticalManagementComponent() {
     const [verticals, setVerticals] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const loadVerticals = async () => {
         setIsLoading(true);
@@ -57,6 +59,7 @@ export default function VerticalManagementComponent() {
     };
 
     useEffect(() => { loadVerticals(); }, []);
+    useEffect(() => { setCurrentPage(1); }, [searchQuery]);
 
     const filteredData = verticals.filter(
         (v) =>
@@ -64,6 +67,11 @@ export default function VerticalManagementComponent() {
             (v.code && v.code.toLowerCase().includes(searchQuery.toLowerCase())) ||
             (v.desc && v.desc.toLowerCase().includes(searchQuery.toLowerCase()))
     );
+
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+    const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
     // ── Add modal state ─────────────────────────────────────────────────────
     const [addModalOpen, setAddModalOpen] = useState(false);
@@ -188,11 +196,19 @@ export default function VerticalManagementComponent() {
                     />
                     <VerticalTable
                         isLoading={isLoading}
-                        filteredData={filteredData}
+                        filteredData={paginatedData}
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
                         onView={handleViewClick}
                         onEdit={handleEditClick}
+                        footerProps={{
+                            totalRecords: filteredData.length,
+                            currentPage,
+                            totalPages,
+                            startIndex: startIndex + 1,
+                            endIndex,
+                            onPageChange: setCurrentPage
+                        }}
                     />
                 </div>
             </DashboardLayout>
