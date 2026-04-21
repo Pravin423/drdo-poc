@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { FileText, Plus } from "lucide-react";
 
-export default function AllFormsHeader() {
+export default function AllFormsHeader({ onOpenCreateModal }) {
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -19,12 +18,12 @@ export default function AllFormsHeader() {
           <p className="text-slate-500 text-sm font-medium">View and manage all created forms</p>
         </div>
       </div>
-      <Link
-        href="/dashboard/activity-forms/create"
+      <button
+        onClick={onOpenCreateModal}
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 active:scale-95 w-fit"
       >
         <Plus size={16} /> Create New Form
-      </Link>
+      </button>
     </motion.header>
   );
 }

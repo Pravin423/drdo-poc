@@ -8,7 +8,8 @@ export default function FormsTable({
   filtered, 
   forms, 
   router, 
-  handleDeleteClick 
+  handleDeleteClick,
+  onEditForm
 }) {
   return (
     <>
@@ -94,7 +95,7 @@ export default function FormsTable({
                     <button onClick={() => router.push(`/dashboard/activity-forms/view?id=${form.id}`)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="View">
                       <Eye size={15} />
                     </button>
-                    <button onClick={() => router.push(`/dashboard/activity-forms/create?id=${form.id}`)} className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors" title="Edit">
+                    <button onClick={() => onEditForm(form.id)} className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors" title="Edit">
                       <Edit size={15} />
                     </button>
                     <button onClick={() => handleDeleteClick(form.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete">

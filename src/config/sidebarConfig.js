@@ -71,10 +71,7 @@ export const SIDEBAR_CONFIG = {
       items: [
         {
           name: "Activity Forms",
-          subItems: [
-            { name: "Create Form", path: "/dashboard/activity-forms/create" },
-            { name: "All Forms", path: "/dashboard/activity-forms/all" },
-          ],
+          path: "/dashboard/activity-forms/all",
         },
       ],
     },

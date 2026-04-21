@@ -2,14 +2,16 @@
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
+import { AnimatePresence } from "framer-motion";
 
 // Extracted Components
 import { 
   AllFormsHeader, 
   FormsTable, 
-  DeleteFormModal 
+  DeleteFormModal,
+  CreateFormModal
 } from "../../../components/super-admin/activity-form";
 
 export default function AllForms() {
@@ -18,9 +20,14 @@ export default function AllForms() {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [formToDelete, setFormToDelete] = useState(null);
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState(null);
+
   const router = useRouter();
 
-  const fetchForms = async () => {
+  const fetchForms = useCallback(async () => {
     setIsLoading(true);
     try {
         const token = localStorage.getItem("authToken");
@@ -55,11 +62,15 @@ export default function AllForms() {
     } finally {
         setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchForms();
-  }, []);
+    if (router.query.action === 'create') {
+      setIsModalOpen(true);
+      setSelectedFormId(null);
+    }
+  }, [fetchForms, router.query.action]);
 
   const handleDeleteClick = (id) => {
     setFormToDelete(id);
@@ -93,6 +104,20 @@ export default function AllForms() {
     }
   };
 
+  const handleOpenCreateModal = () => {
+    setSelectedFormId(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditForm = (id) => {
+    setSelectedFormId(id);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveSuccess = () => {
+    fetchForms(); // Refresh the list
+  };
+
   const filtered = forms.filter((f) =>
     f.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -102,7 +127,7 @@ export default function AllForms() {
       <DashboardLayout>
         <div className="max-w-5xl mx-auto space-y-8 p-4">
 
-          <AllFormsHeader />
+          <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} />
 
           <FormsTable 
             search={search}
@@ -112,6 +137,7 @@ export default function AllForms() {
             forms={forms}
             router={router}
             handleDeleteClick={handleDeleteClick}
+            onEditForm={handleEditForm}
           />
 
         </div>
@@ -122,6 +148,17 @@ export default function AllForms() {
         setDeleteConfirmOpen={setDeleteConfirmOpen}
         confirmDelete={confirmDelete}
       />
+
+      <AnimatePresence>
+        {isModalOpen && (
+          <CreateFormModal 
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            formId={selectedFormId}
+            onSaveSuccess={handleSaveSuccess}
+          />
+        )}
+      </AnimatePresence>
     </ProtectedRoute>
   );
 }
