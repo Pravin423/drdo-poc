@@ -49,7 +49,7 @@ export default function VerticalTable({ isLoading, filteredData, searchQuery, se
             header: "Description",
             key: "desc",
             render: (desc) => (
-                <div className="flex items-start gap-2 max-w-[200px] group">
+                <div className="flex items-start gap-2 max-w-[180px] group">
                     <div className="text-sm  text-slate-600 truncate" title={desc}>
                         {desc}
                     </div>
