@@ -60,9 +60,21 @@ export default function VerticalTable({ isLoading, filteredData, onView, onEdit 
             header: "Timeline",
             key: "start",
             render: (_, row) => (
-                <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-700">{row.start}</span>
-                    <span className="text-xs text-slate-400 font-medium uppercase tracking-tight">{row.end}</span>
+                <div className="relative pl-6 py-1 border-l-2 border-slate-100 flex flex-col gap-3">
+                    <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    </div>
+                    <div className="absolute -left-[5px] bottom-1.5 w-2 h-2 rounded-full bg-slate-200" />
+                    
+                    <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Launch</span>
+                        <span className="text-[13px] font-bold text-slate-800 leading-none">{row.start}</span>
+                    </div>
+                    
+                    <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Expires</span>
+                        <span className="text-[11px] font-bold text-slate-500 leading-none">{row.end}</span>
+                    </div>
                 </div>
             )
         },
