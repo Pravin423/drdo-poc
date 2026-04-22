@@ -22,7 +22,7 @@ export default function ShgMappingTable({ filteredMappings, isLoading, onEdit })
       key: "status",
       render: (val) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-semibold ${val === "Active"
+          className={`px-2 py-1 rounded rounded-2xl text-xs font-semibold ${val === "Active"
               ? "text-emerald-700 bg-emerald-50 border border-emerald-100"
               : "text-slate-600 bg-slate-100 border border-slate-200"
             }`}
