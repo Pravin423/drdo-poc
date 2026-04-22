@@ -393,7 +393,7 @@ export default function SHGRepository() {
                   setFormData({ shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: "", status: 0 });
                   setIsModalOpen(true);
                 }}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-slate-900/20 transition-all flex items-center gap-2 text-sm"
+              className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer ml-2 md:w-auto"
               >
                 <Plus size={18} /> Register SHG
               </button>
