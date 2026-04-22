@@ -59,10 +59,7 @@ export const SIDEBAR_CONFIG = {
       items: [
         {
           name: "User Management",
-          subItems: [
-            { name: "Add User", path: "/dashboard/user-management/add-user" },
-            { name: "User List", path: "/dashboard/user-management/user-list" },
-          ],
+          path: "/dashboard/user-management/user-list",
         },
       ],
     },
