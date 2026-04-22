@@ -2,9 +2,32 @@
 
 import { Search, RefreshCw } from "lucide-react";
 
-export default function VillageMappingFilterBar({ search, setSearch, onRefresh }) {
+export default function VillageMappingFilterBar({ 
+  search, 
+  setSearch, 
+  onRefresh,
+  itemsPerPage,
+  setItemsPerPage
+}) {
   return (
     <div className="px-6 py-5 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="flex items-center gap-2 text-sm text-slate-600">
+        <span>Show</span>
+        <select
+          className="border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+          value={itemsPerPage}
+          onChange={(e) => {
+            setItemsPerPage(Number(e.target.value));
+          }}
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
+        <span>entries</span>
+      </div>
+
       <div className="relative group w-full sm:w-[320px]">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search size={18} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />

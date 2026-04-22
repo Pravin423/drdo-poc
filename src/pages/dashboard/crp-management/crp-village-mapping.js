@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Link as LinkIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -18,6 +18,9 @@ export default function CRPVillageMapping() {
   const [isLoading, setIsLoading] = useState(false);
   const [crps, setCrps] = useState([]);
   const [shgs, setShgs] = useState([]);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchMappings = async () => {
     setIsLoading(true);
@@ -58,12 +61,24 @@ export default function CRPVillageMapping() {
 
   useEffect(() => { fetchMappings(); }, []);
 
-  // ── Filter ────────────────────────────────────────────────────────────────
-  const [search, setSearch] = useState("");
-  const filteredMappings = mappings.filter((m) =>
-    (m.name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (m.email || "").toLowerCase().includes(search.toLowerCase())
-  );
+  // ── Filter & Pagination ───────────────────────────────────────────────────
+  const filteredMappings = useMemo(() => {
+    return mappings.filter((m) =>
+      (m.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.email || "").toLowerCase().includes(search.toLowerCase())
+    );
+  }, [mappings, search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMappings.length / itemsPerPage));
+  
+  const paginatedMappings = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredMappings.slice(start, start + itemsPerPage);
+  }, [filteredMappings, currentPage, itemsPerPage]);
 
   // ── Add Modal ─────────────────────────────────────────────────────────────
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -188,10 +203,17 @@ export default function CRPVillageMapping() {
               search={search}
               setSearch={setSearch}
               onRefresh={() => { setSearch(""); fetchMappings(); }}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={(n) => { setItemsPerPage(n); setCurrentPage(1); }}
             />
             <VillageMappingTable
+              paginatedMappings={paginatedMappings}
               filteredMappings={filteredMappings}
               isLoading={isLoading}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
               onEdit={handleEditClick}
             />
           </div>
