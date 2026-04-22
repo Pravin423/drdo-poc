@@ -42,7 +42,7 @@ export default function ShgRepositoryTable({
       key: "memberCount",
       render: (value) => (
         <div className="flex items-center gap-1.5">
-          <Users size={14} className="text-slate-400" />
+          <Users size={14} className="text-blue-400" />
           <span className="text-sm font-bold text-slate-700">
             {value ?? 0}
           </span>
