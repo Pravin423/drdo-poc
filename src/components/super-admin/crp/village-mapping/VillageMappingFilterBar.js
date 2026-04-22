@@ -28,7 +28,7 @@ export default function VillageMappingFilterBar({
         <span>entries</span>
       </div>
 
-      <div className="relative group w-full sm:w-[320px]">
+      <div className="relative group w-full sm:w-[620px]">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search size={18} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
         </div>

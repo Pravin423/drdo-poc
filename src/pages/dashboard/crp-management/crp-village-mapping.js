@@ -191,7 +191,7 @@ export default function CRPVillageMapping() {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 flex items-center gap-2 transition-colors cursor-pointer w-fit"
+              className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
             >
               <LinkIcon size={16} /> Link CRP to Village
             </button>
