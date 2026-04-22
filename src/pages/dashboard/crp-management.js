@@ -412,7 +412,7 @@ export default function CrpManagement() {
               </button>
               <button
                 onClick={() => setIsRegisterOpen(true)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800"
+                className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-slate-800"
               >
                 + Register New CRP
               </button>
