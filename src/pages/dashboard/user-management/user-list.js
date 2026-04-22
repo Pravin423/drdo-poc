@@ -36,32 +36,13 @@ const ROLE_STYLES = {
   crp:              "bg-rose-50 text-rose-700 border-rose-200",
 };
 
-const SEED_USERS = [
-  { id: 1, fullname: "Kiran Oundhal",    email: "ramesh.runtime@gmail.com",  mobile: "8004725591", gender: "Male",   role_name: "Super Admin",    signature_status: "Approved", status: "Active",   joined: "2024-01-10", profile: null },
-  { id: 2, fullname: "Anjali Desai",     email: "anjali.d@gov.goa.in",       mobile: "9876543210", gender: "Female", role_name: "State Admin",    signature_status: "Pending",  status: "Active",   joined: "2024-02-15", profile: null },
-  { id: 3, fullname: "Rohit Naik",       email: "rohit.n@gov.goa.in",        mobile: "9765432109", gender: "Male",   role_name: "District Admin", signature_status: "Pending",  status: "Active",   joined: "2024-03-01", profile: null },
-  { id: 4, fullname: "Priya Salgaonkar", email: "priya.s@gov.goa.in",        mobile: "9654321098", gender: "Female", role_name: "Supervisor",     signature_status: "Pending",  status: "Inactive", joined: "2024-03-20", profile: null },
-  { id: 5, fullname: "Deepak Borkar",    email: "deepak.b@gov.goa.in",       mobile: "9543210987", gender: "Male",   role_name: "Finance",        signature_status: "Approved", status: "Active",   joined: "2024-04-05", profile: null },
-  { id: 6, fullname: "Sneha Kamat",      email: "sneha.k@gov.goa.in",        mobile: "9432109876", gender: "Female", role_name: "CRP",            signature_status: "Pending",  status: "Active",   joined: "2024-04-18", profile: null },
-  { id: 7, fullname: "Mahesh Gawas",     email: "mahesh.g@gov.goa.in",       mobile: "9321098765", gender: "Male",   role_name: "CRP",            signature_status: "Pending",  status: "Active",   joined: "2024-05-02", profile: null },
-  { id: 8, fullname: "Lata Raikar",      email: "lata.r@gov.goa.in",         mobile: "9210987654", gender: "Female", role_name: "Supervisor",     signature_status: "Approved", status: "Active",   joined: "2024-05-15", profile: null },
-];
-
-function loadUsers() {
-  try {
-    const stored = JSON.parse(localStorage.getItem("managedUsers") || "[]");
-    const storedIds = new Set(stored.map(u => u.id));
-    return [...SEED_USERS.filter(u => !storedIds.has(u.id)), ...stored];
-  } catch {
-    return SEED_USERS;
-  }
-}
-
-function saveUsers(allUsers) {
-  const seedIds = new Set(SEED_USERS.map(u => u.id));
-  const toSave  = allUsers.filter(u => !seedIds.has(u.id));
-  localStorage.setItem("managedUsers", JSON.stringify(toSave));
-}
+// Mapping functions for API data
+const mapStatus = (s) => (s === 1 || s === "1" ? "Active" : "Inactive");
+const mapSignature = (s) => {
+  if (s === 1 || s === "1") return "Approved";
+  if (s === 2 || s === "2") return "Rejected";
+  return "Pending";
+};
 
 export default function UserList() {
   const [users, setUsers] = useState([]);
@@ -77,9 +58,30 @@ export default function UserList() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/employees");
+      const json = await res.json();
+      if (json.status === 1 && json.data) {
+        const mapped = json.data.map(u => ({
+          ...u,
+          role_name: u.rolename || "Unknown",
+          status: mapStatus(u.status),
+          signature_status: mapSignature(u.signature_status),
+          joined: u.created_at ? u.created_at.split("T")[0] : "—"
+        }));
+        setUsers(mapped);
+      }
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setUsers(loadUsers());
-    setLoading(false);
+    fetchUsers();
   }, []);
 
   const filtered = useMemo(() => {
@@ -110,29 +112,23 @@ export default function UserList() {
   };
 
   const handleUserAdded = (newUser) => {
-    const updated = [...users, newUser];
-    setUsers(updated);
-    saveUsers(updated);
+    fetchUsers(); // Refresh list from server
   };
 
   const handleUserUpdated = (updatedUser) => {
-    const updated = users.map(u => u.id === updatedUser.id ? updatedUser : u);
-    setUsers(updated);
-    saveUsers(updated);
+    fetchUsers(); // Refresh list from server
     setEditOpen(false);
     setEditTarget(null);
   };
 
   const handleImported = (newUsers) => {
-    const updated = [...users, ...newUsers];
-    setUsers(updated);
-    saveUsers(updated);
+    fetchUsers(); // Refresh list from server
   };
 
   const confirmDelete = () => {
+    // In a real app, you'd call a DELETE API here
     const updated = users.filter(u => u.id !== deleteTarget.id);
     setUsers(updated);
-    saveUsers(updated);
     setDeleteOpen(false);
     setDeleteTarget(null);
   };
@@ -142,10 +138,15 @@ export default function UserList() {
     header: "#", 
     key: "id", 
     width: "70px",
-    render: (val) => (
-      <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
-        {val}
-      </span>
+    render: (val, row, idx) => (
+      <div className="flex flex-col items-start gap-0.5">
+        <span className="text-sm font-extrabold text-slate-800 leading-tight">
+          {idx + 1}
+        </span>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight whitespace-nowrap">
+          Emp ID - {val}
+        </span>
+      </div>
     )
   },
 
