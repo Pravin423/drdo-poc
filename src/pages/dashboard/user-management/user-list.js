@@ -138,63 +138,131 @@ export default function UserList() {
   };
 
   const columns = [
-    { 
-      header: "#", 
-      key: "id", 
-      width: "60px",
-      render: (val) => <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">{val}</span>
-    },
-    { 
-      header: "Name", 
-      key: "fullname",
-      render: (val, row) => (
-        <div className="flex items-center gap-2 min-w-0">
-          {row.profile ? (
-            <img src={row.profile} alt={val} className="w-7 h-7 rounded-full object-cover border border-slate-200 shrink-0" />
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-tech-blue-400 to-tech-blue-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-              {(val || "?").slice(0, 2).toUpperCase()}
-            </div>
-          )}
-          <p className="text-xs font-semibold text-slate-800 truncate">{val}</p>
-        </div>
-      )
-    },
-    { header: "Email", key: "email", render: (val) => <span className="text-xs text-slate-600 truncate">{val}</span> },
-    { header: "Mobile", key: "mobile", render: (val) => <span className="text-xs text-slate-600 font-mono">{val}</span> },
-    { header: "Gender", key: "gender", render: (val) => <span className="text-xs text-slate-600">{val || "—"}</span> },
-    { 
-      header: "Role", 
-      key: "role_name",
-      render: (val) => (
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${ROLE_STYLES[val?.toLowerCase().replace(" ", "-")] || "bg-slate-50 text-slate-600 border-slate-200"}`}>
-          {val}
-        </span>
-      )
-    },
-    { 
-      header: "Status", 
-      key: "status",
-      render: (val) => (
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
-          val === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"
+  { 
+    header: "#", 
+    key: "id", 
+    width: "70px",
+    render: (val) => (
+      <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
+        {val}
+      </span>
+    )
+  },
+
+  { 
+    header: "Name", 
+    key: "fullname",
+    width: "220px",
+    render: (val, row) => (
+      <div className="flex items-center gap-3 min-w-0">
+        
+        {/* Avatar */}
+        {row.profile ? (
+          <img 
+            src={row.profile} 
+            alt={val} 
+            className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+            {(val || "?").slice(0, 2).toUpperCase()}
+          </div>
+        )}
+
+        {/* Name */}
+        <p className="text-sm font-medium text-slate-800 truncate">
+          {val || "Unknown"}
+        </p>
+      </div>
+    )
+  },
+
+  { 
+    header: "Email", 
+    key: "email",
+    width: "220px",
+    render: (val) => (
+      <span className="text-sm text-slate-600 truncate block">
+        {val || "—"}
+      </span>
+    )
+  },
+
+  { 
+    header: "Mobile", 
+    key: "mobile",
+    width: "150px",
+    render: (val) => (
+      <span className="text-sm text-slate-700 font-mono">
+        {val || "—"}
+      </span>
+    )
+  },
+
+  { 
+    header: "Gender", 
+    key: "gender",
+    width: "120px",
+    render: (val) => (
+      <span className="text-sm text-slate-600">
+        {val || "—"}
+      </span>
+    )
+  },
+
+  { 
+    header: "Role", 
+    key: "role_name",
+    width: "150px",
+    render: (val) => {
+      const key = val?.toLowerCase().replace(/\s+/g, "-");
+      return (
+        <span className={`text-xs font-semibold px-3 py-1 rounded-full border whitespace-nowrap ${
+          ROLE_STYLES[key] || "bg-slate-100 text-slate-700 border-slate-200"
         }`}>
-          {val}
+          {val || "—"}
         </span>
-      )
-    },
-    { 
-      header: "Signature", 
-      key: "signature_status",
-      render: (val) => (
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
-          val === "Approved" ? "bg-emerald-100 text-emerald-700" : val === "Rejected" ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-700"
-        }`}>
-          {val || "Pending"}
+      );
+    }
+  },
+
+  { 
+    header: "Status", 
+    key: "status",
+    width: "130px",
+    render: (val) => (
+      <span className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ${
+        val === "Active"
+          ? "bg-emerald-100 text-emerald-700"
+          : "bg-rose-100 text-rose-600"
+      }`}>
+        {val || "Inactive"}
+      </span>
+    )
+  },
+
+  { 
+    header: "Signature", 
+    key: "signature_status",
+    width: "150px",
+    render: (val) => {
+      const status = val || "Pending";
+
+      const styles =
+        status === "Approved"
+          ? "bg-emerald-100 text-emerald-700"
+          : status === "Rejected"
+          ? "bg-rose-100 text-rose-600"
+          : "bg-amber-100 text-amber-700";
+
+      return (
+        <span className={`text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ${styles}`}>
+          {status}
         </span>
-      )
-    },
-  ];
+      );
+    }
+  },
+];
 
   const actions = [
     {
