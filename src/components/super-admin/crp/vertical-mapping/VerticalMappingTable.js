@@ -45,13 +45,12 @@ export default function VerticalMappingTable({
       icon: Edit,
       title: "Edit",
       onClick: onEdit,
-      className: "text-blue-500 hover:bg-blue-50",
-    },
-    {
+      className: "hover:text-emerald-600 hover:bg-emerald-50"
+    },{
       icon: Trash2,
       title: "Delete",
       onClick: (row) => console.log("Delete", row),
-      className: "text-red-500 hover:bg-red-50",
+      className: "hover:text-red-600 hover:bg-red-50",
     },
   ];
 
