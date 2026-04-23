@@ -3,10 +3,11 @@ export const SIDEBAR_CONFIG = {
     {
       section: "DASHBOARD",
       items: [{ name: "System Overview", path: "/dashboard/super-admin" }],
-      accessTo:['admin','staff', 'field-staff']
+      
     },
     {
       section: "LOCATION MANAGEMENT",
+      accessTo:[ 'state-admin'],
       items: [
         {
           name: "Goa Location",
@@ -15,12 +16,14 @@ export const SIDEBAR_CONFIG = {
             { name: "Talukas", path: "/dashboard/location/talukas" },
             { name: "Villages", path: "/dashboard/location/villages" },
           ],
+         
         },
       ],
     },
 
     {
       section: "CRP OPERATIONS",
+      accessTo:[ 'state-admin'],
       items: [
         {
           name: "CRP Management",
@@ -37,26 +40,31 @@ export const SIDEBAR_CONFIG = {
     },
     {
       section: "SHG MANAGEMENT",
+      accessTo:[ 'state-admin'],
       items: [
         { name: "SHG Repository", path: "/dashboard/shg-repository" },
       ],
     },
     {
       section: "VERTICAL MANAGEMENT",
+      accessTo:[ 'state-admin'],
       items: [
         { name: "Verticals", path: "/dashboard/vertical" },
       ]
     },
     {
       section: "FINANCIAL MANAGEMENT",
+      accessTo:[ 'state-admin'],
       items: [{ name: "Honorarium Calculation", path: "/dashboard/honorarium" }],
     },
     {
       section: "PROGRAM MANAGEMENT",
+      accessTo:[ 'state-admin'],
       items: [{ name: "Event Management", path: "/dashboard/event-management" }],
     },
     {
       section: "USERS & ROLES",
+      accessTo:[ 'state-admin'],
       items: [
         {
           name: "User Management",
@@ -66,6 +74,7 @@ export const SIDEBAR_CONFIG = {
     },
     {
       section: "FORMS & SUBMISSIONS",
+      accessTo:[ 'state-admin'],
       items: [
         {
           name: "Activity Forms",
@@ -75,6 +84,7 @@ export const SIDEBAR_CONFIG = {
     },
     {
       section: "Task and Assignments",
+      accessTo:[ 'state-admin'],
       items: [
         { name: "All Tasks", path: "/dashboard/task-assignment" }
       ],
@@ -131,14 +141,7 @@ export const getSidebarForRole = (role) => {
   
   const viewOnlySections = superAdminSections
     .filter((section) => {
-      // state-admin gets view-only access to ALL super-admin sections
-      if (role === "state-admin") {
-         return section.section !== "DASHBOARD"; // exclude super-admin's dashboard
-        // Optional: you can exclude the super-admin 'DASHBOARD' if you only want the state-admin's own DASHBOARD.
-        // But since you requested ALL sections, we'll return true for all of them.
-        return true; 
-      }
-      // For other roles (like admin, staff), check the accessTo array
+      // Check the accessTo array for all roles
       return section.accessTo && section.accessTo.includes(role);
     })
     .map((section) => ({

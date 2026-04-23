@@ -12,6 +12,7 @@ export default function DistrictTable({
     onEdit,
     onDelete,
     footerProps,
+    isViewOnly,
 }) {
     // Define columns for the universal table
     const columns = [
@@ -47,20 +48,25 @@ export default function DistrictTable({
             onClick: onView,
             title: "View Details",
             className: "hover:text-emerald-600 hover:bg-emerald-50"
-        },
-        {
-            icon: Edit,
-            onClick: onEdit,
-            title: "Edit District",
-            className: "hover:text-blue-600 hover:bg-blue-50"
-        },
-        {
-            icon: X,
-            onClick: (district) => onDelete(district.id),
-            title: "Delete District",
-            className: "hover:text-red-600 hover:bg-red-50"
         }
     ];
+
+    if (!isViewOnly) {
+        actions.push(
+            {
+                icon: Edit,
+                onClick: onEdit,
+                title: "Edit District",
+                className: "hover:text-blue-600 hover:bg-blue-50"
+            },
+            {
+                icon: X,
+                onClick: (district) => onDelete(district.id),
+                title: "Delete District",
+                className: "hover:text-red-600 hover:bg-red-50"
+            }
+        );
+    }
 
     return (
         <DataTable

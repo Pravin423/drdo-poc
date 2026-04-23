@@ -83,41 +83,71 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0, viewOnly = false }
 
   return (
     <li className="list-none relative group/item">
-      <Link
-        href={hasSubItems ? "#" : viewOnly ? `${item.path}?viewOnly=true` : item.path}
-        onClick={handleToggle}
-        title={collapsed ? item.name : undefined}
-        className={`group flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${isActive && !hasSubItems
-          ? "bg-white/10 text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.25)] border border-blue-400/40"
-          : "text-slate-200 hover:text-white hover:bg-white/5 border border-transparent"
-          } ${depth > 0 ? (collapsed ? "" : "ml-4") : ""}`}
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          {icon}
-          <AnimatePresence initial={false}>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`truncate whitespace-nowrap overflow-hidden ${isActive || isSubItemActive ? "font-semibold text-white" : ""
-                  }`}
-              >
-                {item.name}
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </div>
+      {hasSubItems ? (
+        <button
+          type="button"
+          onClick={handleToggle}
+          title={collapsed ? item.name : undefined}
+          className={`w-full group flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${isActive && !hasSubItems
+            ? "bg-white/10 text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.25)] border border-blue-400/40"
+            : "text-slate-200 hover:text-white hover:bg-white/5 border border-transparent"
+            } ${depth > 0 ? (collapsed ? "" : "ml-4") : ""}`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            {icon}
+            <AnimatePresence initial={false}>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`truncate whitespace-nowrap overflow-hidden ${isActive || isSubItemActive ? "font-semibold text-white" : ""
+                    }`}
+                >
+                  {item.name}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
 
-        {hasSubItems && !collapsed && (
-          <ChevronDown
-            size={14}
-            className={`transition-transform duration-200 shrink-0 ${isOpen ? "rotate-180" : ""
-              } text-slate-400 group-hover:text-white`}
-          />
-        )}
-      </Link>
+          {!collapsed && (
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 shrink-0 ${isOpen ? "rotate-180" : ""
+                } text-slate-400 group-hover:text-white`}
+            />
+          )}
+        </button>
+      ) : (
+        <Link
+          href={viewOnly ? `${item.path}?viewOnly=true` : item.path}
+          onClick={handleToggle}
+          title={collapsed ? item.name : undefined}
+          className={`group flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${isActive && !hasSubItems
+            ? "bg-white/10 text-blue-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_2px_8px_rgba(0,0,0,0.25)] border border-blue-400/40"
+            : "text-slate-200 hover:text-white hover:bg-white/5 border border-transparent"
+            } ${depth > 0 ? (collapsed ? "" : "ml-4") : ""}`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            {icon}
+            <AnimatePresence initial={false}>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`truncate whitespace-nowrap overflow-hidden ${isActive || isSubItemActive ? "font-semibold text-white" : ""
+                    }`}
+                >
+                  {item.name}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+        </Link>
+      )}
 
       {/* Tooltip when collapsed */}
       {collapsed && depth === 0 && (

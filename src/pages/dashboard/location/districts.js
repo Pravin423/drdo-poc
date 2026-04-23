@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import LocationSummaryCards from "../../../components/LocationSummaryCards";
@@ -13,6 +14,9 @@ import EditDistrictModal from "../../../components/super-admin/location/district
 import { SaveConfirmModal, DeleteConfirmModal } from "../../../components/super-admin/location/district/ConfirmModals";
 
 export default function DistrictsManagement() {
+    const router = useRouter();
+    const isViewOnly = router.query.viewOnly === "true";
+
     // ─── Data State ──────────────────────────────────────────────────────────────
     const [districts, setDistricts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -288,7 +292,7 @@ export default function DistrictsManagement() {
                 <DashboardLayout>
                     <div className="max-w-[1600px] mx-auto space-y-8 p-4">
                         {/* Page Header */}
-                        <DistrictHeader onExport={handleExport} onAddClick={handleAddClick} />
+                        <DistrictHeader onExport={handleExport} onAddClick={handleAddClick} isViewOnly={isViewOnly} />
 
                         {/* Summary Cards */}
                         <LocationSummaryCards totalDistricts={districts.length} />
@@ -303,6 +307,7 @@ export default function DistrictsManagement() {
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
+                            isViewOnly={isViewOnly}
                             footerProps={{
                                 totalRecords: filteredDistricts.length,
                                 currentPage,
