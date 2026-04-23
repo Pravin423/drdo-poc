@@ -29,6 +29,7 @@ const goaVillages = [
 
 export default function CrpManagement() {
   const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [crpList, setCrpList] = useState([]);
@@ -404,18 +405,22 @@ export default function CrpManagement() {
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => setIsBulkImportOpen(true)}
-                className="px-4 cursor-pointer py-2 border rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50"
-              >
-                <UploadCloud size={16} /> Bulk Import
-              </button>
-              <button
-                onClick={() => setIsRegisterOpen(true)}
-              className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
-              >
-                + Register New CRP
-              </button>
+              {!isViewOnly && (
+                <>
+                  <button
+                    onClick={() => setIsBulkImportOpen(true)}
+                    className="px-4 cursor-pointer py-2 border rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50"
+                  >
+                    <UploadCloud size={16} /> Bulk Import
+                  </button>
+                  <button
+                    onClick={() => setIsRegisterOpen(true)}
+                  className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
+                  >
+                    + Register New CRP
+                  </button>
+                </>
+              )}
             </div>
           </motion.header>
 
@@ -436,6 +441,7 @@ export default function CrpManagement() {
             isLoadingCRPs={isLoadingCRPs}
             onView={handleViewClick}
             onEdit={handleEditClick}
+            isViewOnly={isViewOnly}
           />
 
         </div>

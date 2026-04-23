@@ -4,7 +4,7 @@ import { Eye, Edit, Trash2 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import DataTable from "@/components/common/DataTable";
 
-export default function CrpTable({ filteredCRPs, isLoadingCRPs, onView, onEdit }) {
+export default function CrpTable({ filteredCRPs, isLoadingCRPs, onView, onEdit, isViewOnly }) {
   const columns = [
     {
       header: "ID",
@@ -58,21 +58,26 @@ export default function CrpTable({ filteredCRPs, isLoadingCRPs, onView, onEdit }
       title: "View",
       onClick: onView,
       className: "hover:text-emerald-600 hover:bg-emerald-50"
-    },
-    {
-      icon: Edit,
-      title: "Edit",
-      onClick: onEdit,
-      className: "hover:text-blue-600 hover:bg-blue-50"
-
-    },
-    {
-      icon: Trash2,
-      title: "Delete",
-      onClick: (row) => console.log("Delete", row),
-      className: "hover:text-red-600 hover:bg-red-50"
-    },
+    }
   ];
+
+  if (!isViewOnly) {
+    actions.push(
+      {
+        icon: Edit,
+        title: "Edit",
+        onClick: onEdit,
+        className: "hover:text-blue-600 hover:bg-blue-50"
+
+      },
+      {
+        icon: Trash2,
+        title: "Delete",
+        onClick: (row) => console.log("Delete", row),
+        className: "hover:text-red-600 hover:bg-red-50"
+      }
+    );
+  }
 
   return (
     <DataTable
