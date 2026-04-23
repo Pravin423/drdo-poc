@@ -1,146 +1,193 @@
 /**
  * Server-side proxy for user management API actions.
- * Handles multipart/form-data for file uploads (profile photo).
+ * Uses Node 18+ native FormData + Blob (same pattern as add-crp.js).
+ * The npm `form-data` package does NOT work with native fetch — use globals only.
  */
 
 import { IncomingForm } from "formidable";
 import fs from "fs";
-import FormData from "form-data";
 
 export const config = {
   api: {
-    bodyParser: false, // Required for file upload — formidable handles it
+    bodyParser: false, // formidable handles parsing
   },
 };
 
 const API_BASE = "https://goadrda.runtime-solutions.net/admin/api";
+
+// Helper: formidable v3 wraps values in arrays
+const get = (fields, key) =>
+  (Array.isArray(fields[key]) ? fields[key][0] : fields[key]) ?? "";
+
+// Helper: read formidable temp file → Blob → append to native FormData
+const MIME_MAP = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp" };
+const appendFile = (fd, fdKey, files, fileKey) => {
+  const f = Array.isArray(files[fileKey]) ? files[fileKey][0] : files[fileKey];
+  if (f?.filepath) {
+    const ext      = (f.originalFilename || "").split(".").pop().toLowerCase();
+    const mimeType = (f.mimetype && f.mimetype !== "application/octet-stream")
+      ? f.mimetype
+      : (MIME_MAP[ext] || "image/jpeg");
+    const buf  = fs.readFileSync(f.filepath);
+    const blob = new Blob([buf], { type: mimeType });
+    fd.append(fdKey, blob, f.originalFilename ?? f.newFilename ?? fdKey);
+  }
+};
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const { action } = req.query;
-  let token = (req.headers["authorization"] || "").replace("Bearer ", "");
-  if ((!token || token === "undefined" || token === "null") && req.cookies?.auth_token) {
-    token = req.cookies.auth_token;
+  const { action, id } = req.query;
+
+  // ── Auth: prefer cookie, fall back to Authorization header ──
+  let authHeader = req.headers["authorization"];
+  if (
+    (!authHeader || authHeader.includes("undefined") || authHeader.includes("null")) &&
+    req.cookies?.auth_token
+  ) {
+    authHeader = `Bearer ${req.cookies.auth_token}`;
+  }
+  if (!authHeader) {
+    return res.status(401).json({ status: false, message: "Unauthorized: no auth token" });
   }
 
-  // ─── ADD USER ──────────────────────────────────────────────────────────────
-  if (action === "add-user") {
-    try {
-      const form = new IncomingForm({ keepExtensions: true });
-      const { fields, files } = await new Promise((resolve, reject) => {
-        form.parse(req, (err, fields, files) => {
-          if (err) reject(err);
-          else resolve({ fields, files });
-        });
+  // ── Parse multipart with formidable (promise-wrapped) ──
+  const form = new IncomingForm({ keepExtensions: true, multiples: true });
+  let fields, files;
+  try {
+    ({ fields, files } = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err); else resolve({ fields, files });
       });
+    }));
+  } catch (err) {
+    return res.status(500).json({ status: false, message: "Failed to parse form data" });
+  }
 
-      const fullname = Array.isArray(fields.fullname) ? fields.fullname[0] : fields.fullname;
-      const mobile = Array.isArray(fields.mobile) ? fields.mobile[0] : fields.mobile;
-      const password = Array.isArray(fields.password) ? fields.password[0] : fields.password;
+  try {
+    // ─── ADD USER ─────────────────────────────────────────────────────────────
+    if (action === "add-user") {
+      const fullname = get(fields, "fullname");
+      const mobile   = get(fields, "mobile");
+      const password = get(fields, "password");
+      const email    = get(fields, "email");
+      const gender   = get(fields, "gender");
+      const roleId   = get(fields, "role_id");
+      const dob      = get(fields, "dob");
 
-      if (!fullname || fullname.trim().length === 0 || !/^[a-zA-Z\s\-]+$/.test(fullname)) {
-        return res.status(400).json({ status: false, message: "Invalid Full Name validation failed on API layer" });
+      // Server-side strict validation
+      if (!fullname || !/^[a-zA-Z\s\-]+$/.test(fullname.trim())) {
+        return res.status(400).json({ status: false, message: "Invalid Full Name: only letters, spaces, hyphens allowed" });
       }
       if (!mobile || !/^\d{10}$/.test(mobile)) {
-        return res.status(400).json({ status: false, message: "Invalid Mobile Number validation failed on API layer" });
+        return res.status(400).json({ status: false, message: "Invalid Mobile Number: must be exactly 10 digits" });
       }
-      if (!password || password.length < 6) {
-        return res.status(400).json({ status: false, message: "Invalid Password validation failed on API layer" });
+      if (!password || password.length < 8) {
+        return res.status(400).json({ status: false, message: "Invalid Password: minimum 8 characters required" });
       }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ status: false, message: "Invalid Email Address" });
+      }
+      if (!gender) return res.status(400).json({ status: false, message: "Gender is required" });
+      if (!roleId) return res.status(400).json({ status: false, message: "Role is required" });
+      if (!dob)    return res.status(400).json({ status: false, message: "Date of Birth is required" });
+      if (!files.profile) return res.status(400).json({ status: false, message: "Profile photo is required" });
 
-      const formData = new FormData();
-      const textFields = ["fullname", "mobile", "password", "email", "gender", "role_id", "date_of_birth"];
-      textFields.forEach((f) => {
-        if (fields[f]) formData.append(f, Array.isArray(fields[f]) ? fields[f][0] : fields[f]);
-      });
+      // Build outgoing FormData using Node 18+ native global
+      const fd = new FormData();
+      fd.append("fullname", fullname);
+      fd.append("mobile",   mobile);
+      fd.append("password", password);
+      fd.append("email",    email);
+      fd.append("gender",   gender);
+      fd.append("role_id",  roleId);
+      fd.append("dob",      dob);
 
-      if (files.profile) {
-        const file = Array.isArray(files.profile) ? files.profile[0] : files.profile;
-        formData.append("profile", fs.createReadStream(file.filepath), {
-          filename: file.originalFilename || "profile.jpg",
-          contentType: file.mimetype || "image/jpeg",
+      const districtId = get(fields, "district_id");
+      if (districtId) fd.append("district_id", districtId);
+
+      // Taluka IDs (taluka_id[0], taluka_id[1], ...)
+      Object.keys(fields)
+        .filter(k => k.startsWith("taluka_id"))
+        .forEach(k => {
+          const val = Array.isArray(fields[k]) ? fields[k][0] : fields[k];
+          fd.append(k, val);
         });
-      }
 
-      console.log("[Server/API] 👥 Calling real API: POST", `${API_BASE}/user/store`);
-      const apiRes = await fetch(`${API_BASE}/user/store`, {
+      // Profile image as Blob
+      appendFile(fd, "profile", files, "profile");
+
+      const apiRes = await fetch(`${API_BASE}/add-employee`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...formData.getHeaders(),
-        },
-        body: formData,
+        headers: { Authorization: authHeader },
+        body: fd,
       });
 
-      const data = await apiRes.json().catch(() => ({}));
+      const rawText = await apiRes.text();
+      let data;
+      try { data = JSON.parse(rawText); } catch { data = { message: rawText }; }
       return res.status(apiRes.status).json(data);
-    } catch (err) {
-      console.error("[proxy/add-user] error:", err);
-      return res.status(502).json({ message: "Could not reach the server. Please try again." });
     }
-  }
 
-  // ─── UPDATE USER ───────────────────────────────────────────────────────────
-  if (action === "update-user") {
-    const { id } = req.query;
-    if (!id) return res.status(400).json({ message: "Employee ID is required" });
+    // ─── UPDATE USER ──────────────────────────────────────────────────────────
+    if (action === "update-user") {
+      if (!id) return res.status(400).json({ message: "Employee ID is required" });
 
-    try {
-      const form = new IncomingForm({ keepExtensions: true });
-      const { fields, files } = await new Promise((resolve, reject) => {
-        form.parse(req, (err, fields, files) => {
-          if (err) reject(err);
-          else resolve({ fields, files });
-        });
+      const fullname = get(fields, "fullname");
+      const mobile   = get(fields, "mobile");
+      const email    = get(fields, "email");
+
+      if (fullname && !/^[a-zA-Z\s\-]+$/.test(fullname.trim())) {
+        return res.status(400).json({ status: false, message: "Invalid Full Name: only letters, spaces, hyphens allowed" });
+      }
+      if (mobile && !/^\d{10}$/.test(mobile)) {
+        return res.status(400).json({ status: false, message: "Invalid Mobile Number: must be exactly 10 digits" });
+      }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ status: false, message: "Invalid Email Address" });
+      }
+
+      const fd = new FormData();
+      ["fullname", "mobile", "email", "gender", "role_id", "district_id"].forEach(f => {
+        const val = get(fields, f);
+        if (val) fd.append(f, val);
       });
 
-      const formData = new FormData();
-      
-      // Text fields
-      const textFields = ["fullname", "mobile", "email", "gender", "role_id", "district_id"];
-      textFields.forEach((f) => {
-        const val = Array.isArray(fields[f]) ? fields[f][0] : fields[f];
-        if (val !== undefined && val !== null) formData.append(f, val);
-      });
-
-      // Handle taluka_ids (Array)
+      // Taluka IDs
       const talukaSource = fields.taluka_ids || fields.taluka_id;
       if (talukaSource) {
         const ids = Array.isArray(talukaSource) ? talukaSource : [talukaSource];
-        ids.forEach((tid, index) => {
-          formData.append(`taluka_id[${index}]`, tid);
-        });
+        ids.forEach((tid, index) => fd.append(`taluka_id[${index}]`, tid));
+      } else {
+        Object.keys(fields)
+          .filter(k => k.startsWith("taluka_id"))
+          .forEach(k => {
+            const val = Array.isArray(fields[k]) ? fields[k][0] : fields[k];
+            fd.append(k, val);
+          });
       }
 
-      // Profile image
-      if (files.profile) {
-        const file = Array.isArray(files.profile) ? files.profile[0] : files.profile;
-        formData.append("profile", fs.createReadStream(file.filepath), {
-          filename: file.originalFilename || "profile.jpg",
-          contentType: file.mimetype || "image/jpeg",
-        });
-      }
+      // Profile image as Blob (optional for update)
+      appendFile(fd, "profile", files, "profile");
 
-      console.log(`[Server/API] 📝 Updating employee ${id}: POST`, `${API_BASE}/update-employee/${id}`);
       const apiRes = await fetch(`${API_BASE}/update-employee/${id}`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...formData.getHeaders(),
-        },
-        body: formData,
+        headers: { Authorization: authHeader },
+        body: fd,
       });
 
-      const data = await apiRes.json().catch(() => ({}));
+      const rawText = await apiRes.text();
+      let data;
+      try { data = JSON.parse(rawText); } catch { data = { message: rawText }; }
       return res.status(apiRes.status).json(data);
-    } catch (err) {
-      console.error("[proxy/update-user] error:", err);
-      return res.status(502).json({ message: "Could not reach the server. Please try again." });
     }
-  }
 
-  return res.status(400).json({ message: "Unknown action" });
+    return res.status(400).json({ message: "Unknown action" });
+
+  } catch (err) {
+    console.error("[user.js] ❌ CRASH:", err.message);
+    return res.status(502).json({ status: false, message: "Proxy error: " + err.message });
+  }
 }
