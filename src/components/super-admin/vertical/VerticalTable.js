@@ -15,7 +15,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit, footerProps }) {
+export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit, footerProps, isViewOnly }) {
     // Define columns for the universal table
     const columns = [
         {
@@ -102,18 +102,20 @@ export default function VerticalTable({ isLoading, filteredData, searchQuery, se
             title: "View Vertical",
             className: "hover:text-emerald-600 hover:bg-emerald-50"
         },
-        {
-            icon: Edit,
-            onClick: onEdit,
-            title: "Edit Vertical",
-            className: "hover:text-blue-600 hover:bg-blue-50"
-        },
-        {
-            icon: X,
-            onClick: () => { /* Handle delete */ },
-            title: "Delete Vertical",
-            className: "hover:text-red-600 hover:bg-red-50"
-        }
+        ...(!isViewOnly ? [
+            {
+                icon: Edit,
+                onClick: onEdit,
+                title: "Edit Vertical",
+                className: "hover:text-blue-600 hover:bg-blue-50"
+            },
+            {
+                icon: X,
+                onClick: () => { /* Handle delete */ },
+                title: "Delete Vertical",
+                className: "hover:text-red-600 hover:bg-red-50"
+            }
+        ] : [])
     ];
 
     return (

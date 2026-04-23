@@ -4,6 +4,7 @@ import VerticalHeader from "./VerticalHeader";
 import VerticalTable from "./VerticalTable";
 import DashboardLayout from "../../DashboardLayout";
 import SummaryCard from "../../common/SummaryCard";
+import { useRouter } from "next/router";
 import { AddVerticalModal, EditVerticalModal, ViewVerticalModal } from "../../VerticalModals";
 
 // ─── Data fetching helpers ────────────────────────────────────────────────────
@@ -40,6 +41,9 @@ async function fetchVerticalsFromAPI() {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function VerticalManagementComponent() {
+    const router = useRouter();
+    const isViewOnly = router.query.viewOnly === "true";
+
     // ── List state ──────────────────────────────────────────────────────────
     const [verticals, setVerticals] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -195,6 +199,7 @@ export default function VerticalManagementComponent() {
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
                         onAddClick={handleAddClick}
+                        isViewOnly={isViewOnly}
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -214,6 +219,7 @@ export default function VerticalManagementComponent() {
                         setSearchQuery={setSearchQuery}
                         onView={handleViewClick}
                         onEdit={handleEditClick}
+                        isViewOnly={isViewOnly}
                         footerProps={{
                             totalRecords: filteredData.length,
                             currentPage,
