@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/router";
 import { 
   Plus, Download, Upload, Trash2, Edit, X 
 } from "lucide-react";
@@ -45,6 +46,9 @@ const mapSignature = (s) => {
 };
 
 export default function UserList() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -265,7 +269,7 @@ export default function UserList() {
   },
 ];
 
-  const actions = [
+  const actions = isViewOnly ? [] : [
     {
       icon: Edit,
       onClick: (row) => { setEditTarget(row); setEditOpen(true); },
@@ -303,18 +307,22 @@ export default function UserList() {
               >
                 <Download size={16} /> Export CSV
               </button>
-              <button
-                onClick={() => setImportOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
-              >
-                <Upload size={16} /> Import
-              </button>
-              <button
-                onClick={() => setAddOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95"
-              >
-                <Plus size={16} /> Add User
-              </button>
+              {!isViewOnly && (
+                <>
+                  <button
+                    onClick={() => setImportOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                  >
+                    <Upload size={16} /> Import
+                  </button>
+                  <button
+                    onClick={() => setAddOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95"
+                  >
+                    <Plus size={16} /> Add User
+                  </button>
+                </>
+              )}
             </div>
           </motion.header>
 
