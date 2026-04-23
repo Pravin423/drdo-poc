@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ClipboardList, Activity, CheckCircle, AlertCircle, TrendingUp, Calendar } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
-
+import { useRouter } from "next/router";
 // Extracted Components
 import { 
   StatsCard, 
@@ -38,6 +38,9 @@ const formatDateForDisplay = (dateString) => {
 
 /* ---------------- MAIN PAGE COMPONENT ---------------- */
 export default function TaskAssignment() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -230,7 +233,7 @@ export default function TaskAssignment() {
   }, [tasks]);
 
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="min-h-screen p-2 lg:p-3 xl:p-4">
           <div className="max-w-[1600px] mx-auto space-y-8">
@@ -292,6 +295,7 @@ export default function TaskAssignment() {
                   loading={loading} 
                   onDeleteTask={handleDeleteTask} 
                   onOpenAssignModal={() => { setApiError(null); setIsAssignModalOpen(true); }} 
+                  isViewOnly={isViewOnly}
                 />
               </motion.div>
             </AnimatePresence>

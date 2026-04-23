@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { StatusBadge, TaskTypeBadge, ActivityFormBadge } from "./Badges";
 import DataTable from "../../common/DataTable";
 
-const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDeleteTask, onOpenAssignModal }) {
+const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDeleteTask, onOpenAssignModal, isViewOnly }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [searchQuery, setSearchQuery] = useState("");
@@ -112,7 +112,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
     }
   ];
 
-  const headerActions = (
+  const headerActions = !isViewOnly && (
     <button onClick={onOpenAssignModal} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors whitespace-nowrap shadow-sm">
       <Plus size={16} /> Assign Task
     </button>
