@@ -38,12 +38,16 @@ import {
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { exportToExcel } from "../../lib/exportToExcel";
+import { useRouter } from "next/router";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import GISMapTab from "../../components/dashboard/GISMapTab";
 
 export default function AttendanceManagement() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   const [activeTab, setActiveTab] = useState("masterRole");
   const [activeModal, setActiveModal] = useState(null);
 
@@ -167,7 +171,7 @@ export default function AttendanceManagement() {
                 )}
                 { activeTab === "workReport" && <WorkReportTab employees={employees} />}
                 {(activeTab === "leaveList" || activeTab === "gisMap") && <GISMapTab />}
-                {activeTab === "holidays" && <HolidaysTab />}
+                {activeTab === "holidays" && <HolidaysTab isViewOnly={isViewOnly} />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -1430,7 +1434,7 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
 });
 
 
-const HolidaysTab = memo(function HolidaysTab() {
+const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
   const [holidays, setHolidays] = useState([]);
@@ -1785,12 +1789,14 @@ const HolidaysTab = memo(function HolidaysTab() {
             <h2 className="text-xl font-bold text-slate-900">Holiday List 2026</h2>
             <p className="text-sm text-slate-500 mt-1">Manage official and regional holidays</p>
           </div>
-          <button
-            onClick={() => { setShowAddModal(true); setAddError(''); }}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-          >
-            + Add Holiday
-          </button>
+          {!isViewOnly && (
+            <button
+              onClick={() => { setShowAddModal(true); setAddError(''); }}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#1a2e7a] rounded-xl hover:bg-[#13225a] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+            >
+              + Add Holiday
+            </button>
+          )}
         </div>
 
         <div className="relative overflow-hidden">
@@ -1857,23 +1863,25 @@ const HolidaysTab = memo(function HolidaysTab() {
                     </div>
 
                     {/* Edit / Delete */}
-                    <div
-                      className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        onClick={() => openEditModal(holiday)}
-                        className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110"
+                    {!isViewOnly && (
+                      <div
+                        className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(holiday)}
-                        className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => openEditModal(holiday)}
+                          className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(holiday)}
+                          className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })
