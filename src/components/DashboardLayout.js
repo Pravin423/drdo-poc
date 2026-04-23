@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar, { MobileSidebar } from "./Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, MapPin, RefreshCw, Menu, Activity } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const SIDEBAR_EXPANDED_W = 320;
 const SIDEBAR_COLLAPSED_W = 72;
@@ -9,8 +10,11 @@ const SIDEBAR_COLLAPSED_W = 72;
 export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { user } = useAuth();
 
   const sidebarW = sidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_EXPANDED_W;
+  
+  const displayRoleName = user?.role_name || user?.role || "Super Admin";
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] text-slate-900 flex overflow-hidden">
@@ -49,10 +53,10 @@ export default function DashboardLayout({ children }) {
 
                 {/* Identity Badges */}
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 bg-[#0a3d62] text-white px-3 py-1 rounded-full shadow-sm">
-                    <Shield size={12} className="text-blue-300" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
-                      Super Admin
+                  <div className="flex items-center gap-1.5 bg-[#0a3d62] text-white px-3 py-1 rounded-full shadow-sm max-w-[200px] sm:max-w-none truncate">
+                    <Shield size={12} className="text-blue-300 flex-shrink-0" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider truncate">
+                      {displayRoleName}
                     </span>
                   </div>
 
@@ -95,8 +99,8 @@ export default function DashboardLayout({ children }) {
             {/* Main Heading */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  SuperAdmin Dashboard
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight capitalize">
+                  {displayRoleName} Dashboard
                 </h1>
                 <p className="text-sm text-slate-500">
                   Monitor CRP activity with a calm, focused workspace.
