@@ -1,7 +1,7 @@
 import { Download, Upload, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function VillageHeader({ onExport, onImportClick, onAddClick }) {
+export default function VillageHeader({ onExport, onImportClick, onAddClick, isViewOnly }) {
     return (
         <motion.header
             initial={{ opacity: 0, y: -20 }}
@@ -22,24 +22,28 @@ export default function VillageHeader({ onExport, onImportClick, onAddClick }) {
             </div>
 
             <div className="flex items-center gap-3">
-                <button
-                    onClick={onImportClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm"
-                >
-                    <Upload size={16} /> Import
-                </button>
+                {!isViewOnly && (
+                    <button
+                        onClick={onImportClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                        <Upload size={16} /> Import
+                    </button>
+                )}
                 <button
                     onClick={onExport}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm"
                 >
                     <Download size={16} /> Export
                 </button>
-                <button
-                    onClick={onAddClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95"
-                >
-                    <Plus size={16} /> Add Village
-                </button>
+                {!isViewOnly && (
+                    <button
+                        onClick={onAddClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-tech-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-tech-blue-700 transition-all shadow-md shadow-tech-blue-500/20 active:scale-95"
+                    >
+                        <Plus size={16} /> Add Village
+                    </button>
+                )}
             </div>
         </motion.header>
     );

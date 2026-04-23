@@ -23,6 +23,7 @@ export default function VillageTable({
     onEdit,
     onDelete,
     footerProps,
+    isViewOnly,
 }) {
 
     // Define columns for the universal table
@@ -73,20 +74,25 @@ export default function VillageTable({
             onClick: (village) => onView(village.id),
             title: "View Details",
             className: "hover:text-emerald-600 hover:bg-emerald-50"
-        },
-        {
-            icon: Edit,
-            onClick: onEdit,
-            title: "Edit Village",
-            className: "hover:text-blue-600 hover:bg-blue-50"
-        },
-        {
-            icon: X,
-            onClick: (village) => onDelete(village.id),
-            title: "Delete Village",
-            className: "hover:text-red-600 hover:bg-red-50"
         }
     ];
+
+    if (!isViewOnly) {
+        actions.push(
+            {
+                icon: Edit,
+                onClick: onEdit,
+                title: "Edit Village",
+                className: "hover:text-blue-600 hover:bg-blue-50"
+            },
+            {
+                icon: X,
+                onClick: (village) => onDelete(village.id),
+                title: "Delete Village",
+                className: "hover:text-red-600 hover:bg-red-50"
+            }
+        );
+    }
 
     // Custom header actions for VillageTable (Complex Filter)
     const headerActions = (

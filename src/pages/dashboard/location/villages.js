@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import LocationSummaryCards from "../../../components/LocationSummaryCards";
@@ -14,6 +15,9 @@ import ImportVillageModal from "../../../components/super-admin/location/village
 import { SaveConfirmModal, DeleteConfirmModal } from "../../../components/super-admin/location/village/ConfirmModals";
 
 export default function VillagesManagement() {
+    const router = useRouter();
+    const isViewOnly = router.query.viewOnly === "true";
+
     const ROWS_PER_PAGE = 10;
 
     // ─── Data State ───────────────────────────────────────────────────────────────
@@ -427,6 +431,7 @@ export default function VillagesManagement() {
                             onExport={handleExport}
                             onImportClick={handleImportClick}
                             onAddClick={handleAddClick}
+                            isViewOnly={isViewOnly}
                         />
 
                         <LocationSummaryCards
@@ -452,6 +457,7 @@ export default function VillagesManagement() {
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
+                            isViewOnly={isViewOnly}
                             footerProps={{
                                 totalRecords: filteredVillages.length,
                                 currentPage,
