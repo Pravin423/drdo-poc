@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Link as LinkIcon } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/router";
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -13,6 +14,9 @@ import VillageMappingTable from "../../../components/super-admin/crp/village-map
 import VillageMappingModal from "../../../components/super-admin/crp/village-mapping/VillageMappingModal";
 
 export default function CRPVillageMapping() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   // ── Data ──────────────────────────────────────────────────────────────────
   const [mappings, setMappings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -189,12 +193,14 @@ export default function CRPVillageMapping() {
               <p className="text-slate-500 font-medium">Manage and view mappings between CRPs and Villages</p>
             </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
-            >
-              <LinkIcon size={16} /> Link CRP to Village
-            </button>
+            {!isViewOnly && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
+              >
+                <LinkIcon size={16} /> Link CRP to Village
+              </button>
+            )}
           </motion.header>
 
           {/* Table card */}
@@ -215,6 +221,7 @@ export default function CRPVillageMapping() {
               totalPages={totalPages}
               setCurrentPage={setCurrentPage}
               onEdit={handleEditClick}
+              isViewOnly={isViewOnly}
             />
           </div>
 

@@ -12,6 +12,7 @@ export default function VillageMappingTable({
   totalPages,
   setCurrentPage,
   onEdit,
+  isViewOnly,
 }) {
 
   // ✅ Columns (NO Action column here)
@@ -52,19 +53,23 @@ export default function VillageMappingTable({
   ];
 
   // ✅ Actions (THIS replaces Action column)
-  const actions = [
-    {
-      icon: Edit,
-      title: "Edit",
-      onClick: onEdit,
- className: "hover:text-emerald-600 hover:bg-emerald-50"    },
-    {
-      icon: X,
-      title: "Delete",
-      onClick: (row) => console.log("Delete", row),
-      className: "hover:text-red-600 hover:bg-red-50",
-    },
-  ];
+  const actions = [];
+  
+  if (!isViewOnly) {
+    actions.push(
+      {
+        icon: Edit,
+        title: "Edit",
+        onClick: onEdit,
+   className: "hover:text-emerald-600 hover:bg-emerald-50"    },
+      {
+        icon: X,
+        title: "Delete",
+        onClick: (row) => console.log("Delete", row),
+        className: "hover:text-red-600 hover:bg-red-50",
+      }
+    );
+  }
 
   return (
     <DataTable
