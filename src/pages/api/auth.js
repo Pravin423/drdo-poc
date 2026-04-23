@@ -19,8 +19,8 @@ export default async function handler(req, res) {
       if (!mobile || !/^\d{10}$/.test(mobile.toString())) {
         return res.status(400).json({ status: false, message: "Valid 10-digit mobile number is required" });
       }
-      if (!password || password.length < 6) {
-        return res.status(400).json({ status: false, message: "Password must be at least 6 characters" });
+      if (!password || password.length < 8) {
+        return res.status(400).json({ status: false, message: "Password must be at least 8 characters" });
       }
       
       console.log("[Server/API] 🔐 Calling real API: POST", `${API_BASE}/login`, "| mobile:", mobile);
@@ -33,12 +33,17 @@ export default async function handler(req, res) {
       const data = await apiRes.json();
       
       if (apiRes.ok && data.token) {
-        // Set HttpOnly, Secure, SameSite cookie
-        // Using strict to protect against CSRF
+        // HttpOnly cookie: Secure only in production, Lax for cross-page navigation
+        const isProd = process.env.NODE_ENV === "production";
         res.setHeader(
           "Set-Cookie",
-          `auth_token=${data.token}; Path=/; HttpOnly; Secure; SameSite=Strict`
+          `auth_token=${data.token}; Path=/; HttpOnly; SameSite=Lax${isProd ? "; Secure" : ""}`
         );
+      }
+
+      // 404 = user not found in backend
+      if (apiRes.status === 404) {
+        return res.status(404).json({ status: false, message: "No account found with this mobile number." });
       }
 
       return res.status(apiRes.status).json(data);
@@ -67,9 +72,10 @@ export default async function handler(req, res) {
       });
 
       // Clear the auth_token cookie
+      const isProd = process.env.NODE_ENV === "production";
       res.setHeader(
         "Set-Cookie",
-        `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict`
+        `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${isProd ? "; Secure" : ""}`
       );
 
       // Treat any response (even errors) as a successful local logout
@@ -78,9 +84,10 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error("[proxy/logout] error:", err);
       // Clear cookie even if proxy API fetch fails
+      const isProd = process.env.NODE_ENV === "production";
       res.setHeader(
         "Set-Cookie",
-        `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Strict`
+        `auth_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${isProd ? "; Secure" : ""}`
       );
       // Even if the API call fails, we still allow local logout
       return res.status(200).json({ status: true, message: "Logged out locally." });

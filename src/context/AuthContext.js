@@ -16,24 +16,34 @@ export const AuthProvider = ({ children }) => {
     setAuthLoading(false);
   }, []);
 
-  const ROLE_MAP = {
-    "Super Admin":    { role: "super-admin",    dashboard: "/dashboard/super-admin" },
-    "State Admin":    { role: "state-admin",     dashboard: "/dashboard/state-admin" },
-    "District Admin": { role: "district-admin",  dashboard: "/dashboard/district-admin" },
-    "Supervisor":     { role: "supervisor",       dashboard: "/dashboard/supervisor" },
-    "Finance":        { role: "finance",          dashboard: "/dashboard/finance" },
-    "CRP":            { role: "crp",              dashboard: "/dashboard/crp" },
+  // Normalize: lowercase, collapse spaces, replace ALL dash variants with a plain hyphen
+  const normalizeRole = (s) =>
+    s.toLowerCase().replace(/[\u2013\u2014\u2012\u2010\-]/g, "-").replace(/\s+/g, " ").trim();
+
+  const ROLE_MAP = [
+    { match: "super admin",                          role: "super-admin",    dashboard: "/dashboard/super-admin" },
+    { match: "state program manager - mis",          role: "state-admin",    dashboard: "/dashboard/state-admin" },
+    { match: "state program manager - hr",           role: "state-admin",    dashboard: "/dashboard/state-admin" },
+    { match: "block manager",                        role: "district-admin", dashboard: "/dashboard/district-admin" },
+    { match: "block program manager",                role: "district-admin", dashboard: "/dashboard/district-admin" },
+    { match: "block resource person",                role: "supervisor",     dashboard: "/dashboard/supervisor" },
+    { match: "internal mentor im",                   role: "supervisor",     dashboard: "/dashboard/supervisor" },
+    { match: "block coordinator - bc",               role: "supervisor",     dashboard: "/dashboard/supervisor" },
+    { match: "community resource person",            role: "crp",            dashboard: "/dashboard/crp" },
+  ];
+
+  const resolveRole = (roleName) => {
+    const normalized = normalizeRole(roleName);
+    return ROLE_MAP.find(entry => normalizeRole(entry.match) === normalized) || null;
   };
 
   const login = async (phone, password) => {
     try {
-      console.log("%c[API] 🔐 POST /api/auth?action=login", "color: #3b82f6; font-weight: bold", { mobile: phone });
       const response = await fetch(`/api/auth?action=login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile: phone, password }),
       });
-      console.log("%c[API] ✅ Login response status:", "color: #22c55e; font-weight: bold", response.status);
 
       const data = await response.json();
 
@@ -45,24 +55,21 @@ export const AuthProvider = ({ children }) => {
         } else if (rawMessage && typeof rawMessage === "object") {
           errorMessage = Object.values(rawMessage)[0] || errorMessage;
         }
-        return {
-          success: false,
-          message: errorMessage,
-        };
+        return { success: false, message: errorMessage };
       }
 
       const roleName = (data?.data?.role_name || "").trim();
-      const mapped = ROLE_MAP[roleName];
+      const mapped = resolveRole(roleName);
 
       if (!mapped) {
-        console.warn("[Auth] Unknown role from API:", roleName);
+        // Print exact char codes to debug any dash/space mismatch
+        const codes = [...roleName].map(c => `U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4,"0")}`).join(" ");
+        console.warn("[Auth] Unknown role — exact chars:", JSON.stringify(roleName), "\n", codes);
         return {
           success: false,
-          message: `Access denied. Unrecognised role: "${roleName}".`,
+          message: `Access denied. Role "${roleName}" is not configured. Contact your administrator.`,
         };
       }
-
-      console.log("%c[Auth] ✅ Role resolved:", "color: #8b5cf6; font-weight: bold", roleName, "→", mapped.role);
 
       const token = data?.token || "";
       const userData = {
