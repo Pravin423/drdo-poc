@@ -46,14 +46,21 @@ export const AuthProvider = ({ children }) => {
       });
 
       const data = await response.json();
-
-      if (!data?.status) {
-        const rawMessage = data?.message;
+      
+      if (!response.ok || data?.status === false || data?.status === 0) {
+        const rawMessage = data?.error || data?.message;
         let errorMessage = "Login failed. Please try again.";
+        
         if (typeof rawMessage === "string") {
           errorMessage = rawMessage;
         } else if (rawMessage && typeof rawMessage === "object") {
-          errorMessage = Object.values(rawMessage)[0] || errorMessage;
+          // If it's an object/array, get the first value
+          const firstVal = Object.values(rawMessage)[0];
+          if (Array.isArray(firstVal)) {
+            errorMessage = firstVal[0];
+          } else if (typeof firstVal === "string") {
+            errorMessage = firstVal;
+          }
         }
         return { success: false, message: errorMessage };
       }

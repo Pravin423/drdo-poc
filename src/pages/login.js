@@ -85,8 +85,8 @@ export default function Login() {
     if (passwordTouched) {
       if (!value) {
         setPasswordError("Password is required");
-      } else if (value.length < 6) {
-        setPasswordError("Password must be at least 6 characters");
+      } else if (value.length < 8) {
+        setPasswordError("Password must be at least 8 characters");
       } else {
         setPasswordError("");
       }
@@ -97,8 +97,8 @@ export default function Login() {
     setPasswordTouched(true);
     if (!password) {
       setPasswordError("Password is required");
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    } else if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
     } else {
       setPasswordError("");
     }
@@ -135,8 +135,8 @@ export default function Login() {
     if (!password) {
       setPasswordError("Password is required");
       hasError = true;
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    } else if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
       hasError = true;
     }
     if (hasError) return;
@@ -209,8 +209,8 @@ export default function Login() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -594,7 +594,7 @@ export default function Login() {
                       <input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password (min. 6 characters)"
+                        placeholder="Enter your password (min. 8 characters)"
                         value={password}
                         onChange={(e) => handlePasswordChange(e.target.value)}
                         onBlur={handlePasswordBlur}
@@ -728,14 +728,14 @@ export default function Login() {
                       <input
                         id="new-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter new password (min. 6 characters)"
+                        placeholder="Enter new password (min. 8 characters)"
                         value={newPassword}
                         onPaste={(e) => e.preventDefault()}
                         onChange={(e) => {
                           setNewPassword(e.target.value);
                           setError("");
                           if (!e.target.value) setNewPasswordError("New password is required");
-                          else if (e.target.value.length < 6) setNewPasswordError("Password must be at least 6 characters");
+                          else if (e.target.value.length < 8) setNewPasswordError("Password must be at least 8 characters");
                           else setNewPasswordError("");
                           if (confirmPassword && e.target.value !== confirmPassword) setConfirmPasswordError("Passwords do not match");
                           else if (confirmPassword) setConfirmPasswordError("");
