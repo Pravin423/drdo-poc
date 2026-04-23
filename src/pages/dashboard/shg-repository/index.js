@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Plus, UploadCloud } from "lucide-react";
+import { useRouter } from "next/router";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 
@@ -16,6 +17,9 @@ import ShgMemberEditModal from "../../../components/super-admin/shg-repository/S
 import DeleteConfirmationModal from "../../../components/super-admin/shg-repository/DeleteConfirmationModal";
 
 export default function SHGRepository() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   // ── Data ──────────────────────────────────────────────────────────────────
   const [shgs, setShgs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -383,21 +387,23 @@ export default function SHGRepository() {
               <p className="text-slate-500 mt-2 text-sm">Manage, monitor, and register Self Help Groups across Goa.</p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button className="bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-bold border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm">
-                <UploadCloud size={18} className="text-slate-400" /> Bulk Import
-              </button>
-              <button
-                onClick={() => {
-                  setModalMode("add");
-                  setFormData({ shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: "", status: 0 });
-                  setIsModalOpen(true);
-                }}
-              className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer ml-2 md:w-auto"
-              >
-                <Plus size={18} /> Register SHG
-              </button>
-            </div>
+            {!isViewOnly && (
+              <div className="flex items-center gap-3">
+                <button className="bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-bold border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm">
+                  <UploadCloud size={18} className="text-slate-400" /> Bulk Import
+                </button>
+                <button
+                  onClick={() => {
+                    setModalMode("add");
+                    setFormData({ shgName: "", contactPersonName: "", contactPersonMobile: "", district: "", taluka: "", village: "", status: 0 });
+                    setIsModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer ml-2 md:w-auto"
+                >
+                  <Plus size={18} /> Register SHG
+                </button>
+              </div>
+            )}
           </div>
 
           <ShgRepositoryStats shgs={shgs} />
@@ -421,6 +427,7 @@ export default function SHGRepository() {
             onAddMember={handleAddMemberClick}
             onViewDetails={handleViewClick}
             onEditSHG={handleEditClick}
+            isViewOnly={isViewOnly}
           />
 
         </div>
@@ -447,6 +454,7 @@ export default function SHGRepository() {
         onAddMember={handleAddMemberClick}
         onEditMember={handleEditMemberClick}
         onDeleteMember={setMemberToDelete}
+        isViewOnly={isViewOnly}
       />
 
       <ShgMemberAddModal

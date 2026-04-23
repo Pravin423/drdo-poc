@@ -11,7 +11,8 @@ export default function ShgRepositoryTable({
   isLoading,
   onAddMember,
   onViewDetails,
-  onEditSHG
+  onEditSHG,
+  isViewOnly
 }) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -54,11 +55,10 @@ export default function ShgRepositoryTable({
       key: "status",
       render: (value) => (
         <span
-          className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-            value === "Active"
+          className={`px-2.5 py-1 rounded-full text-xs font-bold border ${value === "Active"
               ? "bg-emerald-50 text-emerald-700 border-emerald-100"
               : "bg-slate-50 text-slate-600 border-slate-200"
-          }`}
+            }`}
         >
           {value}
         </span>
@@ -69,23 +69,27 @@ export default function ShgRepositoryTable({
   // Actions
   const actions = [
     {
-      icon: UserPlus,
-      title: "Add Member",
-      onClick: onAddMember,
-      className: "hover:text-blue-600 hover:bg-blue-50"},
-    {
       icon: Eye,
       title: "View Details",
       onClick: onViewDetails,
       className: "hover:text-emerald-600 hover:bg-emerald-50"
-    },
-    {
+    }
+  ];
+
+  if (!isViewOnly) {
+    actions.unshift({
+      icon: UserPlus,
+      title: "Add Member",
+      onClick: onAddMember,
+      className: "hover:text-blue-600 hover:bg-blue-50"
+    });
+    actions.push({
       icon: Edit,
       title: "Edit SHG",
       onClick: onEditSHG,
       className: "hover:text-yellow-600 hover:bg-yellow-50"
-    }
-  ];
+    });
+  }
 
   return (
     <DataTable

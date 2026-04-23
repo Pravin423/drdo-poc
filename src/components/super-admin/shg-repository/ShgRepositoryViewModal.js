@@ -10,7 +10,8 @@ export default function ShgRepositoryViewModal({
   viewSHGData,
   onAddMember,
   onEditMember,
-  onDeleteMember
+  onDeleteMember,
+  isViewOnly
 }) {
   return (
     <AnimatePresence>
@@ -110,20 +111,22 @@ export default function ShgRepositoryViewModal({
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SHG Members</p>
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold px-2.5 py-0.5 rounded-full">{(viewSHGData.shgMembers || []).length} Members</span>
-                        <button
-                          type="button"
-                          onClick={() => onAddMember({ id: viewSHGData.id, name: viewSHGData.shgName })}
-                          className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
-                        >
-                          <UserPlus size={14} /> Add Member
-                        </button>
+                        {!isViewOnly && (
+                          <button
+                            type="button"
+                            onClick={() => onAddMember({ id: viewSHGData.id, name: viewSHGData.shgName })}
+                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+                          >
+                            <UserPlus size={14} /> Add Member
+                          </button>
+                        )}
                       </div>
                     </div>
-                    
+
                     {(!viewSHGData.shgMembers || viewSHGData.shgMembers.length === 0) ? (
                       <div className="p-6 text-center border border-slate-100 rounded-2xl bg-slate-50/50">
                         <div className="inline-flex items-center justify-center p-3 bg-white rounded-full shadow-sm border border-slate-100 mb-3">
-                           <Users size={20} className="text-slate-300" />
+                          <Users size={20} className="text-slate-300" />
                         </div>
                         <p className="text-sm font-semibold text-slate-500 block">No members added yet.</p>
                       </div>
@@ -132,9 +135,9 @@ export default function ShgRepositoryViewModal({
                         {viewSHGData.shgMembers.map((member, idx) => {
                           const designation = member.designation || member.role || "Member";
                           const isLeader = designation.toLowerCase().includes("president") || designation.toLowerCase().includes("leader") || designation.toLowerCase().includes("secretary");
-                          
+
                           return (
-                            <motion.div 
+                            <motion.div
                               key={member.id || idx}
                               initial={{ opacity: 0, scale: 0.98, y: 10 }}
                               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -163,25 +166,27 @@ export default function ShgRepositoryViewModal({
                                     <span className="text-xs text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">—</span>
                                   )}
                                 </div>
-                                
-                                <div className="flex items-center gap-1.5">
-                                  <button 
-                                    type="button"
-                                    onClick={() => onEditMember(member)}
-                                    className="p-2 bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-200"
-                                    title="Edit member"
-                                  >
-                                    <Edit size={14} />
-                                  </button>
-                                  <button 
-                                    type="button"
-                                    onClick={() => onDeleteMember(member)}
-                                    className="p-2 bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-200"
-                                    title="Delete member"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
+
+                                {!isViewOnly && (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => onEditMember(member)}
+                                      className="p-2 bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                                      title="Edit member"
+                                    >
+                                      <Edit size={14} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => onDeleteMember(member)}
+                                      className="p-2 bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                                      title="Delete member"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </motion.div>
                           );
