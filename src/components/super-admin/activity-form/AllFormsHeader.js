@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Download, Plus } from "lucide-react";
 
-export default function AllFormsHeader({ onOpenCreateModal, onExport }) {
+export default function AllFormsHeader({ onOpenCreateModal, onExport, isViewOnly }) {
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -28,12 +28,14 @@ export default function AllFormsHeader({ onOpenCreateModal, onExport }) {
         >
           <Download size={16} /> Export CSV
         </button>
-        <button
-          onClick={onOpenCreateModal}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#3b52ab] text-white rounded-xl text-sm font-bold hover:bg-[#2e4085] transition-all shadow-sm shadow-[#3b52ab]/10 active:scale-95"
-        >
-          <Plus size={18} /> Create New Form
-        </button>
+        {!isViewOnly && (
+          <button
+            onClick={onOpenCreateModal}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#3b52ab] text-white rounded-xl text-sm font-bold hover:bg-[#2e4085] transition-all shadow-sm shadow-[#3b52ab]/10 active:scale-95"
+          >
+            <Plus size={18} /> Create New Form
+          </button>
+        )}
       </div>
     </motion.header>
   );

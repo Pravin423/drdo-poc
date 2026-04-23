@@ -106,7 +106,7 @@ export default function EventManagement() {
   ];
 
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 p-4 md:p-6 lg:p-8">
 

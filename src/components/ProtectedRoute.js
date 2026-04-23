@@ -18,7 +18,12 @@ export default function ProtectedRoute({ allowedRole, children }) {
     if (authLoading || !user) return false;
     
     // 1. Direct role match
-    if (!allowedRole || user.role === allowedRole) return true;
+    if (!allowedRole) return true;
+    if (Array.isArray(allowedRole)) {
+      if (allowedRole.includes(user.role)) return true;
+    } else {
+      if (user.role === allowedRole) return true;
+    }
 
     // 2. Check if the current route is granted to this user via their sidebar config (e.g. viewOnly access)
     const menus = getSidebarForRole(user.role) || [];

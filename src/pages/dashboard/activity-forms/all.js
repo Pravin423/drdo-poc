@@ -27,6 +27,7 @@ export default function AllForms() {
   const [selectedFormId, setSelectedFormId] = useState(null);
 
   const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
 
   const fetchForms = useCallback(async () => {
     setIsLoading(true);
@@ -141,11 +142,11 @@ export default function AllForms() {
   };
 
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
-          <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} />
+          <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} isViewOnly={isViewOnly} />
 
           <AllFormsStats stats={stats} />
 
@@ -158,6 +159,7 @@ export default function AllForms() {
             router={router}
             handleDeleteClick={handleDeleteClick}
             onEditForm={handleEditForm}
+            isViewOnly={isViewOnly}
             footerProps={{
               totalRecords: filtered.length,
               currentPage,

@@ -10,7 +10,8 @@ export default function FormsTable({
   router, 
   handleDeleteClick,
   onEditForm,
-  footerProps
+  footerProps,
+  isViewOnly
 }) {
   const columns = [
     {
@@ -70,21 +71,23 @@ export default function FormsTable({
     {
       icon: Eye,
       title: "View",
-      onClick: (form) => router.push(`/dashboard/activity-forms/view?id=${form.id}`),
+      onClick: (form) => router.push(`/dashboard/activity-forms/view?id=${form.id}${isViewOnly ? '&viewOnly=true' : ''}`),
       className: "hover:text-blue-600 hover:bg-blue-50"
     },
-    {
-      icon: Edit,
-      title: "Edit",
-      onClick: (form) => onEditForm(form.id),
-      className: "hover:text-purple-600 hover:bg-purple-50"
-    },
-    {
-      icon: Trash2,
-      title: "Delete",
-      onClick: (form) => handleDeleteClick(form.id),
-      className: "hover:text-red-600 hover:bg-red-50"
-    }
+    ...(!isViewOnly ? [
+      {
+        icon: Edit,
+        title: "Edit",
+        onClick: (form) => onEditForm(form.id),
+        className: "hover:text-purple-600 hover:bg-purple-50"
+      },
+      {
+        icon: Trash2,
+        title: "Delete",
+        onClick: (form) => handleDeleteClick(form.id),
+        className: "hover:text-red-600 hover:bg-red-50"
+      }
+    ] : [])
   ];
 
   return (

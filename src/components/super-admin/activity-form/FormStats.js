@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-export default function FormStats({ form, toggleStatus, isUpdatingStatus }) {
+export default function FormStats({ form, toggleStatus, isUpdatingStatus, isViewOnly }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -13,8 +13,8 @@ export default function FormStats({ form, toggleStatus, isUpdatingStatus }) {
           <div className="flex items-center gap-3">
               <button 
                   onClick={toggleStatus} 
-                  disabled={isUpdatingStatus}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${form.status === 1 ? 'bg-emerald-500' : 'bg-slate-300'} ${isUpdatingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={isUpdatingStatus || isViewOnly}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${form.status === 1 ? 'bg-emerald-500' : 'bg-slate-300'} ${isUpdatingStatus || isViewOnly ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                   <span 
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.status === 1 ? 'translate-x-6' : 'translate-x-1'}`} 

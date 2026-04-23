@@ -14,6 +14,7 @@ import {
 
 export default function ViewForm() {
   const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
   const [form, setForm] = useState(null);
   const [error, setError] = useState(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -83,7 +84,7 @@ export default function ViewForm() {
 
   if (error) {
     return (
-      <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
         <DashboardLayout>
           <div className="flex items-center justify-center min-h-[50vh]">
             <p className="text-red-500 font-medium px-4 py-2 bg-red-50 rounded-lg">{error}</p>
@@ -95,7 +96,7 @@ export default function ViewForm() {
 
   if (!form) {
     return (
-      <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
         <DashboardLayout>
           <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
              <div className="w-8 h-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
@@ -107,7 +108,7 @@ export default function ViewForm() {
   }
 
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-3xl mx-auto space-y-6 p-4">
           
@@ -121,6 +122,7 @@ export default function ViewForm() {
             form={form}
             toggleStatus={toggleStatus}
             isUpdatingStatus={isUpdatingStatus}
+            isViewOnly={isViewOnly}
           />
 
           <FieldsList 

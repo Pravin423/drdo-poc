@@ -285,7 +285,7 @@ export default function UserList() {
   ];
 
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 p-4">
           

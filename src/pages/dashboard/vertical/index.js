@@ -3,7 +3,7 @@ import VerticalManagementComponent from "../../../components/super-admin/vertica
 
 export default function VerticalManagement() {
     return (
-        <ProtectedRoute allowedRole="super-admin">
+        <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
             <VerticalManagementComponent />
         </ProtectedRoute>
     );

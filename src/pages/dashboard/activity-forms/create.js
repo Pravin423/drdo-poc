@@ -201,7 +201,7 @@ export default function CreateForm() {
   };
 
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-3xl mx-auto space-y-6 p-4">
 
