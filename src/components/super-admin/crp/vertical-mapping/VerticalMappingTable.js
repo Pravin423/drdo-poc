@@ -12,6 +12,7 @@ export default function VerticalMappingTable({
   totalPages,
   setCurrentPage,
   onEdit,
+  isViewOnly,
 }) {
   // ✅ Columns
   const columns = [
@@ -40,19 +41,23 @@ export default function VerticalMappingTable({
   ];
 
   // ✅ Actions
-  const actions = [
-    {
-      icon: Edit,
-      title: "Edit",
-      onClick: onEdit,
-      className: "hover:text-emerald-600 hover:bg-emerald-50"
-    },{
-      icon: Trash2,
-      title: "Delete",
-      onClick: (row) => console.log("Delete", row),
-      className: "hover:text-red-600 hover:bg-red-50",
-    },
-  ];
+  const actions = [];
+  
+  if (!isViewOnly) {
+    actions.push(
+      {
+        icon: Edit,
+        title: "Edit",
+        onClick: onEdit,
+        className: "hover:text-emerald-600 hover:bg-emerald-50"
+      },{
+        icon: Trash2,
+        title: "Delete",
+        onClick: (row) => console.log("Delete", row),
+        className: "hover:text-red-600 hover:bg-red-50",
+      }
+    );
+  }
 
   return (
     <DataTable
