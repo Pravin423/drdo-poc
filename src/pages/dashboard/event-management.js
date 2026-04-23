@@ -6,6 +6,11 @@ import { useRouter } from "next/router";
 import {
   Plus,
   Download,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  Users,
+  BarChart3,
 } from "lucide-react";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -14,8 +19,8 @@ import { exportToExcel } from "../../lib/exportToExcel";
 
 // Components
 import EventOverviewStats from "../../components/super-admin/event-mgmt/EventOverviewStats";
-import EventCalendarTab from "../../components/super-admin/event-mgmt/EventCalendarTab";
-import EventAttendanceTab from "../../components/super-admin/event-mgmt/EventAttendanceTab";
+import EventListTab from "../../components/super-admin/event-mgmt/EventListTab";
+import EventDetailsModal from "../../components/super-admin/event-mgmt/EventDetailsModal";
 import EventParticipantsTab from "../../components/super-admin/event-mgmt/EventParticipantsTab";
 import EventAnalyticsTab from "../../components/super-admin/event-mgmt/EventAnalyticsTab";
 import CreateEventModal from "../../components/super-admin/event-mgmt/CreateEventModal";
@@ -25,26 +30,61 @@ export default function EventManagement() {
   const router = useRouter();
   const isViewOnly = router.query.viewOnly === "true";
 
-  const [activeTab, setActiveTab] = useState("calendar");
+  const [activeTab, setActiveTab] = useState("upcoming");
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [showAddParticipantModal, setShowAddParticipantModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedEventForDetails, setSelectedEventForDetails] = useState(null);
 
   // Events state
   const [events, setEvents] = useState([
     {
       id: 1,
-      title: "Health & Nutrition Training",
-      type: "training",
-      date: "2026-01-28",
-      startTime: "09:00",
-      endTime: "17:00",
+      title: "Testing",
+      type: "Meeting",
+      date: "2026-04-18",
+      startTime: "16:00",
+      endTime: "16:00",
+      endDate: "2026-04-19",
       venue: "Community Hall, Margao",
-      district: "South Goa",
-      block: "Margao",
+      district: "North Goa",
+      block: "Bicholim, Ona",
       facilitator: "Dr. Maria Fernandes",
       capacity: 50,
-      description: "Comprehensive health and nutrition training for CRPs",
+      description: "Use for testing",
       materials: "Handbooks, Charts, Projector",
+      allowExternal: true,
+    },
+    {
+      id: 2,
+      title: "Digital Literacy Workshop",
+      type: "workshop",
+      date: new Date().toISOString().split('T')[0],
+      startTime: "10:00",
+      endTime: "16:00",
+      venue: "Govt High School, Panaji",
+      district: "North Goa",
+      block: "Panaji",
+      facilitator: "Rajesh Shinde",
+      capacity: 30,
+      description: "Basic digital literacy for rural women",
+      materials: "Laptops, Internet, Handouts",
+      allowExternal: false,
+    },
+    {
+      id: 3,
+      title: "Sustainable Farming Seminar",
+      type: "seminar",
+      date: "2026-05-15",
+      startTime: "11:00",
+      endTime: "14:00",
+      venue: "Krishi Bhavan, Ponda",
+      district: "South Goa",
+      block: "Ponda",
+      facilitator: "Dr. Anil Patil",
+      capacity: 100,
+      description: "Advanced techniques in organic farming",
+      materials: "Projector, Seeds, Bio-fertilizers",
       allowExternal: true,
     },
   ]);
@@ -99,10 +139,11 @@ export default function EventManagement() {
   }, [events, participants]);
 
   const tabs = [
-    { id: "calendar",     label: "Event Calendar", icon: "Calendar" },
-    { id: "attendance",   label: "Attendance",     icon: "FileCheck" },
-    { id: "participants", label: "Participants",   icon: "Users" },
-    { id: "analytics",    label: "Analytics",      icon: "BarChart3" },
+    { id: "upcoming",     label: "Upcoming",    icon: Calendar },
+    { id: "ongoing",      label: "Ongoing",     icon: Clock },
+    { id: "completed",    label: "Completed",   icon: CheckCircle2 },
+    { id: "participants", label: "Participants",   icon: Users },
+    { id: "analytics",    label: "Analytics",      icon: BarChart3 },
   ];
 
   return (
@@ -173,11 +214,23 @@ export default function EventManagement() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {activeTab === "calendar" && (
-                <EventCalendarTab events={events} onCreateEvent={() => setShowCreateEventModal(true)} isViewOnly={isViewOnly} />
-              )}
-              {activeTab === "attendance" && (
-                <EventAttendanceTab events={events} participants={participants} />
+
+              {(activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
+                <EventListTab
+                  status={activeTab}
+                  events={events.filter(e => {
+                    const today = new Date().toISOString().split('T')[0];
+                    if (activeTab === "upcoming") return e.date > today;
+                    if (activeTab === "ongoing") return e.date === today;
+                    if (activeTab === "completed") return e.date < today;
+                    return true;
+                  })}
+                  onEventAction={(event) => {
+                    setSelectedEventForDetails(event);
+                    setShowDetailsModal(true);
+                  }}
+                  isViewOnly={isViewOnly}
+                />
               )}
               {activeTab === "participants" && (
                 <EventParticipantsTab participants={participants} onAddParticipant={() => setShowAddParticipantModal(true)} isViewOnly={isViewOnly} />
@@ -204,6 +257,13 @@ export default function EventManagement() {
             isOpen={showAddParticipantModal}
             onClose={() => setShowAddParticipantModal(false)}
             onSave={handleAddParticipant}
+          />
+        )}
+        {showDetailsModal && (
+          <EventDetailsModal
+            isOpen={showDetailsModal}
+            onClose={() => setShowDetailsModal(false)}
+            event={selectedEventForDetails}
           />
         )}
       </AnimatePresence>

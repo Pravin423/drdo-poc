@@ -3,20 +3,6 @@
   "message": "Honorarium list",
   "data": [
     {
-      "crp_id": 21,
-      "crp_name": "Rohit Kumar",
-      "crp_code": "CRP0021",
-      "total_working_hours": 70.06,
-      "total_working_days": 11,
-      "days_payable": 11,
-      "regular_amount": 4950,
-      "approved_regular_count": 0,
-      "approved_special_count": 1,
-      "special_amount": "200.00",
-      "total_honorarium": 5150,
-      "payment_status": "Paid"
-    },
-    {
       "crp_id": 14,
       "crp_name": "Tejas Guptahi",
       "crp_code": "CRP0014",
