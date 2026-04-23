@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { Plus, Mail, Search, ChevronDown, Download, MoreVertical } from "lucide-react";
 import { exportToExcel } from "../../../lib/exportToExcel";
 
-export default function EventParticipantsTab({ participants, onAddParticipant }) {
+export default function EventParticipantsTab({ participants, onAddParticipant, isViewOnly }) {
   const [selectedAll, setSelectedAll] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,13 +67,15 @@ export default function EventParticipantsTab({ participants, onAddParticipant })
             <p className="text-sm font-semibold text-slate-500 mt-1">Directory of CRPs and external members</p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={onAddParticipant}
-              className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              Add Participant
-            </button>
+            {!isViewOnly && (
+              <button
+                onClick={onAddParticipant}
+                className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                Add Participant
+              </button>
+            )}
             <button
               onClick={handleSendNotification}
               className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 shadow-sm transition-all active:scale-95"

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
-export default function EventCalendarTab({ events, onCreateEvent }) {
+export default function EventCalendarTab({ events, onCreateEvent, isViewOnly }) {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1)); // January 2026
   const [viewMode, setViewMode] = useState("month");
 
@@ -82,13 +82,15 @@ export default function EventCalendarTab({ events, onCreateEvent }) {
                 Week
               </button>
             </div>
-            <button
-              onClick={onCreateEvent}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              Create Event
-            </button>
+            {!isViewOnly && (
+              <button
+                onClick={onCreateEvent}
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                Create Event
+              </button>
+            )}
           </div>
         </div>
 

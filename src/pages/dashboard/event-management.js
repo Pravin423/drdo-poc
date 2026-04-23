@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/router";
 import {
   Plus,
   Download,
@@ -21,6 +22,9 @@ import CreateEventModal from "../../components/super-admin/event-mgmt/CreateEven
 import AddParticipantModal from "../../components/super-admin/event-mgmt/AddParticipantModal";
 
 export default function EventManagement() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   const [activeTab, setActiveTab] = useState("calendar");
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [showAddParticipantModal, setShowAddParticipantModal] = useState(false);
@@ -128,13 +132,15 @@ export default function EventManagement() {
                 <Download className="w-4 h-4" />
                 Export Data
               </button>
-              <button
-                onClick={() => setShowCreateEventModal(true)}
-                className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
-              >
-                <Plus className="w-4 h-4" />
-                Create Event
-              </button>
+              {!isViewOnly && (
+                <button
+                  onClick={() => setShowCreateEventModal(true)}
+                  className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Event
+                </button>
+              )}
             </div>
           </motion.div>
 
@@ -168,13 +174,13 @@ export default function EventManagement() {
               transition={{ duration: 0.3 }}
             >
               {activeTab === "calendar" && (
-                <EventCalendarTab events={events} onCreateEvent={() => setShowCreateEventModal(true)} />
+                <EventCalendarTab events={events} onCreateEvent={() => setShowCreateEventModal(true)} isViewOnly={isViewOnly} />
               )}
               {activeTab === "attendance" && (
                 <EventAttendanceTab events={events} participants={participants} />
               )}
               {activeTab === "participants" && (
-                <EventParticipantsTab participants={participants} onAddParticipant={() => setShowAddParticipantModal(true)} />
+                <EventParticipantsTab participants={participants} onAddParticipant={() => setShowAddParticipantModal(true)} isViewOnly={isViewOnly} />
               )}
               {activeTab === "analytics" && (
                 <EventAnalyticsTab events={events} participants={participants} />
