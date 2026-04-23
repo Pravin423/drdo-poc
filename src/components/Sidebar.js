@@ -15,14 +15,14 @@ import {
 import { useState, createContext, useContext } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
-import { SIDEBAR_CONFIG } from "../config/sidebarConfig";
+import { getSidebarForRole } from "../config/sidebarConfig";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Context to share collapsed state with sub-components
 const SidebarContext = createContext({ collapsed: false });
 
 /* ─────────────────────────────── SidebarItem ─────────────────────────────── */
-function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
+function SidebarItem({ item, isActive, onNavigate, depth = 0, viewOnly = false }) {
   const router = useRouter();
   const { collapsed } = useContext(SidebarContext);
   const [isOpen, setIsOpen] = useState(false);
@@ -84,7 +84,7 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
   return (
     <li className="list-none relative group/item">
       <Link
-        href={hasSubItems ? "#" : item.path}
+        href={hasSubItems ? "#" : viewOnly ? `${item.path}?viewOnly=true` : item.path}
         onClick={handleToggle}
         title={collapsed ? item.name : undefined}
         className={`group flex items-center justify-between gap-2.5 rounded-2xl px-3 py-2.5 text-sm transition-all duration-200 ${isActive && !hasSubItems
@@ -143,6 +143,7 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0 }) {
                 isActive={router.pathname === subItem.path}
                 onNavigate={onNavigate}
                 depth={depth + 1}
+                viewOnly={viewOnly}
               />
             ))}
           </motion.ul>
@@ -160,7 +161,7 @@ function SidebarContent({ onNavigate, onToggle }) {
 
   if (!user) return null;
 
-  const menus = SIDEBAR_CONFIG[user.role] || [];
+  const menus = getSidebarForRole(user.role) || [];
 
   return (
     <div className="flex flex-col h-full">
@@ -262,6 +263,7 @@ function SidebarContent({ onNavigate, onToggle }) {
                   item={item}
                   isActive={router.pathname === item.path}
                   onNavigate={onNavigate}
+                  viewOnly={group.viewOnly}
                 />
               ))}
             </ul>

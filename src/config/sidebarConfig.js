@@ -3,6 +3,7 @@ export const SIDEBAR_CONFIG = {
     {
       section: "DASHBOARD",
       items: [{ name: "System Overview", path: "/dashboard/super-admin" }],
+      accessTo:['admin','staff', 'field-staff']
     },
     {
       section: "LOCATION MANAGEMENT",
@@ -115,3 +116,37 @@ export const SIDEBAR_CONFIG = {
     },
   ],
 };
+
+export const getSidebarForRole = (role) => {
+  // Super-admin sees all sections with full access
+  if (role === "super-admin") {
+    return SIDEBAR_CONFIG["super-admin"];
+  }
+
+  // 1. Get the role's own specifically defined sections (if any)
+  const ownSections = SIDEBAR_CONFIG[role] ? [...SIDEBAR_CONFIG[role]] : [];
+
+  // 2. Scan super-admin sections for view-only access
+  const superAdminSections = SIDEBAR_CONFIG["super-admin"] || [];
+  
+  const viewOnlySections = superAdminSections
+    .filter((section) => {
+      // state-admin gets view-only access to ALL super-admin sections
+      if (role === "state-admin") {
+         return section.section !== "DASHBOARD"; // exclude super-admin's dashboard
+        // Optional: you can exclude the super-admin 'DASHBOARD' if you only want the state-admin's own DASHBOARD.
+        // But since you requested ALL sections, we'll return true for all of them.
+        return true; 
+      }
+      // For other roles (like admin, staff), check the accessTo array
+      return section.accessTo && section.accessTo.includes(role);
+    })
+    .map((section) => ({
+      ...section,
+      viewOnly: true,
+    }));
+
+  // Combine their own config (full access) with the inherited super-admin config (view-only)
+  return [...ownSections, ...viewOnlySections];
+};
+
