@@ -3,7 +3,7 @@
 import DataTable from "@/components/common/DataTable";
 import { Edit, X } from "lucide-react";
 
-export default function ShgMappingTable({ filteredMappings, isLoading, onEdit }) {
+export default function ShgMappingTable({ filteredMappings, isLoading, onEdit, isViewOnly }) {
   const columns = [
     { header: "ID", key: "id" },
     {
@@ -33,20 +33,24 @@ export default function ShgMappingTable({ filteredMappings, isLoading, onEdit })
     },
   ];
 
-  const actions = [
-    {
-      icon: Edit,
-      title: "Edit",
-      onClick: onEdit,
-      className: "hover:text-emerald-600 hover:bg-emerald-50"
-    },
-    {
-      icon: X,
-      title: "Delete",
-      onClick: (row) => console.log(row),
-      className: "hover:text-red-600 hover:bg-red-50"
-    },
-  ];
+  const actions = [];
+  
+  if (!isViewOnly) {
+    actions.push(
+      {
+        icon: Edit,
+        title: "Edit",
+        onClick: onEdit,
+        className: "hover:text-emerald-600 hover:bg-emerald-50"
+      },
+      {
+        icon: X,
+        title: "Delete",
+        onClick: (row) => console.log(row),
+        className: "hover:text-red-600 hover:bg-red-50"
+      }
+    );
+  }
 
   return (
     <DataTable

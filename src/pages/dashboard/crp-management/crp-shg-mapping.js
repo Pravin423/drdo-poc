@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Link as LinkIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
@@ -13,6 +14,9 @@ import ShgMappingTable from "../../../components/super-admin/crp/shg-mapping/Shg
 import ShgMappingModal from "../../../components/super-admin/crp/shg-mapping/ShgMappingModal";
 
 export default function CRPSHGMapping() {
+  const router = useRouter();
+  const isViewOnly = router.query.viewOnly === "true";
+
   // ── Data ──────────────────────────────────────────────────────────────────
   const [mappings, setMappings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -174,12 +178,14 @@ export default function CRPSHGMapping() {
               <p className="text-slate-500 font-medium">Manage and view mappings between CRPs and SHGs</p>
             </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
-            >
-              <LinkIcon size={16} /> Link CRP to SHG
-            </button>
+            {!isViewOnly && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
+              >
+                <LinkIcon size={16} /> Link CRP to SHG
+              </button>
+            )}
           </motion.header>
 
           {/* Table card */}
@@ -193,6 +199,7 @@ export default function CRPSHGMapping() {
               filteredMappings={filteredMappings}
               isLoading={isLoading}
               onEdit={handleEditClick}
+              isViewOnly={isViewOnly}
             />
           </div>
 
