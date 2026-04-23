@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
 import LocationSummaryCards from "../../../components/LocationSummaryCards";
@@ -13,6 +14,9 @@ import EditTalukaModal from "../../../components/super-admin/location/taluka/Edi
 import { SaveConfirmModal, DeleteConfirmModal } from "../../../components/super-admin/location/taluka/ConfirmModals";
 
 export default function TalukasManagement() {
+    const router = useRouter();
+    const isViewOnly = router.query.viewOnly === "true";
+
     // ─── Data State ──────────────────────────────────────────────────────────────
     const [talukas, setTalukas] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -324,7 +328,7 @@ export default function TalukasManagement() {
                 <DashboardLayout>
                     <div className="max-w-[1600px] mx-auto space-y-8 p-4">
                         {/* Page Header */}
-                        <TalukaHeader onExport={handleExport} onAddClick={handleAddClick} />
+                        <TalukaHeader onExport={handleExport} onAddClick={handleAddClick} isViewOnly={isViewOnly} />
 
                         {/* Summary Cards */}
                         <LocationSummaryCards totalDistricts={districts.length} totalTalukas={talukas.length} />
@@ -344,6 +348,7 @@ export default function TalukasManagement() {
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
+                            isViewOnly={isViewOnly}
                             footerProps={{
                                 totalRecords: filteredTalukas.length,
                                 currentPage,
