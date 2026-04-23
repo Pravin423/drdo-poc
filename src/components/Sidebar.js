@@ -21,6 +21,14 @@ import { motion, AnimatePresence } from "framer-motion";
 // Context to share collapsed state with sub-components
 const SidebarContext = createContext({ collapsed: false });
 
+const BACKEND_PUBLIC = "https://goadrda.runtime-solutions.net";
+function resolveImageUrl(url) {
+  if (!url) return null;
+  // If it's already a full URL (not localhost), return it. Otherwise fix localhost.
+  if (url.startsWith('http') && !url.includes('localhost')) return url;
+  return url.replace(/https?:\/\/localhost/i, BACKEND_PUBLIC);
+}
+
 /* ─────────────────────────────── SidebarItem ─────────────────────────────── */
 function SidebarItem({ item, isActive, onNavigate, depth = 0, viewOnly = false }) {
   const router = useRouter();
@@ -308,10 +316,23 @@ function SidebarContent({ onNavigate, onToggle }) {
             }`}
         >
           <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold uppercase text-slate-100"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold uppercase text-slate-100 overflow-hidden border border-slate-700"
             title={collapsed ? user.name : undefined}
           >
-            {user.name?.slice(0, 2) || "CR"}
+            {user.profile ? (
+              <img 
+                src={resolveImageUrl(user.profile)} 
+                alt={user.name}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = ""; // Clear src so fallback text shows
+                  e.target.parentElement.innerHTML = user.name?.slice(0, 2) || "CR";
+                }}
+              />
+            ) : (
+              user.name?.slice(0, 2) || "CR"
+            )}
           </div>
 
           <AnimatePresence initial={false}>
