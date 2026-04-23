@@ -1,6 +1,6 @@
-
 import ProtectedRoute  from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
+import { useAuth } from "../../context/AuthContext";
 
 import PageHeader          from "../../components/super-admin/systemoverview/PageHeader";
 import SummaryCards        from "../../components/super-admin/systemoverview/SummaryCards";
@@ -10,13 +10,16 @@ import AttendanceTrends    from "../../components/super-admin/systemoverview/Att
 import ActivityTable       from "../../components/super-admin/systemoverview/ActivityTable";
 
 export default function SuperAdmin() {
+  const { user } = useAuth();
+  const roleName = user?.role_name || (user?.role === "super-admin" ? "Super Admin" : "State Admin");
+
   return (
-    <ProtectedRoute allowedRole="super-admin">
+    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
           
-          <PageHeader />
+          <PageHeader roleName={roleName} />
 
           
           <SummaryCards />

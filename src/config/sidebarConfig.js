@@ -3,6 +3,7 @@ export const SIDEBAR_CONFIG = {
     {
       section: "DASHBOARD",
       items: [{ name: "System Overview", path: "/dashboard/super-admin" }],
+       accessTo:[ 'state-admin'],
       
     },
     {
@@ -91,12 +92,7 @@ export const SIDEBAR_CONFIG = {
     },
   ],
 
-  "state-admin": [
-    {
-      section: "DASHBOARD",
-      items: [{ name: "State Overview", path: "/dashboard/state-admin" }],
-    },
-  ],
+ 
 
   "district-admin": [
     {

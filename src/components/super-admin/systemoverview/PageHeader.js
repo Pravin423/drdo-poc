@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
  * PageHeader
  * Renders the top title + "Download Report" button row.
  */
-export default function PageHeader() {
+export default function PageHeader({roleName}) {
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -14,7 +14,7 @@ export default function PageHeader() {
     >
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-          Super Admin{" "}
+          {roleName}{" "}
           <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
             Overview
           </span>
