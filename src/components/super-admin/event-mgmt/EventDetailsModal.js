@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -22,17 +22,49 @@ import {
   ChevronDown,
   Navigation,
   ExternalLink,
-  Search
+  Search,
+   
 } from "lucide-react";
 
 // Reuse existing components
 import EventAttendanceTab from "./EventAttendanceTab";
 import EventAnalyticsTab from "./EventAnalyticsTab";
 
-export default function EventDetailsModal({ isOpen, onClose, event }) {
+export default function EventDetailsModal({ isOpen, onClose, event: initialEvent }) {
   const [activeTab, setActiveTab] = useState("details");
+  const [eventData, setEventData] = useState(null);
+  const [crpParticipants, setCrpParticipants] = useState([]);
+  const [shgParticipants, setShgParticipants] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!event) return null;
+  useEffect(() => {
+    if (isOpen && initialEvent?.id) {
+      fetchEventDetails();
+    }
+  }, [isOpen, initialEvent?.id]);
+
+  const fetchEventDetails = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/events?action=show&id=${initialEvent.id}`);
+      const result = await res.json();
+      
+      if (result.status === 1 && result.data) {
+        setEventData(result.data.event);
+        setCrpParticipants(result.data.crpParticipants || []);
+        setShgParticipants(result.data.shgParticipants || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch event details:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!initialEvent) return null;
+
+  // Use eventData if available, otherwise fallback to initialEvent
+  const event = eventData || initialEvent;
 
   const tabs = [
     { id: "details", label: "Details", icon: LayoutDashboard },
@@ -117,138 +149,192 @@ export default function EventDetailsModal({ isOpen, onClose, event }) {
 
             {/* Content Area - Optimized for scrolling */}
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar will-change-scroll translate-z-0">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full"
-                >
-                  {activeTab === "details" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                      
-                      {/* Left Sidebar - Event Info (Compact) */}
-                      <div className="lg:col-span-4 space-y-4">
-                        <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm h-fit">
-                          <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                            <div className="w-1.5 h-3.5 bg-tech-blue-500 rounded-full" />
-                            Event Info
-                          </h3>
-                          
-                          <div className="space-y-3.5">
-                            {[
-                              { label: "Type", value: event.type || "Meeting", icon: FileText, color: "text-orange-400" },
-                              { label: "Vertical", value: "Health & Nutrition Awareness", icon: Link, color: "text-purple-400" },
-                              { label: "Location", value: "Lat: 19.13584, Lng: 72.83122", icon: Navigation, color: "text-rose-500" },
-                              { label: "District", value: event.district || "North Goa", icon: Globe, color: "text-blue-500" },
-                              { label: "Taluka", value: event.block || "Bicholim, Ona", icon: MapPin, color: "text-emerald-500" },
-                              { label: "Start", value: "18 Apr 2026, 04:00 PM", icon: Clock, color: "text-slate-400" },
-                              { label: "End", value: "19 Apr 2026, 04:00 PM", icon: Clock, color: "text-slate-400" },
-                              { label: "Lead 1", value: "N/A", icon: User, color: "text-tech-blue-600" },
-                              { label: "Lead 2", value: "N/A", icon: User, color: "text-tech-blue-600" },
-                            ].map((item, idx) => (
-                              <div key={idx} className="flex items-center gap-3.5 group">
-                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-white transition-all shrink-0">
-                                  <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
+                      {/* Content Area */}
+                      {isLoading ? (
+                        <div className="flex-1 flex flex-col items-center justify-center min-h-[400px]">
+                          <div className="w-12 h-12 border-4 border-slate-100 border-t-tech-blue-500 rounded-full animate-spin mb-4" />
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Syncing Event Details...</p>
+                        </div>
+                      ) : (
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="h-full"
+                          >
+                            {activeTab === "details" && (
+                              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                                
+                                {/* Left Sidebar - Event Info (Compact) */}
+                                <div className="lg:col-span-4 space-y-4">
+                                  <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm h-fit">
+                                    <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                      <div className="w-1.5 h-3.5 bg-tech-blue-500 rounded-full" />
+                                      Event Info
+                                    </h3>
+                                    
+                                    <div className="space-y-3.5">
+                                      {[
+                                        { label: "Type", value: event.type || "Meeting", icon: FileText, color: "text-orange-400" },
+                                        { label: "Vertical", value: event.vertical || "N/A", icon: Link, color: "text-purple-400" },
+                                        { label: "Location", value: event.location || "N/A", icon: Navigation, color: "text-rose-500" },
+                                        { label: "District", value: event.district || "N/A", icon: Globe, color: "text-blue-500" },
+                                        { label: "Taluka", value: event.taluka || event.village || "N/A", icon: MapPin, color: "text-emerald-500" },
+                                        { label: "Start", value: event.start_datetime ? new Date(event.start_datetime).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A", icon: Clock, color: "text-slate-400" },
+                                        { label: "End", value: event.end_datetime ? new Date(event.end_datetime).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A", icon: Clock, color: "text-slate-400" },
+                                        { label: "Lead 1", value: event.primary_coordinator_id ? `ID: ${event.primary_coordinator_id}` : "N/A", icon: User, color: "text-tech-blue-600" },
+                                        { label: "Lead 2", value: event.secondary_coordinator_id ? `ID: ${event.secondary_coordinator_id}` : "N/A", icon: User, color: "text-tech-blue-600" },
+                                      ].map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-3.5 group">
+                                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-white transition-all shrink-0">
+                                            <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
+                                          </div>
+                                          <div className="min-w-0">
+                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{item.label}</p>
+                                            <p className="text-[11px] font-extrabold text-slate-700 truncate leading-none">{item.value}</p>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+
+                                    <div className="mt-6 pt-6 border-t border-slate-100">
+                                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
+                                      <p className="text-[10.5px] font-bold text-slate-600 leading-relaxed italic bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100/50">
+                                        "{event.description || "No description provided."}"
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{item.label}</p>
-                                  <p className="text-[11px] font-extrabold text-slate-700 truncate leading-none">{item.value}</p>
+
+                                {/* Right Main Content - Participants Table */}
+                                <div className="lg:col-span-8 space-y-6">
+                                  
+                                  {/* Summary Stats Row */}
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CRP Participants</p>
+                                      <p className="text-2xl font-black text-slate-900">{crpParticipants.length}</p>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">SHG Participants</p>
+                                      <p className="text-2xl font-black text-emerald-600">{shgParticipants.length}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* CRP Participants Table */}
+                                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                                    <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center gap-3">
+                                      <User size={16} className="text-slate-700" />
+                                      <h3 className="text-xs font-bold text-slate-900">CRP Participants</h3>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                      {crpParticipants.length > 0 ? (
+                                        <table className="w-full text-left border-collapse">
+                                          <thead>
+                                            <tr className="bg-slate-50/50">
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900 w-12">#</th>
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Name</th>
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Type</th>
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Attendance</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="divide-y divide-slate-100">
+                                            {crpParticipants.map((p, idx) => (
+                                              <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-3 text-xs text-slate-600">{idx + 1}</td>
+                                                <td className="px-6 py-3 text-xs font-bold text-slate-700">{p.name}</td>
+                                                <td className="px-6 py-3">
+                                                  <span className="px-2 py-0.5 rounded bg-blue-500 text-white text-[9px] font-black uppercase tracking-tight">CRP</span>
+                                                </td>
+                                                <td className="px-6 py-3">
+                                                  <div className="relative inline-block w-28">
+                                                    <select 
+                                                      defaultValue={p.attendance || "pending"}
+                                                      className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none appearance-none focus:border-tech-blue-500"
+                                                    >
+                                                      <option value="pending">Pending</option>
+                                                      <option value="present">Present</option>
+                                                      <option value="absent">Absent</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+                                                  </div>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      ) : (
+                                        <div className="p-12 text-center">
+                                          <p className="text-xs font-medium text-slate-500">No CRP participant found.</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* SHG Participants Table */}
+                                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                                    <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center gap-3">
+                                      <Users size={16} className="text-slate-700" />
+                                      <h3 className="text-xs font-bold text-slate-900">SHG Participants</h3>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                      {shgParticipants.length > 0 ? (
+                                        <table className="w-full text-left border-collapse">
+                                          <thead>
+                                            <tr className="bg-slate-50/50">
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900 w-12">#</th>
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900">SHG Name</th>
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Type</th>
+                                              <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Attendance</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="divide-y divide-slate-100">
+                                            {shgParticipants.map((shg, idx) => (
+                                              <tr key={shg.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-3 text-xs text-slate-600">{idx + 1}</td>
+                                                <td className="px-6 py-3 text-xs font-bold text-slate-700">{shg.name}</td>
+                                                <td className="px-6 py-3">
+                                                  <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-black uppercase tracking-tight">SHG</span>
+                                                </td>
+                                                <td className="px-6 py-3">
+                                                  <div className="relative inline-block w-28">
+                                                    <select 
+                                                      defaultValue={shg.attendance || "pending"}
+                                                      className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none appearance-none focus:border-tech-blue-500"
+                                                    >
+                                                      <option value="pending">Pending</option>
+                                                      <option value="present">Present</option>
+                                                      <option value="absent">Absent</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+                                                  </div>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      ) : (
+                                        <div className="p-12 text-center">
+                                          <p className="text-xs font-medium text-slate-500">No SHG participant found.</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {(crpParticipants.length > 0 || shgParticipants.length > 0) && (
+                                      <div className="p-4 border-t border-slate-100 bg-white">
+                                        <button className="px-4 py-2 text-xs font-black text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2">
+                                          <Save size={14} />
+                                          Save Attendance
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+
                                 </div>
                               </div>
-                            ))}
-                          </div>
-
-                          <div className="mt-6 pt-6 border-t border-slate-100">
-                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
-                            <p className="text-[10.5px] font-bold text-slate-600 leading-relaxed italic bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100/50">
-                              "{event.description || "Use for testing"}"
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Main Content - Participants Table */}
-                      <div className="lg:col-span-8 space-y-6">
-                        
-                        {/* Summary Stats Row */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">CRP Participants</p>
-                            <p className="text-2xl font-black text-slate-900">0</p>
-                          </div>
-                          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">SHG Participants</p>
-                            <p className="text-2xl font-black text-emerald-600">2</p>
-                          </div>
-                        </div>
-
-                        {/* CRP Participants Table */}
-                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                          <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center gap-3">
-                            <User size={16} className="text-slate-700" />
-                            <h3 className="text-xs font-bold text-slate-900">CRP Participants</h3>
-                          </div>
-                          <div className="p-6">
-                            <p className="text-xs font-medium text-slate-500">No CRP participant found.</p>
-                          </div>
-                        </div>
-
-                        {/* SHG Participants Table */}
-                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                          <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center gap-3">
-                            <Users size={16} className="text-slate-700" />
-                            <h3 className="text-xs font-bold text-slate-900">SHG Participants</h3>
-                          </div>
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                              <thead>
-                                <tr className="bg-slate-50/50">
-                                  <th className="px-6 py-3 text-[10px] font-bold text-slate-900 w-12">#</th>
-                                  <th className="px-6 py-3 text-[10px] font-bold text-slate-900">SHG Name</th>
-                                  <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Type</th>
-                                  <th className="px-6 py-3 text-[10px] font-bold text-slate-900">Attendance</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100">
-                                {[
-                                  { id: 1, name: "SHRI NARI SHAKTI SHGS", type: "SHG" },
-                                  { id: 2, name: "Avinath SHG", type: "SHG" }
-                                ].map((shg, idx) => (
-                                  <tr key={shg.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-6 py-3 text-xs text-slate-600">{idx + 1}</td>
-                                    <td className="px-6 py-3 text-xs font-bold text-slate-700">{shg.name}</td>
-                                    <td className="px-6 py-3">
-                                      <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-black uppercase tracking-tight">SHG</span>
-                                    </td>
-                                    <td className="px-6 py-3">
-                                      <div className="relative inline-block w-28">
-                                        <select className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none appearance-none focus:border-tech-blue-500">
-                                          <option>Pending</option>
-                                          <option>Present</option>
-                                          <option>Absent</option>
-                                        </select>
-                                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          <div className="p-4 border-t border-slate-100 bg-white">
-                            <button className="px-4 py-2 text-xs font-black text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2">
-                              <Save size={14} />
-                              Save Attendance
-                            </button>
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-                  )}
+                            )}
 
                   {activeTab === "documents" && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -312,6 +398,7 @@ export default function EventDetailsModal({ isOpen, onClose, event }) {
                   )}
                 </motion.div>
               </AnimatePresence>
+            )}
             </div>
 
             {/* Footer with subtle info */}

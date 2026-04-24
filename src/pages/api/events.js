@@ -13,9 +13,26 @@ export default async function handler(req, res) {
 
   const { action } = req.query;
 
-  // GET /api/events (Lists events)
+  // GET /api/events (Lists events or shows specific event)
   if (req.method === "GET") {
     try {
+      const { id, action } = req.query;
+
+      // GET /api/events?action=show&id=2
+      if (action === "show" && id) {
+        console.log(`[Proxy] Showing event: ${id}`);
+        const apiRes = await fetch(`${API_BASE}/events/show/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        });
+        const data = await apiRes.json();
+        return res.status(apiRes.status).json(data);
+      }
+
+      // Default: GET /api/events (List)
       const apiRes = await fetch(`${API_BASE}/events`, {
         method: "GET",
         headers: {
