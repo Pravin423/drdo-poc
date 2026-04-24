@@ -14,7 +14,7 @@ export default function SuperAdmin() {
   const roleName = user?.role_name || (user?.role === "super-admin" ? "Super Admin" : "State Admin");
 
   return (
-    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
+    <ProtectedRoute allowedRole={["super-admin"]}>
       <DashboardLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
