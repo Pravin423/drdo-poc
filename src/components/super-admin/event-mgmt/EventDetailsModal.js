@@ -30,12 +30,20 @@ import {
 import EventAttendanceTab from "./EventAttendanceTab";
 import EventAnalyticsTab from "./EventAnalyticsTab";
 
+const ATTENDANCE_MODES = [
+  { value: "pending", label: "Pending" },
+  { value: "present", label: "Present" },
+  { value: "absent", label: "Absent" }
+];
+
 export default function EventDetailsModal({ isOpen, onClose, event: initialEvent }) {
   const [activeTab, setActiveTab] = useState("details");
   const [eventData, setEventData] = useState(null);
   const [crpParticipants, setCrpParticipants] = useState([]);
   const [shgParticipants, setShgParticipants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState({ crp: {}, shg: {} });
 
   useEffect(() => {
     if (isOpen && initialEvent?.id) {
@@ -46,18 +54,76 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
   const fetchEventDetails = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/events?action=show&id=${initialEvent.id}`);
+      const res = await fetch(`/api/events?action=show&id=${initialEvent.id}&_t=${Date.now()}`);
       const result = await res.json();
       
       if (result.status === 1 && result.data) {
         setEventData(result.data.event);
-        setCrpParticipants(result.data.crpParticipants || []);
-        setShgParticipants(result.data.shgParticipants || []);
+        const crps = result.data.crpParticipants || [];
+        const shgs = result.data.shgParticipants || [];
+        setCrpParticipants(crps);
+        setShgParticipants(shgs);
+
+        // Initialize attendance state from fetched data (normalize to lowercase)
+        const crpAtt = {};
+        crps.forEach(p => {
+          const status = p.attendance?.toLowerCase() || "pending";
+          crpAtt[p.id] = { status, userId: p.user_id };
+        });
+        const shgAtt = {};
+        shgs.forEach(s => {
+          const status = s.attendance?.toLowerCase() || "pending";
+          shgAtt[s.id] = { status, userId: s.user_id };
+        });
+        setAttendanceStatus({ crp: crpAtt, shg: shgAtt });
       }
     } catch (err) {
       console.error("Failed to fetch event details:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAttendanceChange = (type, id, userId, status) => {
+    setAttendanceStatus(prev => ({
+      ...prev,
+      [type]: { 
+        ...prev[type], 
+        [id]: { status, userId } 
+      }
+    }));
+  };
+
+  const handleSaveAttendance = async () => {
+    try {
+      const eventId = eventData?.id || initialEvent?.id;
+      if (!eventId) {
+        alert("Event ID not found.");
+        return;
+      }
+
+      setIsSaving(true);
+      console.log("[Attendance Save] Sending:", attendanceStatus);
+      const res = await fetch(`/api/events?action=save-attendance&id=${eventId}&_t=${Date.now()}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(attendanceStatus)
+      });
+      
+      const result = await res.json();
+      console.log("[Attendance Save] Response:", result);
+
+      if (result.status == 1 || result.status === true || result.success === true) {
+        alert("Attendance updated successfully!");
+        fetchEventDetails(); // Refresh data
+      } else {
+        alert(result.message || "Failed to update attendance. Check console for details.");
+      }
+    } catch (err) {
+      console.error("Save attendance error:", err);
+      alert("An error occurred while saving attendance.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -252,12 +318,13 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
                                                 <td className="px-6 py-3">
                                                   <div className="relative inline-block w-28">
                                                     <select 
-                                                      defaultValue={p.attendance || "pending"}
+                                                      value={attendanceStatus.crp[p.id]?.status || "pending"}
+                                                      onChange={(e) => handleAttendanceChange("crp", p.id, p.user_id, e.target.value)}
                                                       className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none appearance-none focus:border-tech-blue-500"
                                                     >
-                                                      <option value="pending">Pending</option>
-                                                      <option value="present">Present</option>
-                                                      <option value="absent">Absent</option>
+                                                      {ATTENDANCE_MODES.map(mode => (
+                                                        <option key={mode.value} value={mode.value}>{mode.label}</option>
+                                                      ))}
                                                     </select>
                                                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                                                   </div>
@@ -302,12 +369,13 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
                                                 <td className="px-6 py-3">
                                                   <div className="relative inline-block w-28">
                                                     <select 
-                                                      defaultValue={shg.attendance || "pending"}
+                                                      value={attendanceStatus.shg[shg.id]?.status || "pending"}
+                                                      onChange={(e) => handleAttendanceChange("shg", shg.id, shg.user_id, e.target.value)}
                                                       className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-700 outline-none appearance-none focus:border-tech-blue-500"
                                                     >
-                                                      <option value="pending">Pending</option>
-                                                      <option value="present">Present</option>
-                                                      <option value="absent">Absent</option>
+                                                      {ATTENDANCE_MODES.map(mode => (
+                                                        <option key={mode.value} value={mode.value}>{mode.label}</option>
+                                                      ))}
                                                     </select>
                                                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                                                   </div>
@@ -324,9 +392,17 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
                                     </div>
                                     {(crpParticipants.length > 0 || shgParticipants.length > 0) && (
                                       <div className="p-4 border-t border-slate-100 bg-white">
-                                        <button className="px-4 py-2 text-xs font-black text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2">
-                                          <Save size={14} />
-                                          Save Attendance
+                                        <button 
+                                          onClick={handleSaveAttendance}
+                                          disabled={isSaving}
+                                          className="px-4 py-2 text-xs font-black text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:scale-100"
+                                        >
+                                          {isSaving ? (
+                                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                          ) : (
+                                            <Save size={14} />
+                                          )}
+                                          {isSaving ? "Saving..." : "Save Attendance"}
                                         </button>
                                       </div>
                                     )}
