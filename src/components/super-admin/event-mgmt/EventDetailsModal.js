@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useRef} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, 
@@ -43,7 +43,9 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
   const [shgParticipants, setShgParticipants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({ crp: {}, shg: {} });
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen && initialEvent?.id) {
@@ -121,9 +123,47 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
       }
     } catch (err) {
       console.error("Save attendance error:", err);
-      alert("An error occurred while saving attendance.");
+      alert("Failed to connect to the server.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const eventId = eventData?.id || initialEvent?.id;
+    if (!eventId) {
+      alert("Event ID not found.");
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append("photos[]", files[i]);
+    }
+
+    try {
+      const res = await fetch(`/api/events?action=upload-photos&id=${eventId}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (result.status === 1 || result.success === true) {
+        alert(result.message || "Photos uploaded successfully!");
+        fetchEventDetails(); // Refresh to show new photos if any
+      } else {
+        alert(result.message || "Failed to upload photos.");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload photos. Check your connection.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -439,12 +479,31 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
                   {activeTab === "documents" && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       {/* Upload Section */}
-                      <div className="bg-white rounded-[2rem] border-2 border-dashed border-slate-200 p-12 text-center group hover:border-tech-blue-400 transition-all cursor-pointer">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handlePhotoUpload} 
+                        multiple 
+                        accept="image/*" 
+                        className="hidden" 
+                      />
+                      <div 
+                        onClick={() => !isUploading && fileInputRef.current?.click()}
+                        className={`bg-white rounded-[2rem] border-2 border-dashed border-slate-200 p-12 text-center group hover:border-tech-blue-400 transition-all cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
                         <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-tech-blue-50 transition-all">
-                          <Plus className="w-8 h-8 text-slate-400 group-hover:text-tech-blue-500" />
+                          {isUploading ? (
+                            <div className="w-8 h-8 border-4 border-tech-blue-200 border-t-tech-blue-600 rounded-full animate-spin" />
+                          ) : (
+                            <Plus className="w-8 h-8 text-slate-400 group-hover:text-tech-blue-500" />
+                          )}
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Upload Files</h3>
-                        <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">Drop images or documents here</p>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                          {isUploading ? "Uploading Photos..." : "Upload Photos"}
+                        </h3>
+                        <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">
+                          {isUploading ? "Please wait while we process your files" : "Drop images here or click to browse"}
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -453,16 +512,35 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
                           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 ml-2">
                              <Image size={14} /> Event Photos
                           </h4>
-                          <div className="grid grid-cols-2 gap-4">
-                            {[1, 2, 3, 4].map((i) => (
-                              <div key={i} className="group relative aspect-video rounded-3xl overflow-hidden bg-slate-200 border border-slate-200 shadow-sm">
-                                <img src={`https://picsum.photos/seed/${i + 100}/800/450`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                                   <p className="text-[10px] font-black text-white uppercase tracking-widest">event_photo_{i}.jpg</p>
+                          
+                          {/* Use real photos from API if available, otherwise show empty state */}
+                          {(() => {
+                            const photos = eventData?.photos || eventData?.event_photos || eventData?.event?.photos || [];
+                            if (photos.length > 0) {
+                              return (
+                                <div className="grid grid-cols-2 gap-4">
+                                  {photos.map((photo, i) => (
+                                    <div key={i} className="group relative aspect-video rounded-3xl overflow-hidden bg-slate-200 border border-slate-200 shadow-sm">
+                                      <img 
+                                        src={photo.url || photo} 
+                                        alt={`Event photo ${i + 1}`} 
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                         <p className="text-[10px] font-black text-white uppercase tracking-widest">photo_{i + 1}.jpg</p>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
+                              );
+                            }
+                            return (
+                              <div className="bg-slate-50 rounded-3xl p-8 text-center border border-slate-100">
+                                <Image className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No photos uploaded yet</p>
                               </div>
-                            ))}
-                          </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Document List */}
