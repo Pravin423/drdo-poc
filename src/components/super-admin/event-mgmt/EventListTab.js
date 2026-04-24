@@ -29,6 +29,7 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
   const config = getStatusConfig();
 
   const getEventTypeStyle = (type) => {
+    if (!type) return "bg-slate-50 text-slate-700 border-slate-100";
     const styles = {
       training: "bg-blue-50 text-blue-700 border-blue-100",
       workshop: "bg-purple-50 text-purple-700 border-purple-100",

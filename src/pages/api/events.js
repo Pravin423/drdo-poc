@@ -32,6 +32,19 @@ export default async function handler(req, res) {
         return res.status(apiRes.status).json(data);
       }
 
+      // GET /api/events?action=create-options
+      if (action === "create-options") {
+        const apiRes = await fetch(`${API_BASE}/events/create`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        });
+        const data = await apiRes.json();
+        return res.status(apiRes.status).json(data);
+      }
+
       // Default: GET /api/events (List)
       const apiRes = await fetch(`${API_BASE}/events`, {
         method: "GET",
@@ -50,7 +63,7 @@ export default async function handler(req, res) {
   }
 
   // POST /api/events (Create event)
-  if (req.method === "POST" && action === "create") {
+  if (req.method === "POST") {
      try {
       const apiRes = await fetch(`${API_BASE}/events`, {
         method: "POST",
