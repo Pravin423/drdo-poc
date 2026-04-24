@@ -146,6 +146,16 @@ export default function EventManagement() {
     { id: "analytics",    label: "Analytics",      icon: BarChart3 },
   ];
 
+  const filteredEvents = useMemo(() => {
+    return events.filter(e => {
+      const today = new Date().toISOString().split('T')[0];
+      if (activeTab === "upcoming") return e.date > today;
+      if (activeTab === "ongoing") return e.date === today;
+      if (activeTab === "completed") return e.date < today;
+      return true;
+    });
+  }, [events, activeTab]);
+
   return (
     <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
@@ -218,13 +228,7 @@ export default function EventManagement() {
               {(activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
                 <EventListTab
                   status={activeTab}
-                  events={events.filter(e => {
-                    const today = new Date().toISOString().split('T')[0];
-                    if (activeTab === "upcoming") return e.date > today;
-                    if (activeTab === "ongoing") return e.date === today;
-                    if (activeTab === "completed") return e.date < today;
-                    return true;
-                  })}
+                  events={filteredEvents}
                   onEventAction={(event) => {
                     setSelectedEventForDetails(event);
                     setShowDetailsModal(true);
