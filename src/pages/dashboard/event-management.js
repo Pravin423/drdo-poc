@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Users,
   BarChart3,
+  LayoutDashboard,
 } from "lucide-react";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -127,6 +128,7 @@ export default function EventManagement() {
   }, [events, participants]);
 
   const tabs = [
+    { id: "all",          label: "All Events",  icon: LayoutDashboard },
     { id: "upcoming",     label: "Upcoming",    icon: Calendar },
     { id: "ongoing",      label: "Ongoing",     icon: Clock },
     { id: "completed",    label: "Completed",   icon: CheckCircle2 },
@@ -134,6 +136,8 @@ export default function EventManagement() {
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
+      if (activeTab === "all") return true;
+
       // If API provides a status, use it as the primary source of truth
       if (e.status) {
         return e.status.toLowerCase() === activeTab.toLowerCase();
@@ -224,7 +228,7 @@ export default function EventManagement() {
                   <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Fetching Events...</p>
                 </div>
               ) : (
-                (activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
+                (activeTab === "all" || activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
                   <EventListTab
                     status={activeTab}
                     events={filteredEvents}
