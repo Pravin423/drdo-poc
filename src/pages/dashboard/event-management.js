@@ -55,10 +55,11 @@ export default function EventManagement() {
   const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/events');
+      const res = await fetch(`/api/events?_t=${Date.now()}`);
       const result = await res.json();
       
       if (result.status === 1 && result.data?.events?.data) {
+        console.log("[Dashboard] All Event Statuses:", result.data.events.data.map(e => e.status));
         const mappedEvents = result.data.events.data.map(e => ({
           id: e.id,
           title: e.title,
