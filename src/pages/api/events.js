@@ -62,9 +62,13 @@ export default async function handler(req, res) {
     try {
       if (!id) return res.status(400).json({ message: "Event ID required" });
       
-      const apiRes = await fetch(`${API_BASE}/events/delete/${id}`, {
+      const fd = new FormData();
+      fd.append("event", id);
+
+      const apiRes = await fetch(`${API_BASE}/events/delete`, {
         method: "POST",
         headers: { "Authorization": authHeader },
+        body: fd
       });
       
       const data = await apiRes.json();
