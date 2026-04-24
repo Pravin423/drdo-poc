@@ -128,9 +128,13 @@ export default async function handler(req, res) {
       // 2. Handle Status Update (Close Event)
       if (action === "close-event" && id) {
         console.log(`[Proxy] Closing event: ${id}`);
-        const apiRes = await fetch(`${API_BASE}/events/close/${id}`, {
+        const fd = new FormData();
+        fd.append("event", id);
+        
+        const apiRes = await fetch(`${API_BASE}/events/close`, {
           method: "POST",
           headers: { "Authorization": authHeader },
+          body: fd
         });
         const data = await apiRes.json();
         return res.status(apiRes.status).json(data);
