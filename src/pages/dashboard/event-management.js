@@ -13,6 +13,7 @@ import {
   BarChart3,
   LayoutDashboard,
   X,
+  Trash2,
 } from "lucide-react";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -27,6 +28,7 @@ import EventParticipantsTab from "../../components/super-admin/event-mgmt/EventP
 import EventAnalyticsTab from "../../components/super-admin/event-mgmt/EventAnalyticsTab";
 import CreateEventModal from "../../components/super-admin/event-mgmt/CreateEventModal";
 import AddParticipantModal from "../../components/super-admin/event-mgmt/AddParticipantModal";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
 
 export default function EventManagement() {
   const router = useRouter();
@@ -38,6 +40,15 @@ export default function EventManagement() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedEventForDetails, setSelectedEventForDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "delete", // 'delete' or 'close'
+    onConfirm: () => {},
+  });
 
   // Events state
   const [events, setEvents] = useState([]);
@@ -105,43 +116,49 @@ export default function EventManagement() {
   }, []);
 
   const handleCloseEvent = useCallback(async (event) => {
-    if (!confirm(`Are you sure you want to close "${event.title}"? This will mark it as completed.`)) return;
-    
-    try {
-      const res = await fetch(`/api/events?action=close-event&id=${event.id}`, {
-        method: "POST"
-      });
-      const result = await res.json();
-      if (result.status === 1) {
-        alert("Event closed successfully.");
-        fetchEvents();
-      } else {
-        alert(result.message || "Failed to close event.");
+    setConfirmModal({
+      isOpen: true,
+      title: "Close Event?",
+      message: `Are you sure you want to mark "${event.title}" as closed? This will move it to the Closed tab and prevent further changes.`,
+      type: "close",
+      confirmText: "Yes, Close",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/events?action=close-event&id=${event.id}`, {
+            method: "POST"
+          });
+          const result = await res.json();
+          if (result.status === 1) {
+            fetchEvents();
+          }
+        } catch (err) {
+          console.error("Close event error:", err);
+        }
       }
-    } catch (err) {
-      console.error("Close event error:", err);
-      alert("Failed to connect to the server.");
-    }
+    });
   }, [fetchEvents]);
 
   const handleDeleteEvent = useCallback(async (event) => {
-    if (!confirm(`DANGER: Are you sure you want to PERMANENTLY DELETE "${event.title}"? This action cannot be undone.`)) return;
-    
-    try {
-      const res = await fetch(`/api/events?id=${event.id}`, {
-        method: "DELETE"
-      });
-      const result = await res.json();
-      if (result.status === 1) {
-        alert("Event deleted successfully.");
-        fetchEvents();
-      } else {
-        alert(result.message || "Failed to delete event.");
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Event?",
+      message: `This action cannot be undone. Are you sure you want to permanently delete "${event.title}"?`,
+      type: "delete",
+      confirmText: "Yes, Delete",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/events?id=${event.id}`, {
+            method: "DELETE"
+          });
+          const result = await res.json();
+          if (result.status === 1) {
+            fetchEvents();
+          }
+        } catch (err) {
+          console.error("Delete event error:", err);
+        }
       }
-    } catch (err) {
-      console.error("Delete event error:", err);
-      alert("Failed to connect to the server.");
-    }
+    });
   }, [fetchEvents]);
 
   const handleExportReports = useCallback(() => {
@@ -318,6 +335,17 @@ export default function EventManagement() {
           />
         )}
       </AnimatePresence>
+
+      {/* Shared Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+      />
     </ProtectedRoute>
   );
 }

@@ -29,6 +29,7 @@ import {
 // Reuse existing components
 import EventAttendanceTab from "./EventAttendanceTab";
 import EventAnalyticsTab from "./EventAnalyticsTab";
+import ConfirmationModal from "../../common/ConfirmationModal";
 
 const ATTENDANCE_MODES = [
   { value: "pending", label: "Pending" },
@@ -46,6 +47,15 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
   const [isUploading, setIsUploading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({ crp: {}, shg: {} });
   const fileInputRef = useRef(null);
+
+  // Confirmation/Alert Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "success",
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     if (isOpen && initialEvent?.id) {
@@ -99,13 +109,9 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
   const handleSaveAttendance = async () => {
     try {
       const eventId = eventData?.id || initialEvent?.id;
-      if (!eventId) {
-        alert("Event ID not found.");
-        return;
-      }
+      if (!eventId) return;
 
       setIsSaving(true);
-      console.log("[Attendance Save] Sending:", attendanceStatus);
       const res = await fetch(`/api/events?action=save-attendance&id=${eventId}&_t=${Date.now()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,17 +119,25 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
       });
       
       const result = await res.json();
-      console.log("[Attendance Save] Response:", result);
 
       if (result.status == 1 || result.status === true || result.success === true) {
-        alert("Attendance updated successfully!");
-        fetchEventDetails(); // Refresh data
+        setConfirmModal({
+          isOpen: true,
+          title: "Attendance Updated!",
+          message: "The participant attendance has been securely saved to the database.",
+          type: "success"
+        });
+        fetchEventDetails();
       } else {
-        alert(result.message || "Failed to update attendance. Check console for details.");
+        setConfirmModal({
+          isOpen: true,
+          title: "Update Failed",
+          message: result.message || "We encountered an issue while saving the attendance.",
+          type: "delete"
+        });
       }
     } catch (err) {
       console.error("Save attendance error:", err);
-      alert("Failed to connect to the server.");
     } finally {
       setIsSaving(false);
     }
@@ -134,10 +148,7 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
     if (!files || files.length === 0) return;
 
     const eventId = eventData?.id || initialEvent?.id;
-    if (!eventId) {
-      alert("Event ID not found.");
-      return;
-    }
+    if (!eventId) return;
 
     setIsUploading(true);
     const formData = new FormData();
@@ -153,14 +164,23 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
 
       const result = await res.json();
       if (result.status === 1 || result.success === true) {
-        alert(result.message || "Photos uploaded successfully!");
-        fetchEventDetails(); // Refresh to show new photos if any
+        setConfirmModal({
+          isOpen: true,
+          title: "Upload Successful",
+          message: result.message || "Photos have been added to the event gallery.",
+          type: "success"
+        });
+        fetchEventDetails();
       } else {
-        alert(result.message || "Failed to upload photos.");
+        setConfirmModal({
+          isOpen: true,
+          title: "Upload Failed",
+          message: result.message || "Failed to upload photos. Please try again.",
+          type: "delete"
+        });
       }
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Failed to upload photos. Check your connection.");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -590,6 +610,14 @@ export default function EventDetailsModal({ isOpen, onClose, event: initialEvent
           </motion.div>
         </div>
       )}
+      
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </AnimatePresence>
   );
 }
