@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo,useEffect  } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
 import {
@@ -35,61 +35,12 @@ export default function EventManagement() {
   const [showAddParticipantModal, setShowAddParticipantModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedEventForDetails, setSelectedEventForDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Events state
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "Testing",
-      type: "Meeting",
-      date: "2026-04-18",
-      startTime: "16:00",
-      endTime: "16:00",
-      endDate: "2026-04-19",
-      venue: "Community Hall, Margao",
-      district: "North Goa",
-      block: "Bicholim, Ona",
-      facilitator: "Dr. Maria Fernandes",
-      capacity: 50,
-      description: "Use for testing",
-      materials: "Handbooks, Charts, Projector",
-      allowExternal: true,
-    },
-    {
-      id: 2,
-      title: "Digital Literacy Workshop",
-      type: "workshop",
-      date: new Date().toISOString().split('T')[0],
-      startTime: "10:00",
-      endTime: "16:00",
-      venue: "Govt High School, Panaji",
-      district: "North Goa",
-      block: "Panaji",
-      facilitator: "Rajesh Shinde",
-      capacity: 30,
-      description: "Basic digital literacy for rural women",
-      materials: "Laptops, Internet, Handouts",
-      allowExternal: false,
-    },
-    {
-      id: 3,
-      title: "Sustainable Farming Seminar",
-      type: "seminar",
-      date: "2026-05-15",
-      startTime: "11:00",
-      endTime: "14:00",
-      venue: "Krishi Bhavan, Ponda",
-      district: "South Goa",
-      block: "Ponda",
-      facilitator: "Dr. Anil Patil",
-      capacity: 100,
-      description: "Advanced techniques in organic farming",
-      materials: "Projector, Seeds, Bio-fertilizers",
-      allowExternal: true,
-    },
-  ]);
+  const [events, setEvents] = useState([]);
 
-  // Participants state
+  // Participants state (keeping as mock for now unless API provided)
   const [participants, setParticipants] = useState([
     { id: 1, name: "Sunita Naik", email: "sunita.naik@example.com", phone: "+91 9876543210", type: "CRP", district: "North Goa", organization: "", events: 12, avatar: "https://i.pravatar.cc/150?u=sunita" },
     { id: 2, name: "Ramesh Desai", email: "ramesh.desai@example.com", phone: "+91 9876543211", type: "CRP", district: "North Goa", organization: "", events: 8, avatar: "https://i.pravatar.cc/150?u=ramesh" },
@@ -98,6 +49,43 @@ export default function EventManagement() {
     { id: 5, name: "Kavita Sawant", email: "kavita.sawant@example.com", phone: "+91 9876543214", type: "CRP", district: "North Goa", organization: "", events: 10, avatar: "https://i.pravatar.cc/150?u=kavita" },
     { id: 6, name: "Dr. Suresh Rao", email: "suresh.rao@ngo.org", phone: "+91 9876543215", type: "External", district: "North Goa", organization: "Health NGO", events: 3, avatar: "https://i.pravatar.cc/150?u=suresh" },
   ]);
+
+  const fetchEvents = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/events');
+      const result = await res.json();
+      
+      if (result.status === 1 && result.data?.events?.data) {
+        const mappedEvents = result.data.events.data.map(e => ({
+          id: e.id,
+          title: e.title,
+          type: e.type || "Meeting",
+          date: e.start_datetime ? e.start_datetime.split('T')[0] : "",
+          startTime: e.start_datetime ? e.start_datetime.split('T')[1].substring(0, 5) : "",
+          endTime: e.end_datetime ? e.end_datetime.split('T')[1].substring(0, 5) : "",
+          endDate: e.end_datetime ? e.end_datetime.split('T')[0] : "",
+          venue: e.location || e.village || "N/A",
+          district: e.district || "N/A",
+          block: e.taluka || "N/A",
+          facilitator: e.primary_coordinator_id ? `Coordinator #${e.primary_coordinator_id}` : "Admin",
+          capacity: 0,
+          description: e.description || "",
+          status: e.status || "upcoming",
+          participants_count: e.participants_count || 0
+        }));
+        setEvents(mappedEvents);
+      }
+    } catch (err) {
+      console.error("Failed to fetch events:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleAddEvent = useCallback((newEvent) => {
     setEvents(prev => [...prev, { ...newEvent, id: Date.now() }]);
@@ -146,11 +134,18 @@ export default function EventManagement() {
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
+      // If API provides a status, use it as the primary source of truth
+      if (e.status) {
+        return e.status.toLowerCase() === activeTab.toLowerCase();
+      }
+      
+      // Fallback: Date comparison only if status is missing
       const today = new Date().toISOString().split('T')[0];
       if (activeTab === "upcoming") return e.date > today;
       if (activeTab === "ongoing") return e.date === today;
       if (activeTab === "completed") return e.date < today;
-      return true;
+      
+      return false;
     });
   }, [events, activeTab]);
 
@@ -223,16 +218,23 @@ export default function EventManagement() {
               transition={{ duration: 0.3 }}
             >
 
-              {(activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
-                <EventListTab
-                  status={activeTab}
-                  events={filteredEvents}
-                  onEventAction={(event) => {
-                    setSelectedEventForDetails(event);
-                    setShowDetailsModal(true);
-                  }}
-                  isViewOnly={isViewOnly}
-                />
+              {isLoading ? (
+                <div className="py-32 flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 border-4 border-slate-100 border-t-tech-blue-500 rounded-full animate-spin mb-4" />
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Fetching Events...</p>
+                </div>
+              ) : (
+                (activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
+                  <EventListTab
+                    status={activeTab}
+                    events={filteredEvents}
+                    onEventAction={(event) => {
+                      setSelectedEventForDetails(event);
+                      setShowDetailsModal(true);
+                    }}
+                    isViewOnly={isViewOnly}
+                  />
+                )
               )}
             </motion.div>
           </AnimatePresence>
