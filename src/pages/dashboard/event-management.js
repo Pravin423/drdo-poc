@@ -142,8 +142,6 @@ export default function EventManagement() {
     { id: "upcoming",     label: "Upcoming",    icon: Calendar },
     { id: "ongoing",      label: "Ongoing",     icon: Clock },
     { id: "completed",    label: "Completed",   icon: CheckCircle2 },
-    { id: "participants", label: "Participants",   icon: Users },
-    { id: "analytics",    label: "Analytics",      icon: BarChart3 },
   ];
 
   const filteredEvents = useMemo(() => {
@@ -235,12 +233,6 @@ export default function EventManagement() {
                   }}
                   isViewOnly={isViewOnly}
                 />
-              )}
-              {activeTab === "participants" && (
-                <EventParticipantsTab participants={participants} onAddParticipant={() => setShowAddParticipantModal(true)} isViewOnly={isViewOnly} />
-              )}
-              {activeTab === "analytics" && (
-                <EventAnalyticsTab events={events} participants={participants} />
               )}
             </motion.div>
           </AnimatePresence>
