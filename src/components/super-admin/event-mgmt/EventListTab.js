@@ -150,34 +150,38 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
                     {event.title}
                   </h3>
 
-                  <div className="flex items-center gap-6 mb-8 text-[11px] font-bold text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center">
-                        <MapPin className="w-3 h-3 text-slate-400" />
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center gap-6 text-[11px] font-bold text-slate-500">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                        </div>
+                        {event.venue}
                       </div>
-                      {event.venue}
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center">
+                          <User className="w-3 h-3 text-slate-400" />
+                        </div>
+                        {event.facilitator}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center">
-                        <User className="w-3 h-3 text-slate-400" />
-                      </div>
-                      {event.facilitator}
+
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-tech-blue-600 bg-tech-blue-50/50 w-fit px-3 py-1.5 rounded-xl border border-tech-blue-100">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>
+                        {new Date(event.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {event.endDate && event.endDate !== event.date && ` — ${new Date(event.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`}
+                        <span className="mx-2 opacity-30">|</span>
+                        {event.startTime}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-auto">
-                    <div className="flex -space-x-3">
-                      {[1, 2, 3].map((i) => (
-                        <img
-                          key={i}
-                          src={`https://i.pravatar.cc/150?u=${event.id + i}`}
-                          alt="Participant"
-                          className="w-9 h-9 rounded-xl border-2 border-white shadow-sm ring-1 ring-slate-100"
-                        />
-                      ))}
-                      <div className="w-9 h-9 rounded-xl bg-white border-2 border-white shadow-sm ring-1 ring-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400">
-                        +{event.participants_count || 12}
-                      </div>
+                    <div className="flex-1 pr-4">
+                      <p className="text-[11px] font-medium text-slate-400 italic line-clamp-2 leading-relaxed">
+                        {event.description || "No description provided for this event."}
+                      </p>
                     </div>
 
                     <button 
