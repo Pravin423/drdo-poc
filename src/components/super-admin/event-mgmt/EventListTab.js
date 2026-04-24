@@ -31,7 +31,9 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
       case "ongoing":
         return { label: "Ongoing Events", color: "emerald", icon: Clock };
       case "completed":
-        return { label: "Completed Events", color: "slate", icon: Users };
+        return { label: "Completed Events", color: "emerald", icon: Users };
+      case "closed":
+        return { label: "Closed Events", color: "slate", icon: AlertTriangle };
       default:
         return { label: "Events", color: "blue", icon: Calendar };
     }
@@ -182,7 +184,7 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
                     onClick={() => onEventAction(event)}
                     className="flex items-center gap-2 px-6 py-3 text-xs font-black uppercase tracking-widest text-[#1a2e7a] bg-[#1a2e7a]/5 rounded-2xl hover:bg-[#1a2e7a] hover:text-white transition-all group/btn"
                   >
-                    {status === "ongoing" ? "Take Attendance" : status === "completed" ? "View Report" : "View Details"}
+                    {status === "ongoing" ? "Take Attendance" : status === "completed" || status === "closed" ? "View Report" : "View Details"}
                     <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
                   </button>
                 </div>

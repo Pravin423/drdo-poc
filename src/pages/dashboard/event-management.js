@@ -12,6 +12,7 @@ import {
   Users,
   BarChart3,
   LayoutDashboard,
+  X,
 } from "lucide-react";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
@@ -172,22 +173,28 @@ export default function EventManagement() {
     { id: "upcoming",     label: "Upcoming",    icon: Calendar },
     { id: "ongoing",      label: "Ongoing",     icon: Clock },
     { id: "completed",    label: "Completed",   icon: CheckCircle2 },
+    { id: "closed",       label: "Closed",      icon: X },
   ];
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
       if (activeTab === "all") return true;
-
-      // If API provides a status, use it as the primary source of truth
-      if (e.status) {
-        return e.status.toLowerCase() === activeTab.toLowerCase();
-      }
       
-      // Fallback: Date comparison only if status is missing
+      // Normalize status check
+      const eventStatus = e.status?.toLowerCase();
+      const tabStatus = activeTab.toLowerCase();
+
+      // Priority 1: Match by explicit status from API
+      if (eventStatus === tabStatus) return true;
+
+      // Special case: 'completed' often matches 'closed' in some systems, 
+      // but here we keep them separate as per request.
+      
+      // Priority 2: Fallback to date logic for standard tabs if status doesn't match
       const today = new Date().toISOString().split('T')[0];
-      if (activeTab === "upcoming") return e.date > today;
-      if (activeTab === "ongoing") return e.date === today;
-      if (activeTab === "completed") return e.date < today;
+      if (activeTab === "upcoming" && !eventStatus) return e.date > today;
+      if (activeTab === "ongoing" && !eventStatus) return e.date === today;
+      if (activeTab === "completed" && !eventStatus) return e.date < today;
       
       return false;
     });
@@ -268,7 +275,7 @@ export default function EventManagement() {
                   <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Fetching Events...</p>
                 </div>
               ) : (
-                (activeTab === "all" || activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed") && (
+                (activeTab === "all" || activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed" || activeTab === "closed") && (
                   <EventListTab
                     status={activeTab}
                     events={filteredEvents}
