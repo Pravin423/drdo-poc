@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   const authHeader = `Bearer ${resolvedToken}`;
   const { action, id } = req.query;
 
-  // ── GET ── (No body needed)
+  // ── GET ──
   if (req.method === "GET") {
     try {
       if (action === "show" && id) {
@@ -61,6 +61,26 @@ export default async function handler(req, res) {
     }
   }
 
+  // ── DELETE ──
+  if (req.method === "DELETE") {
+    try {
+      if (!id) return res.status(400).json({ message: "Event ID required" });
+      
+      console.log(`[Proxy] Deleting event: ${id}`);
+      // Usually delete endpoints in this API style use POST to a delete route
+      const apiRes = await fetch(`${API_BASE}/events/delete/${id}`, {
+        method: "POST",
+        headers: { "Authorization": authHeader },
+      });
+      
+      const data = await apiRes.json();
+      return res.status(apiRes.status).json(data);
+    } catch (err) {
+      console.error("[proxy/events] DELETE error:", err);
+      return res.status(502).json({ message: "Could not reach the server." });
+    }
+  }
+
   // ── POST ──
   if (req.method === "POST") {
     try {
@@ -78,7 +98,6 @@ export default async function handler(req, res) {
 
             const fd = new FormData();
             
-            // Handle multiple files under 'photos[]'
             const photos = files["photos[]"];
             if (photos) {
               const photoArray = Array.isArray(photos) ? photos : [photos];
@@ -106,8 +125,18 @@ export default async function handler(req, res) {
         });
       }
 
-      // 2. Handle JSON actions (Attendance, Create)
-      // Manually parse the body since bodyParser is disabled
+      // 2. Handle Status Update (Close Event)
+      if (action === "close-event" && id) {
+        console.log(`[Proxy] Closing event: ${id}`);
+        const apiRes = await fetch(`${API_BASE}/events/close/${id}`, {
+          method: "POST",
+          headers: { "Authorization": authHeader },
+        });
+        const data = await apiRes.json();
+        return res.status(apiRes.status).json(data);
+      }
+
+      // 3. Handle JSON actions (Attendance, Create)
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
       const rawBody = Buffer.concat(chunks).toString();

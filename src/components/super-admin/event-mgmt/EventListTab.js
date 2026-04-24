@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar, 
   MapPin, 
@@ -9,10 +9,21 @@ import {
   ChevronRight,
   Search,
   MoreVertical,
-  Filter
+  Filter,
+  CheckCircle2,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 
-export default function EventListTab({ status, events, onEventAction, isViewOnly }) {
+export default function EventListTab({ status, events, onEventAction, isViewOnly, onDeleteEvent, onCloseEvent }) {
+  const [activeMenuId, setActiveMenuId] = React.useState(null);
+
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleClick = () => setActiveMenuId(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
   const getStatusConfig = () => {
     switch (status) {
       case "upcoming":
@@ -71,10 +82,55 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
               whileHover={{ y: -4 }}
               className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 p-8">
-                <button className="p-2 hover:bg-slate-50 rounded-xl transition-all">
-                  <MoreVertical className="w-5 h-5 text-slate-400" />
-                </button>
+              <div className="absolute top-0 right-0 p-6 z-10">
+                <div className="relative">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMenuId(activeMenuId === event.id ? null : event.id);
+                    }}
+                    className={`p-2.5 rounded-xl transition-all ${activeMenuId === event.id ? 'bg-[#1a2e7a] text-white shadow-lg' : 'hover:bg-slate-100 text-slate-400'}`}
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+
+                  <AnimatePresence>
+                    {activeMenuId === event.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="p-1.5">
+                          {event.status !== 'completed' && (
+                            <button
+                              onClick={() => {
+                                setActiveMenuId(null);
+                                onCloseEvent?.(event);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 rounded-xl transition-colors group"
+                            >
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
+                              Close Event
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              onDeleteEvent?.(event);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 rounded-xl transition-colors group"
+                          >
+                            <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            Delete Event
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               <div className="flex flex-col h-full">

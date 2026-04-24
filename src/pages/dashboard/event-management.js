@@ -103,6 +103,46 @@ export default function EventManagement() {
     setShowAddParticipantModal(false);
   }, []);
 
+  const handleCloseEvent = useCallback(async (event) => {
+    if (!confirm(`Are you sure you want to close "${event.title}"? This will mark it as completed.`)) return;
+    
+    try {
+      const res = await fetch(`/api/events?action=close-event&id=${event.id}`, {
+        method: "POST"
+      });
+      const result = await res.json();
+      if (result.status === 1) {
+        alert("Event closed successfully.");
+        fetchEvents();
+      } else {
+        alert(result.message || "Failed to close event.");
+      }
+    } catch (err) {
+      console.error("Close event error:", err);
+      alert("Failed to connect to the server.");
+    }
+  }, [fetchEvents]);
+
+  const handleDeleteEvent = useCallback(async (event) => {
+    if (!confirm(`DANGER: Are you sure you want to PERMANENTLY DELETE "${event.title}"? This action cannot be undone.`)) return;
+    
+    try {
+      const res = await fetch(`/api/events?id=${event.id}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      if (result.status === 1) {
+        alert("Event deleted successfully.");
+        fetchEvents();
+      } else {
+        alert(result.message || "Failed to delete event.");
+      }
+    } catch (err) {
+      console.error("Delete event error:", err);
+      alert("Failed to connect to the server.");
+    }
+  }, [fetchEvents]);
+
   const handleExportReports = useCallback(() => {
     exportToExcel({
       title: "Goa Event Management — Events Report",
@@ -236,6 +276,8 @@ export default function EventManagement() {
                       setSelectedEventForDetails(event);
                       setShowDetailsModal(true);
                     }}
+                    onCloseEvent={handleCloseEvent}
+                    onDeleteEvent={handleDeleteEvent}
                     isViewOnly={isViewOnly}
                   />
                 )
