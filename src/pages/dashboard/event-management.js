@@ -59,7 +59,6 @@ export default function EventManagement() {
       const result = await res.json();
       
       if (result.status === 1 && result.data?.events?.data) {
-        console.log("[Dashboard] All Event Statuses:", result.data.events.data.map(e => e.status));
         const mappedEvents = result.data.events.data.map(e => ({
           id: e.id,
           title: e.title,

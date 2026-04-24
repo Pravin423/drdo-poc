@@ -7,7 +7,6 @@ import fs from "fs";
 
 const API_BASE = "https://goadrda.runtime-solutions.net/admin/api";
 
-// Disable Next.js body parsing to handle multipart/form-data manually
 export const config = {
   api: {
     bodyParser: false,
@@ -15,7 +14,6 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  // ── Unified Auth Resolution ──
   const cookieToken = req.cookies?.auth_token;
   const headerToken = req.headers["authorization"]?.replace("Bearer ", "").trim();
   const resolvedToken = cookieToken || headerToken;
@@ -36,7 +34,6 @@ export default async function handler(req, res) {
           headers: { "Authorization": authHeader },
         });
         const data = await apiRes.json();
-        console.log(`[Proxy] Event Data Details (Full):`, JSON.stringify(data));
         return res.status(apiRes.status).json(data);
       }
 
@@ -56,7 +53,6 @@ export default async function handler(req, res) {
       const data = await apiRes.json();
       return res.status(apiRes.status).json(data);
     } catch (err) {
-      console.error("[proxy/events] GET error:", err);
       return res.status(502).json({ message: "Could not reach the server." });
     }
   }
@@ -66,8 +62,6 @@ export default async function handler(req, res) {
     try {
       if (!id) return res.status(400).json({ message: "Event ID required" });
       
-      console.log(`[Proxy] Deleting event: ${id}`);
-      // Usually delete endpoints in this API style use POST to a delete route
       const apiRes = await fetch(`${API_BASE}/events/delete/${id}`, {
         method: "POST",
         headers: { "Authorization": authHeader },
@@ -76,7 +70,6 @@ export default async function handler(req, res) {
       const data = await apiRes.json();
       return res.status(apiRes.status).json(data);
     } catch (err) {
-      console.error("[proxy/events] DELETE error:", err);
       return res.status(502).json({ message: "Could not reach the server." });
     }
   }
@@ -84,12 +77,10 @@ export default async function handler(req, res) {
   // ── POST ──
   if (req.method === "POST") {
     try {
-      // 1. Handle File Uploads (Multipart)
       if (action === "upload-photos" && id) {
-        console.log(`[Proxy] Uploading photos for event: ${id}`);
         const form = formidable({ multiples: true });
         
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           form.parse(req, async (err, fields, files) => {
             if (err) {
               res.status(500).json({ status: false, message: "File parse error" });
@@ -97,7 +88,6 @@ export default async function handler(req, res) {
             }
 
             const fd = new FormData();
-            
             const photos = files["photos[]"];
             if (photos) {
               const photoArray = Array.isArray(photos) ? photos : [photos];
@@ -117,7 +107,6 @@ export default async function handler(req, res) {
               res.status(apiRes.status).json(data);
               resolve();
             } catch (err) {
-              console.error("[Proxy] Upload Fetch Error:", err);
               res.status(502).json({ message: "Backend unreachable" });
               resolve();
             }
@@ -125,9 +114,7 @@ export default async function handler(req, res) {
         });
       }
 
-      // 2. Handle Status Update (Close Event)
       if (action === "close-event" && id) {
-        console.log(`[Proxy] Closing event: ${id}`);
         const fd = new FormData();
         fd.append("event", id);
         
@@ -140,14 +127,12 @@ export default async function handler(req, res) {
         return res.status(apiRes.status).json(data);
       }
 
-      // 3. Handle JSON actions (Attendance, Create)
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
       const rawBody = Buffer.concat(chunks).toString();
       const bodyData = rawBody ? JSON.parse(rawBody) : {};
 
       if (action === "save-attendance" && id) {
-        console.log(`[Proxy] Saving attendance for event: ${id}`);
         const { crp, shg } = bodyData || {};
         const fd = new FormData();
 
@@ -176,7 +161,6 @@ export default async function handler(req, res) {
         return res.status(apiRes.status).json(data);
       }
 
-      // Default: Create event
       const apiRes = await fetch(`${API_BASE}/events`, {
         method: "POST",
         headers: {
@@ -189,7 +173,6 @@ export default async function handler(req, res) {
       return res.status(apiRes.status).json(data);
 
     } catch (err) {
-      console.error("[proxy/events] POST error:", err);
       return res.status(502).json({ message: "Could not reach the server." });
     }
   }

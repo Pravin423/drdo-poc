@@ -44,10 +44,11 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
   const getEventTypeStyle = (type) => {
     if (!type) return "bg-slate-50 text-slate-700 border-slate-100";
     const styles = {
-      training: "bg-blue-50 text-blue-700 border-blue-100",
-      workshop: "bg-purple-50 text-purple-700 border-purple-100",
-      seminar: "bg-teal-50 text-teal-700 border-teal-100",
-      meeting: "bg-orange-50 text-orange-700 border-orange-100",
+      training: "bg-blue-50/50 text-blue-700 border-blue-100 shadow-sm shadow-blue-500/10",
+      workshop: "bg-purple-50/50 text-purple-700 border-purple-100 shadow-sm shadow-purple-500/10",
+      seminar: "bg-teal-50/50 text-teal-700 border-teal-100 shadow-sm shadow-teal-500/10",
+      meeting: "bg-orange-50/50 text-orange-700 border-orange-100 shadow-sm shadow-orange-500/10",
+      camp: "bg-emerald-50/50 text-emerald-700 border-emerald-100 shadow-sm shadow-emerald-500/10",
     };
     return styles[type.toLowerCase()] || "bg-slate-50 text-slate-700 border-slate-100";
   };
@@ -78,115 +79,115 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
           events.map((event, index) => (
             <motion.div
               key={event.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -4 }}
-              className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ y: -8, shadow: "0 25px 50px -12px rgba(0,0,0,0.08)" }}
+              className="group relative bg-white rounded-[3rem] p-4 pr-8 border border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] hover:border-tech-blue-100 transition-all duration-500"
             >
-              <div className="absolute top-0 right-0 p-6 z-10">
-                <div className="relative">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMenuId(activeMenuId === event.id ? null : event.id);
-                    }}
-                    className={`p-2.5 rounded-xl transition-all ${activeMenuId === event.id ? 'bg-[#1a2e7a] text-white shadow-lg' : 'hover:bg-slate-100 text-slate-400'}`}
-                  >
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
+              <div className="flex gap-8 h-full">
+                {/* Left: Styled Date Box */}
+                <div className="w-24 shrink-0 flex flex-col items-center justify-center bg-slate-50 group-hover:bg-[#1a2e7a]/5 rounded-[2.2rem] transition-colors duration-500 py-6 border border-slate-100">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
+                    {new Date(event.date).toLocaleDateString('en-US', { month: 'short' })}
+                  </span>
+                  <span className="text-3xl font-black text-slate-900 group-hover:text-[#1a2e7a] transition-colors">
+                    {new Date(event.date).toLocaleDateString('en-US', { day: '2-digit' })}
+                  </span>
+                  <div className="w-6 h-1 bg-[#1a2e7a]/10 rounded-full mt-3 group-hover:bg-[#1a2e7a]/40 transition-colors" />
+                </div>
 
-                  <AnimatePresence>
-                    {activeMenuId === event.id && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                        className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-20"
-                        onClick={(e) => e.stopPropagation()}
+                {/* Right: Content */}
+                <div className="flex-1 py-4 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${getEventTypeStyle(event.type)}`}>
+                      {event.type}
+                    </div>
+                    
+                    <div className="relative">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(activeMenuId === event.id ? null : event.id);
+                        }}
+                        className={`p-2 rounded-xl transition-all ${activeMenuId === event.id ? 'bg-[#1a2e7a] text-white' : 'text-slate-300 hover:text-slate-600 hover:bg-slate-50'}`}
                       >
-                        <div className="p-1.5">
-                          {event.status !== 'completed' && (
-                            <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                onCloseEvent?.(event);
-                              }}
-                              className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 rounded-xl transition-colors group"
-                            >
-                              <CheckCircle2 className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                              Close Event
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              onDeleteEvent?.(event);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 rounded-xl transition-colors group"
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+
+                      <AnimatePresence>
+                        {activeMenuId === event.id && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute right-0 mt-2 w-52 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-20 p-2"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                            Delete Event
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getEventTypeStyle(event.type)}`}>
-                    {event.type}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </div>
-                </div>
-
-                <h3 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-[#1a2e7a] transition-colors leading-tight">
-                  {event.title}
-                </h3>
-
-                <div className="grid grid-cols-2 gap-6 mb-8 mt-auto">
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <MapPin className="w-3 h-3" /> Venue
-                    </p>
-                    <p className="text-sm font-extrabold text-slate-700 line-clamp-1">{event.venue}</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <User className="w-3 h-3" /> Facilitator
-                    </p>
-                    <p className="text-sm font-extrabold text-slate-700 line-clamp-1">{event.facilitator}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3].map((i) => (
-                      <img
-                        key={i}
-                        src={`https://i.pravatar.cc/150?u=${event.id + i}`}
-                        alt="Participant"
-                        className="w-10 h-10 rounded-2xl border-4 border-white shadow-sm object-cover"
-                      />
-                    ))}
-                    <div className="w-10 h-10 rounded-2xl bg-slate-100 border-4 border-white shadow-sm flex items-center justify-center text-[10px] font-black text-slate-500">
-                      +12
+                            {event.status !== 'completed' && event.status !== 'closed' && (
+                              <button
+                                onClick={() => { setActiveMenuId(null); onCloseEvent?.(event); }}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-all"
+                              >
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                Close Event
+                              </button>
+                            )}
+                            <button
+                              onClick={() => { setActiveMenuId(null); onDeleteEvent?.(event); }}
+                              className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
+                            >
+                              <Trash2 className="w-4 h-4 text-rose-500" />
+                              Delete Event
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                  
-                  <button 
-                    onClick={() => onEventAction(event)}
-                    className="flex items-center gap-2 px-6 py-3 text-xs font-black uppercase tracking-widest text-[#1a2e7a] bg-[#1a2e7a]/5 rounded-2xl hover:bg-[#1a2e7a] hover:text-white transition-all group/btn"
-                  >
-                    {status === "ongoing" ? "Take Attendance" : status === "completed" || status === "closed" ? "View Report" : "View Details"}
-                    <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-                  </button>
+
+                  <h3 className="text-xl font-black text-slate-900 group-hover:text-[#1a2e7a] transition-colors leading-tight mb-4 line-clamp-1">
+                    {event.title}
+                  </h3>
+
+                  <div className="flex items-center gap-6 mb-8 text-[11px] font-bold text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center">
+                        <MapPin className="w-3 h-3 text-slate-400" />
+                      </div>
+                      {event.venue}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center">
+                        <User className="w-3 h-3 text-slate-400" />
+                      </div>
+                      {event.facilitator}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex -space-x-3">
+                      {[1, 2, 3].map((i) => (
+                        <img
+                          key={i}
+                          src={`https://i.pravatar.cc/150?u=${event.id + i}`}
+                          alt="Participant"
+                          className="w-9 h-9 rounded-xl border-2 border-white shadow-sm ring-1 ring-slate-100"
+                        />
+                      ))}
+                      <div className="w-9 h-9 rounded-xl bg-white border-2 border-white shadow-sm ring-1 ring-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400">
+                        +{event.participants_count || 12}
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => onEventAction(event)}
+                      className="px-6 py-3 bg-[#1a2e7a] text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_10px_20px_-5px_rgba(26,46,122,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(26,46,122,0.4)] transition-all active:scale-95 flex items-center gap-2 group/btn"
+                    >
+                      {status === "ongoing" ? "Attendance" : (status === "completed" || status === "closed") ? "Report" : "Details"}
+                      <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
