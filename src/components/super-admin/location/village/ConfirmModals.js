@@ -40,7 +40,7 @@ export function SaveConfirmModal({ isOpen, onClose, onConfirm }) {
     );
 }
 
-export function DeleteConfirmModal({ isOpen, onClose, onConfirm, isDeleting, deleteError }) {
+export function DeleteConfirmModal({ isOpen, onClose, onConfirm, isDeleting, deleteError, title, message }) {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -59,9 +59,9 @@ export function DeleteConfirmModal({ isOpen, onClose, onConfirm, isDeleting, del
                             <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-5 -rotate-3">
                                 <Trash2 size={32} />
                             </div>
-                            <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete Village?</h3>
+                            <h3 className="text-xl font-extrabold text-slate-800 mb-2">{title || "Delete Record?"}</h3>
                             <p className="text-sm font-medium text-slate-500 mb-8">
-                                This action cannot be undone. Are you sure you want to permanently delete this village record?
+                                {message || "This action cannot be undone. Are you sure you want to permanently delete this record?"}
                             </p>
                             <AnimatePresence>
                                 {deleteError && (

@@ -12,7 +12,7 @@ import DashboardLayout from "../../../components/DashboardLayout";
 import ShgMappingFilterBar from "../../../components/super-admin/crp/shg-mapping/ShgMappingFilterBar";
 import ShgMappingTable from "../../../components/super-admin/crp/shg-mapping/ShgMappingTable";
 import ShgMappingModal from "../../../components/super-admin/crp/shg-mapping/ShgMappingModal";
-import { SuccessModal } from "../../../components/super-admin/location/village/ConfirmModals";
+import { SuccessModal, DeleteConfirmModal } from "../../../components/super-admin/location/village/ConfirmModals";
 import { exportToExcel } from "../../../lib/exportToExcel";
 
 export default function CRPSHGMapping() {
@@ -26,6 +26,12 @@ export default function CRPSHGMapping() {
   const [shgs, setShgs] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Deletion state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mappingToDelete, setMappingToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const fetchMappings = async () => {
     setIsLoading(true);
@@ -184,6 +190,45 @@ export default function CRPSHGMapping() {
     }
   };
 
+  // ── Delete Logic ──────────────────────────────────────────────────────────
+  const handleDeleteClick = (mapping) => {
+    setMappingToDelete(mapping);
+    setDeleteError("");
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!mappingToDelete) return;
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      // We rely on the backend proxy to handle the HttpOnly auth_token cookie.
+      // We still try to send the Authorization header as a fallback if available in localStorage.
+      const localToken = localStorage.getItem("authToken");
+      const headers = {};
+      if (localToken) headers["Authorization"] = `Bearer ${localToken}`;
+
+      const res = await fetch(`/api/crp-shg-delete/${mappingToDelete.id}`, {
+        method: "GET",
+        headers: headers,
+        credentials: "include", // Important for sending the HttpOnly cookie
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status !== 1) throw new Error(data.message || "Failed to delete mapping");
+
+      setSuccessMsg("CRP to SHG mapping has been deleted successfully.");
+      setShowSuccess(true);
+      setShowDeleteModal(false);
+      fetchMappings();
+    } catch (err) {
+      console.error(err);
+      setDeleteError(err.message || "An error occurred while deleting the mapping");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -236,6 +281,7 @@ export default function CRPSHGMapping() {
               filteredMappings={filteredMappings}
               isLoading={isLoading}
               onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
               isViewOnly={isViewOnly}
             />
           </div>
@@ -274,8 +320,19 @@ export default function CRPSHGMapping() {
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
-        title="Mapping Successful"
+        title="Operation Successful"
         message={successMsg}
+      />
+
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        isVillage={false} // This was a placeholder in my head, I'll use title/message instead
+        deleteError={deleteError}
+        title="Delete Mapping?"
+        message="Are you sure you want to permanently delete this CRP to SHG mapping?"
       />
     </ProtectedRoute>
   );
