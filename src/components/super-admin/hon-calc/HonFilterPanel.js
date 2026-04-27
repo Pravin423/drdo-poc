@@ -38,9 +38,16 @@ export default function HonFilterPanel({
                 onChange={e => setSelectedMonth(e.target.value)}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-4 focus:ring-slate-200 focus:border-slate-400 outline-none appearance-none bg-slate-50/30 focus:bg-white cursor-pointer"
               >
-                <option>January 2026</option>
-                <option>February 2026</option>
-                <option>March 2026</option>
+                {(() => {
+                  const options = [];
+                  const now = new Date();
+                  for (let i = 0; i < 6; i++) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const label = d.toLocaleString("en-US", { month: "long", year: "numeric" });
+                    options.push(<option key={label}>{label}</option>);
+                  }
+                  return options;
+                })()}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
             </div>

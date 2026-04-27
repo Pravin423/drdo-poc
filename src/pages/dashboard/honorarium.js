@@ -16,7 +16,7 @@ import HonBreakdownModal, { StatusBadge } from "../../components/super-admin/hon
 const fmtRs = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
 export default function HonorariumCalculation() {
-  const [selectedMonth, setSelectedMonth] = useState("March 2026");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString("en-US", { month: "long", year: "numeric" }));
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [modalCalc, setModalCalc] = useState(null);   // open modal for this calc

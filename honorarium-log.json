@@ -3,32 +3,18 @@
   "message": "Honorarium list",
   "data": [
     {
-      "crp_id": 21,
-      "crp_name": "Rohit Kumar",
-      "crp_code": "CRP0021",
-      "total_working_hours": 70.06,
-      "total_working_days": 11,
-      "days_payable": 11,
-      "regular_amount": 4950,
-      "approved_regular_count": 0,
-      "approved_special_count": 1,
-      "special_amount": "200.00",
-      "total_honorarium": 5150,
-      "payment_status": "Paid"
-    },
-    {
       "crp_id": 14,
       "crp_name": "Tejas Guptahi",
       "crp_code": "CRP0014",
-      "total_working_hours": 19.96,
-      "total_working_days": 3,
-      "days_payable": 3,
-      "regular_amount": 1350,
-      "approved_regular_count": 2,
-      "approved_special_count": 1,
-      "special_amount": "700.00",
-      "total_honorarium": 2050,
-      "payment_status": "Paid"
+      "total_working_hours": 4.35,
+      "total_working_days": 0,
+      "days_payable": 0,
+      "regular_amount": 0,
+      "approved_regular_count": 0,
+      "approved_special_count": 0,
+      "special_amount": "0.00",
+      "total_honorarium": 0,
+      "payment_status": "Unpaid"
     }
   ]
 }
