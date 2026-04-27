@@ -293,6 +293,8 @@ export function ViewVerticalModal({ open, onClose, data, onStatusToggle }) {
     const handleToggle = async () => {
         if (!data) return;
         setIsUpdating(true);
+        // Add a small delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 600));
         await onStatusToggle(data.id, data.status);
         setIsUpdating(false);
     };
@@ -360,7 +362,7 @@ export function ViewVerticalModal({ open, onClose, data, onStatusToggle }) {
                                         <Activity size={14} className="text-indigo-500" /> Vertical Status
                                     </div>
                                     
-                                    <div className="mt-1 relative z-10">
+                                    <div className="mt-1 relative z-10 flex justify-center">
                                         <button
                                             onClick={handleToggle}
                                             disabled={isUpdating}
