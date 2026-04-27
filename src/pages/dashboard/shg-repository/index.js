@@ -15,6 +15,7 @@ import ShgRepositoryViewModal from "../../../components/super-admin/shg-reposito
 import ShgMemberAddModal from "../../../components/super-admin/shg-repository/ShgMemberAddModal";
 import ShgMemberEditModal from "../../../components/super-admin/shg-repository/ShgMemberEditModal";
 import DeleteConfirmationModal from "../../../components/super-admin/shg-repository/DeleteConfirmationModal";
+import ShgBulkImportModal from "../../../components/super-admin/shg-repository/ShgBulkImportModal";
 
 export default function SHGRepository() {
   const router = useRouter();
@@ -404,6 +405,92 @@ export default function SHGRepository() {
     finally { setIsDeletingMember(false); }
   };
 
+  // ── Bulk Import ──────────────────────────────────────────────────────────
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importDragOver, setImportDragOver] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importDistrict, setImportDistrict] = useState("");
+  const [importTaluka, setImportTaluka] = useState("");
+  const [importVillage, setImportVillage] = useState("");
+  const [importTalukas, setImportTalukas] = useState([]);
+  const [importVillages, setImportVillages] = useState([]);
+
+  const handleImportDistrictChange = async (distId) => {
+    setImportDistrict(distId);
+    setImportTaluka("");
+    setImportVillage("");
+    setImportVillages([]);
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/talukas?district_id=${distId}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const result = await res.json();
+        const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+        setImportTalukas(data.map(t => ({ id: t.id || t._id || t.taluka_id, name: t.name || t.taluka || t.talukaName })));
+      }
+    } catch (err) {}
+  };
+
+  const handleImportTalukaChange = async (talId) => {
+    setImportTaluka(talId);
+    setImportVillage("");
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/villages?taluka_id=${talId}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const result = await res.json();
+        const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+        setImportVillages(data.map(v => ({ id: v.id || v._id || v.village_id || v.villageId, name: v.name || v.village || v.villageName })));
+      }
+    } catch (err) {}
+  };
+
+  const handleBulkImport = async () => {
+    if (!importFile || !importDistrict || !importTaluka || !importVillage) return;
+    setImportLoading(true);
+    setImportResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("district_id", importDistrict);
+      formData.append("taluka_id", importTaluka);
+      formData.append("village_id", importVillage);
+      formData.append("file", importFile);
+
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/shg-bulk-upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (response.ok && (result.status === 1 || result.success || result.status === true)) {
+        setImportResult({ added: result.data?.added || "Success", skipped: result.data?.skipped || 0, errors: result.data?.errors || [] });
+        fetchSHGs();
+      } else {
+        setImportResult({ added: 0, skipped: 0, errors: [result.message || "Failed to import SHGs."] });
+      }
+    } catch (error) {
+      setImportResult({ added: 0, skipped: 0, errors: [error.message || "An unexpected error occurred."] });
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const handleTemplateDownload = () => {
+    const headers = ["SHGName", "contactPersonName", "contactPersonMobile"];
+    const dummyData = [["Green Valley SHG", "Anita Naik", "9876543210"], ["Sun Rise SHG", "Meera Costa", "9876543211"]];
+    const tableHtml = `<table border="1"><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>${dummyData.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("")}</table>`;
+    const blob = new Blob([tableHtml], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "shg_bulk_import_template.xls"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -424,7 +511,12 @@ export default function SHGRepository() {
 
             {!isViewOnly && (
               <div className="flex items-center gap-3">
-                <button className="bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-bold border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm">
+                <button 
+                  onClick={() => {
+                    setImportFile(null); setImportResult(null); setImportDistrict(""); setImportTaluka(""); setImportVillage(""); setIsImportModalOpen(true);
+                  }}
+                  className="bg-white hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-bold border border-slate-200 shadow-sm transition-all flex items-center gap-2 text-sm"
+                >
                   <UploadCloud size={18} className="text-slate-400" /> Bulk Import
                 </button>
                 <button
@@ -521,6 +613,30 @@ export default function SHGRepository() {
         message={<>Are you sure you want to delete <span className="font-semibold text-slate-700">{memberToDelete?.member_name || memberToDelete?.name}</span>?<br /><span className="text-xs text-red-500 font-medium">This action cannot be undone.</span></>}
         onConfirm={confirmDeleteMember}
         isDeleting={isDeletingMember}
+      />
+
+      <ShgBulkImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        importFile={importFile}
+        onFileChange={setImportFile}
+        importDragOver={importDragOver}
+        onDragOver={(e) => { e.preventDefault(); setImportDragOver(true); }}
+        onDragLeave={() => setImportDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setImportDragOver(false); const file = e.dataTransfer.files[0]; if (file?.name.endsWith(".csv")) setImportFile(file); }}
+        importResult={importResult}
+        importLoading={importLoading}
+        onImport={handleBulkImport}
+        onTemplateDownload={handleTemplateDownload}
+        districts={districts}
+        talukasOptions={importTalukas}
+        villagesOptions={importVillages}
+        selectedDistrict={importDistrict}
+        selectedTaluka={importTaluka}
+        selectedVillage={importVillage}
+        onDistrictChange={handleImportDistrictChange}
+        onTalukaChange={handleImportTalukaChange}
+        onVillageChange={setImportVillage}
       />
 
     </ProtectedRoute>
