@@ -42,19 +42,6 @@
       "status": 0
     },
     {
-      "id": 4,
-      "user_id": 23,
-      "fullname": "Kiran",
-      "mobile": 8296887994,
-      "email": "kiran@runtime-solutions.com",
-      "shg_name": "Savitri SHG",
-      "shg_id": 10,
-      "district": "North Goa",
-      "taluka": "Tiswadi",
-      "village": "Gancim",
-      "status": 0
-    },
-    {
       "id": 5,
       "user_id": 23,
       "fullname": "Kiran",
@@ -73,11 +60,11 @@
       "fullname": "Pravin Gouda",
       "mobile": 9004235238,
       "email": "pravingouda00@gmail.com",
-      "shg_name": "NEW Shg",
-      "shg_id": 14,
-      "district": "west GOA",
-      "taluka": "test talukas",
-      "village": "test village",
+      "shg_name": "Avinath SHG",
+      "shg_id": 13,
+      "district": "North Goa",
+      "taluka": "Bardez",
+      "village": "Arpora",
       "status": 0
     },
     {
