@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo,useEffect } from "react";
 import { 
   Calendar, CheckCircle2, XCircle, Eye 
 } from "lucide-react";
@@ -7,79 +7,55 @@ import DataTable from "../../common/DataTable";
 const LeaveListTab = memo(function LeaveListTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [leaves, setLeaves] = useState([
-    {
-      id: "LR-001",
-      employeeName: "Sunita Gaonkar",
-      employeeId: "CRP2024001",
-      leaveType: "Sick Leave",
-      startDate: "2026-04-10",
-      endDate: "2026-04-12",
-      days: 3,
-      status: "Approved",
-      reason: "Viral fever",
-      appliedOn: "2026-04-08",
-      profile: null
-    },
-    {
-      id: "LR-002",
-      employeeName: "Priya Desai",
-      employeeId: "CRP2024002",
-      leaveType: "Casual Leave",
-      startDate: "2026-04-15",
-      endDate: "2026-04-15",
-      days: 1,
-      status: "Pending",
-      reason: "Family function",
-      appliedOn: "2026-04-12",
-      profile: null
-    },
-    {
-      id: "LR-003",
-      employeeName: "Amit Prabhu Dessai",
-      employeeId: "CRP2024003",
-      leaveType: "Earned Leave",
-      startDate: "2026-04-20",
-      endDate: "2026-04-25",
-      days: 6,
-      status: "Rejected",
-      reason: "Urgent project deadline",
-      appliedOn: "2026-04-15",
-      profile: null
-    },
-    {
-      id: "LR-004",
-      employeeName: "Sunita Gaonkar",
-      employeeId: "CRP2024004",
-      leaveType: "Sick Leave",
-      startDate: "2026-04-22",
-      endDate: "2026-04-22",
-      days: 1,
-      status: "Approved",
-      reason: "Regular checkup",
-      appliedOn: "2026-04-20",
-      profile: null
-    },
-    {
-      id: "LR-005",
-      employeeName: "Mangesh Naik",
-      employeeId: "CRP2024005",
-      leaveType: "Casual Leave",
-      startDate: "2026-04-25",
-      endDate: "2026-04-26",
-      days: 2,
-      status: "Pending",
-      reason: "Personal work",
-      appliedOn: "2026-04-22",
-      profile: null
+  const [leaves, setLeaves] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchLeaves = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+      const res = await fetch(`/api/leave-list${searchQuery ? `?search=${searchQuery}` : ''}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const result = await res.json();
+      
+      if (result.status === 1 && Array.isArray(result.data)) {
+        const mappedData = result.data.map(item => ({
+          id: item.id,
+          employeeName: item.name || "Unknown",
+          employeeId: `CRP${item.user_id}`,
+          leaveType: item.leave_type || "General Leave",
+          startDate: item.start_date,
+          endDate: item.end_date,
+          days: item.leave_count || 1,
+          status: item.status === "1" ? "Approved" : item.status === "2" ? "Rejected" : "Pending",
+          reason: item.reason || "No reason provided",
+          appliedOn: item.created_at,
+          profile: item.profile
+        }));
+        setLeaves(mappedData);
+      } else {
+        setLeaves([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch leaves:", err);
+      setError("Failed to load leave requests. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, [searchQuery]);
 
   const filteredLeaves = leaves.filter(leave => {
-    const matchesSearch = leave.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          leave.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || leave.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+    return matchesStatus;
   });
 
   const stats = {
@@ -89,19 +65,21 @@ const LeaveListTab = memo(function LeaveListTab() {
     rejected: leaves.filter(l => l.status === "Rejected").length,
   };
 
-  const handleStatusChange = (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus) => {
+    // For now, update local state. 
+    // We can add the actual API call here once the endpoint is known.
     setLeaves(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
   };
 
   const columns = [
     {
       header: "Employee Identification",
-      key: "employeeName",
+      key: "employeeName",  
       render: (val, row) => (
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
-              {row.profile ? <img src={row.profile} className="w-full h-full object-cover" /> : val.charAt(0)}
+            <div className="w-12 h-12 rounded-[100%] bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
+              {row.profile ? <img src={row.profile} className="w-full h-full object-cover rounded-[100%]" /> : val.charAt(0)}
             </div>
             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
           </div>
@@ -209,7 +187,7 @@ const LeaveListTab = memo(function LeaveListTab() {
       <DataTable
         columns={columns}
         data={filteredLeaves}
-        isLoading={false}
+        isLoading={loading}
         searchProps={{
           placeholder: "Filter by name, ID or role...",
           value: searchQuery,
