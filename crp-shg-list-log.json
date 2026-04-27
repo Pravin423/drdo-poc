@@ -105,6 +105,19 @@
       "taluka": "Satari",
       "village": "Codiem",
       "status": 0
+    },
+    {
+      "id": 9,
+      "user_id": 25,
+      "fullname": "Diksha Yadav",
+      "mobile": 7656787654,
+      "email": "diksha.runtime@gmail.com",
+      "shg_name": "test new shg",
+      "shg_id": 17,
+      "district": "North Goa",
+      "taluka": "Bardez",
+      "village": "Canca",
+      "status": 0
     }
   ],
   "shglist": [
