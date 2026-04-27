@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
@@ -13,6 +13,7 @@ import ShgMappingFilterBar from "../../../components/super-admin/crp/shg-mapping
 import ShgMappingTable from "../../../components/super-admin/crp/shg-mapping/ShgMappingTable";
 import ShgMappingModal from "../../../components/super-admin/crp/shg-mapping/ShgMappingModal";
 import { SuccessModal } from "../../../components/super-admin/location/village/ConfirmModals";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 export default function CRPSHGMapping() {
   const router = useRouter();
@@ -71,6 +72,27 @@ export default function CRPSHGMapping() {
     (m.name || "").toLowerCase().includes(search.toLowerCase()) ||
     (m.email || "").toLowerCase().includes(search.toLowerCase())
   );
+  
+  const handleExport = () => {
+    const headers = ["CRP Name", "CRP Email", "CRP Mobile", "SHG Name", "Village", "Taluka", "District", "Status"];
+    const rows = filteredMappings.map(m => [
+      m.name,
+      m.email,
+      m.mobile,
+      m.shgName,
+      m.village,
+      m.taluka,
+      m.district,
+      m.status
+    ]);
+
+    exportToExcel({
+      title: "CRP - SHG Mapping Detailed Report",
+      headers,
+      rows,
+      filename: `crp_shg_mappings_${new Date().toISOString().split('T')[0]}`
+    });
+  };
 
   // ── Add Modal ─────────────────────────────────────────────────────────────
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -186,12 +208,20 @@ export default function CRPSHGMapping() {
             </div>
 
             {!isViewOnly && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
-              >
-                <LinkIcon size={16} /> Link CRP to SHG
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleExport}
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 flex items-center gap-2 transition-colors shadow-sm"
+                >
+                  <Download size={16} /> Export Data
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
+                >
+                  <LinkIcon size={16} /> Link CRP to SHG
+                </button>
+              </div>
             )}
           </motion.header>
 
