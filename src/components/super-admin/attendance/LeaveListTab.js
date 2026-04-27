@@ -1,15 +1,22 @@
-import React, { useState, memo,useEffect } from "react";
+import { createPortal } from "react-dom";
 import { 
-  Calendar, CheckCircle2, XCircle, Eye 
+  Calendar, CheckCircle2, XCircle, Eye, X, AlertCircle, MessageSquare, RefreshCw
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import DataTable from "../../common/DataTable";
-
+import { memo, useState, useEffect } from "react";  
 const LeaveListTab = memo(function LeaveListTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Rejection Modal State
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [rejectionComment, setRejectionComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchLeaves = async () => {
     try {
@@ -65,10 +72,66 @@ const LeaveListTab = memo(function LeaveListTab() {
     rejected: leaves.filter(l => l.status === "Rejected").length,
   };
 
-  const handleStatusChange = async (id, newStatus) => {
-    // For now, update local state. 
-    // We can add the actual API call here once the endpoint is known.
-    setLeaves(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+  const handleStatusChange = async (row, newStatus) => {
+    if (newStatus === "Approved") {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+        const res = await fetch(`/api/leave-approve/${row.id}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        const result = await res.json();
+        if (result.status === 1) {
+          fetchLeaves();
+        } else {
+          alert(result.message || "Failed to approve leave.");
+        }
+      } catch (err) {
+        console.error("Error approving leave:", err);
+        alert("An error occurred during approval.");
+      }
+    } else if (newStatus === "Rejected") {
+      setSelectedLeave(row);
+      setRejectionComment("");
+      setIsRejectModalOpen(true);
+    }
+  };
+
+  const handleRejectSubmit = async () => {
+    if (!rejectionComment.trim()) {
+      alert("Please provide a reason for rejection.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+      const res = await fetch(`/api/leave-reject`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          leave_id: selectedLeave.id,
+          comment: rejectionComment
+        })
+      });
+      const result = await res.json();
+      
+      if (result.status === 1 || result.message?.includes("Successfully")) {
+        setIsRejectModalOpen(false);
+        fetchLeaves();
+      } else {
+        alert(result.message || "Failed to reject leave.");
+      }
+    } catch (err) {
+      console.error("Error rejecting leave:", err);
+      alert("An error occurred during rejection.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const columns = [
@@ -146,14 +209,14 @@ const LeaveListTab = memo(function LeaveListTab() {
     {
       icon: CheckCircle2,
       title: "Approve Request",
-      onClick: (row) => handleStatusChange(row.id, 'Approved'),
+      onClick: (row) => handleStatusChange(row, 'Approved'),
       className: "hover:text-emerald-600 hover:bg-emerald-50",
       show: (row) => row.status === 'Pending'
     },
     {
       icon: XCircle,
       title: "Reject Request",
-      onClick: (row) => handleStatusChange(row.id, 'Rejected'),
+      onClick: (row) => handleStatusChange(row, 'Rejected'),
       className: "hover:text-rose-600 hover:bg-rose-50",
       show: (row) => row.status === 'Pending'
     },
@@ -216,6 +279,85 @@ const LeaveListTab = memo(function LeaveListTab() {
           showPagination: false
         }}
       />
+
+      {/* Rejection Modal */}
+      {typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isRejectModalOpen && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsRejectModalOpen(false)}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative bg-white rounded-[32px] shadow-2xl border border-slate-200/50 w-full max-w-md overflow-hidden"
+              >
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-bold text-slate-900 font-sans tracking-tight">Reject Request</h3>
+                      <p className="text-sm text-slate-500 font-medium">Provide a reason for rejecting this leave</p>
+                    </div>
+                    <button
+                      onClick={() => setIsRejectModalOpen(false)}
+                      className="p-2.5 hover:bg-slate-100/80 rounded-full transition-all active:scale-95 group"
+                    >
+                      <X className="w-5 h-5 text-slate-400 group-hover:text-slate-600" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-2.5">
+                      <div className="flex items-center gap-2 pl-1">
+                        <MessageSquare size={14} className="text-indigo-500" />
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rejection Comment</label>
+                      </div>
+                      <textarea
+                        value={rejectionComment}
+                        onChange={(e) => setRejectionComment(e.target.value)}
+                        placeholder="Explain why this request is being rejected..."
+                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-700 outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all min-h-[120px] resize-none"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4">
+                      <button
+                        onClick={() => setIsRejectModalOpen(false)}
+                        className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black text-[11px] uppercase tracking-wider transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleRejectSubmit}
+                        disabled={isSubmitting || !rejectionComment.trim()}
+                        className="flex-[2] py-4 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-2xl font-black text-[11px] uppercase tracking-wider shadow-xl shadow-rose-100 flex items-center justify-center gap-2 transition-all active:scale-95"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <RefreshCw size={14} className="animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <XCircle size={14} />
+                            Confirm Rejection
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>, document.body
+      )}
     </div>
   );
 });
