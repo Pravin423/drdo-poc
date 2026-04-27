@@ -247,7 +247,7 @@ export default function EventManagement() {
               {!isViewOnly && (
                 <button
                   onClick={() => setShowCreateEventModal(true)}
-                  className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-md active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   Create Event

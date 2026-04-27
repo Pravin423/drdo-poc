@@ -32,7 +32,7 @@ export default function VerticalHeader({ searchQuery, setSearchQuery, onAddClick
                     {!isViewOnly && (
                         <button
                             onClick={onAddClick}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-[#2e4085] transition-all shadow-sm"
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-md active:scale-95"
                         >
                             <Plus size={16} /> Add Vertical
                         </button>
