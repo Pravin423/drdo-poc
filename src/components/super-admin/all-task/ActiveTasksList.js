@@ -113,7 +113,7 @@ const ActiveTasksList = memo(function ActiveTasksList({ tasks, loading, onDelete
   ];
 
   const headerActions = !isViewOnly && (
-    <button onClick={onOpenAssignModal} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-colors whitespace-nowrap shadow-sm">
+    <button onClick={onOpenAssignModal} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] rounded-xl hover:opacity-90 transition-all whitespace-nowrap shadow-md active:scale-95 border-0">
       <Plus size={16} /> Assign Task
     </button>
   );
