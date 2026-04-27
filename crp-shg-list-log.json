@@ -118,6 +118,32 @@
       "taluka": "Bardez",
       "village": "Canca",
       "status": 0
+    },
+    {
+      "id": 10,
+      "user_id": 14,
+      "fullname": "Tejas Guptahi",
+      "mobile": 8483473844,
+      "email": "tejas.runtime@gmail.com",
+      "shg_name": "Santoshi Mata SHG",
+      "shg_id": 5,
+      "district": "South Goa",
+      "taluka": "Mormugao",
+      "village": "Cuelim",
+      "status": 0
+    },
+    {
+      "id": 11,
+      "user_id": 20,
+      "fullname": "Santosh",
+      "mobile": 7208188960,
+      "email": "santosh@runtime-solutions.com",
+      "shg_name": "Umang Self Help Group",
+      "shg_id": 7,
+      "district": "North Goa",
+      "taluka": "Bicholim",
+      "village": "Navelim",
+      "status": 0
     }
   ],
   "shglist": [

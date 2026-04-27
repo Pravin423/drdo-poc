@@ -12,6 +12,7 @@ import DashboardLayout from "../../../components/DashboardLayout";
 import VerticalMappingFilterBar from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingFilterBar";
 import VerticalMappingTable from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingTable";
 import VerticalMappingModal from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingModal";
+import { SuccessModal } from "../../../components/super-admin/location/village/ConfirmModals";
 
 export default function CRPVerticalMapping() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function CRPVerticalMapping() {
   const [isLoading, setIsLoading] = useState(false);
   const [crps, setCrps] = useState([]);
   const [verticals, setVerticals] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   const fetchMappings = async () => {
     setIsLoading(true);
@@ -183,7 +186,9 @@ export default function CRPVerticalMapping() {
       let data;
       try { data = await res.json(); } catch (_) {}
       if (!res.ok || data?.status === false) throw new Error((data && data.message) || "Failed to save mapping");
-      alert("Mapping saved successfully");
+      
+      setSuccessMsg("CRP to Vertical mapping has been saved successfully.");
+      setShowSuccess(true);
       setIsModalOpen(false);
       setFormData({ crpuser: "", vertical_id: "", status: 0 });
       fetchMappings();
@@ -235,7 +240,9 @@ export default function CRPVerticalMapping() {
       let data;
       try { data = await res.json(); } catch (_) {}
       if (!res.ok || data?.status === false) throw new Error((data && data.message) || "Failed to update mapping");
-      alert("Mapping updated successfully!");
+      
+      setSuccessMsg("The mapping has been updated successfully.");
+      setShowSuccess(true);
       setIsEditModalOpen(false);
       fetchMappings();
     } catch (err) {
@@ -332,6 +339,13 @@ export default function CRPVerticalMapping() {
         isSaving={isUpdating}
         apiError={editApiError}
         saveLabel="Update Mapping"
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        title="Mapping Successful"
+        message={successMsg}
       />
     </ProtectedRoute>
   );

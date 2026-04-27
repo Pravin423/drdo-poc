@@ -12,6 +12,7 @@ import DashboardLayout from "../../../components/DashboardLayout";
 import VillageMappingFilterBar from "../../../components/super-admin/crp/village-mapping/VillageMappingFilterBar";
 import VillageMappingTable from "../../../components/super-admin/crp/village-mapping/VillageMappingTable";
 import VillageMappingModal from "../../../components/super-admin/crp/village-mapping/VillageMappingModal";
+import { SuccessModal } from "../../../components/super-admin/location/village/ConfirmModals";
 
 export default function CRPVillageMapping() {
   const router = useRouter();
@@ -25,6 +26,8 @@ export default function CRPVillageMapping() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   const fetchMappings = async () => {
     setIsLoading(true);
@@ -109,7 +112,9 @@ export default function CRPVillageMapping() {
       });
       const data = await res.json();
       if (!res.ok || data.status === false) throw new Error(data.message || "Failed to save mapping");
-      alert("Mapping saved successfully");
+      
+      setSuccessMsg("CRP to Village mapping has been saved successfully.");
+      setShowSuccess(true);
       setIsModalOpen(false);
       setFormData({ crpuser: "", shggroup: "", status: 0 });
       fetchMappings();
@@ -159,7 +164,9 @@ export default function CRPVillageMapping() {
         const data = await res.json();
         if (data.status === false) console.warn(data.message);
       }
-      alert("Mapping updated successfully!");
+      
+      setSuccessMsg("The mapping has been updated successfully.");
+      setShowSuccess(true);
       setIsEditModalOpen(false);
       fetchMappings();
     } catch (err) {
@@ -254,6 +261,13 @@ export default function CRPVillageMapping() {
         onSave={handleUpdateMapping}
         isSaving={isUpdating}
         saveLabel="Update Mapping"
+      />
+
+      <SuccessModal
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        title="Mapping Successful"
+        message={successMsg}
       />
     </ProtectedRoute>
   );
