@@ -21,6 +21,8 @@ export default function DistrictsManagement() {
     const [districts, setDistricts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [filterData, setFilterData] = useState({ minCensusCode: "", maxCensusCode: "" });
+    const [activeFilters, setActiveFilters] = useState({ minCensusCode: "", maxCensusCode: "" });
 
     const fetchDistricts = async () => {
         setIsLoading(true);
@@ -264,10 +266,29 @@ export default function DistrictsManagement() {
     const filteredDistricts = districts.filter((d) => {
         const name = d?.name || "";
         const censusCode = d?.censusCode || "";
-        return (
-            name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            censusCode.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        
+        // Search filter
+        const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            censusCode.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        // Census code range filter
+        let matchesRange = true;
+        if (activeFilters.minCensusCode || activeFilters.maxCensusCode) {
+            const codeVal = parseInt(censusCode, 10);
+            if (!isNaN(codeVal)) {
+                if (activeFilters.minCensusCode) {
+                    matchesRange = matchesRange && codeVal >= parseInt(activeFilters.minCensusCode, 10);
+                }
+                if (activeFilters.maxCensusCode) {
+                    matchesRange = matchesRange && codeVal <= parseInt(activeFilters.maxCensusCode, 10);
+                }
+            } else {
+                // If census code is not a number and we have range filters, exclude it
+                matchesRange = false;
+            }
+        }
+        
+        return matchesSearch && matchesRange;
     });
 
     const totalPages = Math.ceil(filteredDistricts.length / itemsPerPage);
@@ -304,6 +325,19 @@ export default function DistrictsManagement() {
                             isLoading={isLoading}
                             searchQuery={searchQuery}
                             onSearchChange={setSearchQuery}
+                            filterData={filterData}
+                            onFilterChange={setFilterData}
+                            onApplyFilter={() => {
+                                setActiveFilters({ ...filterData });
+                                setCurrentPage(1);
+                            }}
+                            onResetFilter={() => {
+                                const empty = { minCensusCode: "", maxCensusCode: "" };
+                                setFilterData(empty);
+                                setActiveFilters(empty);
+                                setCurrentPage(1);
+                            }}
+                            isFilterActive={!!(activeFilters.minCensusCode || activeFilters.maxCensusCode)}
                             onView={handleViewClick}
                             onEdit={handleEditClick}
                             onDelete={handleDeleteClick}
