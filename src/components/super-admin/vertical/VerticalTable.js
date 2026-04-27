@@ -108,12 +108,6 @@ export default function VerticalTable({ isLoading, filteredData, searchQuery, se
                 onClick: onEdit,
                 title: "Edit Vertical",
                 className: "hover:text-blue-600 hover:bg-blue-50"
-            },
-            {
-                icon: X,
-                onClick: () => { /* Handle delete */ },
-                title: "Delete Vertical",
-                className: "hover:text-red-600 hover:bg-red-50"
             }
         ] : [])
     ];
