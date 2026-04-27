@@ -14,6 +14,12 @@ export default function ImportVillageModal({
     importLoading,
     onImport,
     onTemplateDownload,
+    districts = [],
+    talukasOptions = [],
+    selectedDistrict,
+    selectedTaluka,
+    onDistrictChange,
+    onTalukaChange,
 }) {
     return (
         <AnimatePresence>
@@ -67,6 +73,37 @@ export default function ImportVillageModal({
                                 >
                                     <Download size={13} /> Template
                                 </button>
+                            </div>
+
+                            {/* Location Selectors */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">District <span className="text-rose-500">*</span></label>
+                                    <select
+                                        value={selectedDistrict}
+                                        onChange={(e) => onDistrictChange(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 block p-2.5 outline-none transition-all"
+                                    >
+                                        <option value="">Select District</option>
+                                        {districts.map((d) => (
+                                            <option key={d.id} value={d.id}>{d.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Taluka <span className="text-rose-500">*</span></label>
+                                    <select
+                                        value={selectedTaluka}
+                                        onChange={(e) => onTalukaChange(e.target.value)}
+                                        disabled={!selectedDistrict}
+                                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-tech-blue-500/20 focus:border-tech-blue-500 block p-2.5 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <option value="">Select Taluka</option>
+                                        {talukasOptions.map((t) => (
+                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             {/* File Drop Zone */}
@@ -163,7 +200,7 @@ export default function ImportVillageModal({
                             {!importResult && (
                                 <button
                                     onClick={onImport}
-                                    disabled={!importFile || importLoading}
+                                    disabled={!importFile || !selectedDistrict || !selectedTaluka || importLoading}
                                     className="px-5 py-2.5 text-sm font-bold text-white bg-tech-blue-600 hover:bg-tech-blue-700 rounded-xl shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {importLoading ? (

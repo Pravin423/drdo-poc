@@ -324,11 +324,21 @@ export default function VillagesManagement() {
     const [importDragOver, setImportDragOver] = useState(false);
     const [importResult, setImportResult] = useState(null);
     const [importLoading, setImportLoading] = useState(false);
+    const [importDistrict, setImportDistrict] = useState("");
+    const [importTaluka, setImportTaluka] = useState("");
 
     const handleImportClick = () => {
         setImportFile(null);
         setImportResult(null);
+        setImportDistrict("");
+        setImportTaluka("");
         setImportModalOpen(true);
+    };
+
+    const handleImportDistrictChange = (distId) => {
+        setImportDistrict(distId);
+        setImportTaluka("");
+        fetchDropdownTalukas(distId, setModalTalukas);
     };
 
     const handleTemplateDownload = () => {
@@ -362,53 +372,52 @@ export default function VillagesManagement() {
         URL.revokeObjectURL(url);
     };
 
-    const parseAndImport = () => {
-        if (!importFile) return;
+    const parseAndImport = async () => {
+        if (!importFile || !importDistrict || !importTaluka) return;
         setImportLoading(true);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target.result;
-            const lines = text.split(/\r?\n/).filter((l) => l.trim());
-            if (lines.length < 2) {
-                setImportResult({ added: 0, skipped: 0, errors: ["File is empty or has no data rows."] });
-                setImportLoading(false);
-                return;
-            }
-            const dataLines = lines.slice(1);
-            let added = 0, skipped = 0;
-            const errors = [];
-            const newVillages = [];
-            let nextId = villages.length + 1;
+        setImportResult(null);
 
-            dataLines.forEach((line, idx) => {
-                const cols = line.split(",").map((c) => c.trim());
-                if (cols.length < 4) { errors.push(`Row ${idx + 2}: insufficient columns.`); skipped++; return; }
-                const [name, censusCode, latitude, longitude] = cols;
-                if (!name || !censusCode) { errors.push(`Row ${idx + 2}: missing required fields.`); skipped++; return; }
-                
-                // Skip if it's the example data (dummy data)
-                if (name.startsWith("Example Village")) { skipped++; return; }
+        try {
+            const formData = new FormData();
+            formData.append("district_id", importDistrict);
+            formData.append("taluka_id", importTaluka);
+            formData.append("file", importFile);
 
-                const isDuplicate = villages.some((v) => v.censusCode === censusCode) || newVillages.some((v) => v.censusCode === censusCode);
-                if (isDuplicate) { errors.push(`Row ${idx + 2}: census code "${censusCode}" already exists — skipped.`); skipped++; return; }
-                
-                newVillages.push({ 
-                    id: (nextId++).toString(), 
-                    name, 
-                    talukaName: selectedTaluka?.name || "Unassigned", 
-                    districtName: selectedDistrict?.name || "Unassigned", 
-                    censusCode,
-                    latitude: latitude || "",
-                    longitude: longitude || ""
-                });
-                added++;
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/villages-import", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` }, // Do not set Content-Type for FormData
+                body: formData,
             });
 
-            if (newVillages.length > 0) setVillages((prev) => [...prev, ...newVillages]);
-            setImportResult({ added, skipped, errors });
+            const result = await response.json();
+            
+            if (response.ok && (result.status === 1 || result.success || result.status === true)) {
+                // If the API gives us specific stats, we can use them. 
+                // Otherwise, generic success.
+                setImportResult({
+                    added: result.data?.added || "Success",
+                    skipped: result.data?.skipped || 0,
+                    errors: result.data?.errors || [],
+                });
+                await fetchVillages(selectedDistrict?.id ?? null, selectedTaluka?.id ?? null);
+            } else {
+                setImportResult({
+                    added: 0,
+                    skipped: 0,
+                    errors: [result.message || "Failed to import villages."],
+                });
+            }
+        } catch (error) {
+            console.error("Import error:", error);
+            setImportResult({
+                added: 0,
+                skipped: 0,
+                errors: [error.message || "An unexpected error occurred during import."],
+            });
+        } finally {
             setImportLoading(false);
-        };
-        reader.readAsText(importFile);
+        }
     };
 
     // ─── Disable scroll when modal open ──────────────────────────────────────────
@@ -565,6 +574,12 @@ export default function VillagesManagement() {
                     importLoading={importLoading}
                     onImport={parseAndImport}
                     onTemplateDownload={handleTemplateDownload}
+                    districts={districts}
+                    talukasOptions={modalTalukas}
+                    selectedDistrict={importDistrict}
+                    selectedTaluka={importTaluka}
+                    onDistrictChange={handleImportDistrictChange}
+                    onTalukaChange={setImportTaluka}
                 />
             </>
         </ProtectedRoute>
