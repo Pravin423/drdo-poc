@@ -104,6 +104,8 @@ export default function VillagesManagement() {
                     name: v.villageName || v.village_name || v.name || "",
                     talukaName: v.talukaName || v.taluka_name || v.taluka || talukasOptions.find((t) => t.id == (v.taluka_id || v.talukaID))?.name || "",
                     districtName: v.districtName || v.district_name || v.district || districts.find((d) => d.id == (v.district_id || v.districtID))?.name || "",
+                    district_id: (v.district_id || v.districtID || "").toString(),
+                    taluka_id: (v.taluka_id || v.talukaID || "").toString(),
                     censusCode: (v.censusCode || v.census_code || v.census || "").toString(),
                 }))
             );
@@ -231,6 +233,7 @@ export default function VillagesManagement() {
     const [editFormData, setEditFormData] = useState({ id: "", name: "", talukaName: "", districtName: "", censusCode: "" });
     const [editFormError, setEditFormError] = useState("");
     const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleEditClick = (village) => {
         setEditFormData({
@@ -268,16 +271,47 @@ export default function VillagesManagement() {
         setSaveConfirmOpen(true);
     };
 
-    const confirmSave = () => {
-        setVillages((prev) =>
-            prev.map((v) =>
-                v.id === editFormData.id
-                    ? { ...v, name: editFormData.name, talukaName: editFormData.talukaName, districtName: editFormData.districtName, censusCode: editFormData.censusCode }
-                    : v
-            )
-        );
-        setSaveConfirmOpen(false);
-        setEditModalOpen(false);
+    const confirmSave = async () => {
+        setIsSaving(true);
+        setEditFormError("");
+        try {
+            // Find IDs based on the names selected in the dropdown
+            const dist = districts.find(d => d.name === editFormData.districtName);
+            const taluka = modalTalukas.find(t => t.name === editFormData.talukaName) || talukasOptions.find(t => t.name === editFormData.talukaName);
+            
+            const districtID = dist ? dist.id : "";
+            const talukaID = taluka ? taluka.id : "";
+
+            const payload = {
+                village_id: editFormData.id,
+                villageName: editFormData.name,
+                censusCode: parseInt(editFormData.censusCode, 10),
+                talukaID: parseInt(talukaID, 10),
+                districtID: parseInt(districtID, 10)
+            };
+
+            const token = localStorage.getItem("authToken");
+            const response = await fetch("/api/village-update", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (!response.ok || result.status === 0 || result.status === false) {
+                throw new Error(result.message || "Failed to update village.");
+            }
+
+            await fetchVillages(selectedDistrict?.id ?? null, selectedTaluka?.id ?? null);
+            setSaveConfirmOpen(false);
+            setEditModalOpen(false);
+        } catch (error) {
+            console.error("Error saving village:", error);
+            setEditFormError(error.message || "An error occurred while saving.");
+            setSaveConfirmOpen(false); // Close confirmation modal, go back to edit modal
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // ─── Delete State ─────────────────────────────────────────────────────────────
@@ -551,6 +585,7 @@ export default function VillagesManagement() {
                     isOpen={saveConfirmOpen}
                     onClose={() => setSaveConfirmOpen(false)}
                     onConfirm={confirmSave}
+                    isSaving={isSaving}
                 />
 
                 <DeleteConfirmModal

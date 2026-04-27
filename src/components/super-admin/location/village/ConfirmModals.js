@@ -1,7 +1,7 @@
 import { Save, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function SaveConfirmModal({ isOpen, onClose, onConfirm }) {
+export function SaveConfirmModal({ isOpen, onClose, onConfirm, isSaving }) {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -9,7 +9,7 @@ export function SaveConfirmModal({ isOpen, onClose, onConfirm }) {
                     <motion.div
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-                        onClick={onClose}
+                        onClick={() => { if (!isSaving) onClose(); }}
                     />
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
@@ -25,11 +25,13 @@ export function SaveConfirmModal({ isOpen, onClose, onConfirm }) {
                                 Are you sure you want to save these changes to the village record?
                             </p>
                             <div className="flex gap-3 justify-center w-full">
-                                <button onClick={onClose} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                                <button onClick={onClose} disabled={isSaving} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50">
                                     Cancel
                                 </button>
-                                <button onClick={onConfirm} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-colors active:scale-95">
-                                    Yes, Save
+                                <button onClick={onConfirm} disabled={isSaving} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                    {isSaving ? (
+                                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</>
+                                    ) : "Yes, Save"}
                                 </button>
                             </div>
                         </div>
