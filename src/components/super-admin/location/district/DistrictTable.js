@@ -69,6 +69,23 @@ export default function DistrictTable({
         }
     ];
 
+    if (!isViewOnly) {
+        actions.push(
+            {
+                icon: Edit,
+                onClick: onEdit,
+                title: "Edit District",
+                className: "hover:text-blue-600 hover:bg-blue-50"
+            },
+            {
+                icon: X,
+                onClick: (district) => onDelete(district.id),
+                title: "Delete District",
+                className: "hover:text-red-600 hover:bg-red-50"
+            }
+        );
+    }
+
     // Custom header actions for DistrictTable (Census Code Range Filter)
     const headerActions = (
         <div className="relative" ref={filterRef}>
