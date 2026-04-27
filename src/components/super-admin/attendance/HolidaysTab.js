@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import DataTable from "../../common/DataTable";
+import ConfirmationModal from "../../common/ConfirmationModal";
 
 const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
   const today = new Date();
@@ -746,87 +747,18 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
         document.body
       )}
 
-      {showDeleteModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden relative"
-          >
-            <div className="bg-gradient-to-r from-rose-600 to-rose-500 p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Trash2 className="w-24 h-24 rotate-12" />
-              </div>
-              <div className="relative z-10 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight">Delete Holiday</h2>
-                  <p className="text-rose-100/80 text-sm font-medium mt-1">This action cannot be undone</p>
-                </div>
-                <button
-                  onClick={() => { setShowDeleteModal(false); setDeleteError(''); }}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-8">
-              <AnimatePresence>
-                {deleteError && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 px-5 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold rounded-2xl flex items-center gap-3"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                      <XCircle className="w-4 h-4" />
-                    </div>
-                    {deleteError}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="flex items-start gap-4 p-5 bg-rose-50 rounded-2xl border border-rose-100 mb-8">
-                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <Trash2 className="w-5 h-5 text-rose-500" />
-                </div>
-                <div>
-                  <p className="text-[15px] font-bold text-slate-800">
-                    Are you sure you want to delete <span className="text-rose-600">"{deleteTarget?.name}"</span>?
-                  </p>
-                  <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                    All associated data with this holiday will be permanently removed from the calendar.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => { setShowDeleteModal(false); setDeleteError(''); }}
-                  disabled={deleteLoading}
-                  className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  No, Keep it
-                </button>
-                <button
-                  onClick={handleDeleteHoliday}
-                  disabled={deleteLoading}
-                  className="flex-1 py-4 text-[15px] font-bold text-white bg-rose-600 rounded-2xl shadow-xl shadow-rose-900/20 hover:bg-rose-700 hover:shadow-2xl hover:shadow-rose-900/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {deleteLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <span>Yes, Delete</span>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteHoliday}
+        title="Delete Holiday?"
+        message={`This action cannot be undone. Are you sure you want to permanently delete "${deleteTarget?.name}"?`}
+        type="delete"
+        confirmText="Yes, Delete"
+        cancelText="Keep It"
+        isLoading={deleteLoading}
+      />
     </div>
   );
 });
