@@ -16,15 +16,21 @@ export function exportToExcel({ title, headers, rows, filename }) {
 
     const styledRows = rows.map((row, idx) => {
         const bg = idx % 2 === 0 ? "#FFFFFF" : altRowColor;
-        const cells = row.map((cell, colIdx) => {
-            const bold = colIdx === 1 ? "font-weight: bold;" : ""; // bold the 2nd col (name)
+        
+        // Handle both simple arrays and object-based rows for custom styling
+        const isObjectRow = !Array.isArray(row) && typeof row === "object";
+        const rowData = isObjectRow ? row.data : row;
+        const rowColor = isObjectRow && row.isDummy ? "#94A3B8" : "#1E293B"; // Gray for dummy data
+
+        const cells = rowData.map((cell, colIdx) => {
+            const bold = colIdx === 1 ? "font-weight: bold;" : ""; 
             return `<td style="
                 background-color: ${bg};
                 border: 1px solid ${borderColor};
                 padding: 8px 12px;
                 font-size: 12px;
                 font-family: Calibri, sans-serif;
-                color: #1E293B;
+                color: ${rowColor};
                 vertical-align: middle;
                 ${bold}
             ">${cell}</td>`;

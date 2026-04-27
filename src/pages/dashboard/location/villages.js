@@ -332,13 +332,32 @@ export default function VillagesManagement() {
     };
 
     const handleTemplateDownload = () => {
-        const header = "Village Name,Taluka Name,District Name,Census Code";
-        const example = "Calangute,Bardez,North Goa,626741";
-        const blob = new Blob([header + "\n" + example], { type: "text/csv" });
+        const headers = ["Village Name", "Census Code", "Latitude", "Longitude"];
+        const dummyData = [
+            ["Example Village 1", "600001", "15.2993", "74.1240"],
+            ["Example Village 2", "600002", "15.3500", "74.1500"]
+        ];
+
+        const headerRow = `<tr>${headers.map(h => `<th style="background-color: #f8fafc; border: 1px solid #cbd5e1; padding: 8px; text-align: left;">${h}</th>`).join("")}</tr>`;
+        const dummyRows = dummyData.map(row => `<tr>${row.map(cell => `<td style="border: 1px solid #cbd5e1; padding: 8px; color: #94a3b8;">${cell}</td>`).join("")}</tr>`).join("");
+        
+        const tableHtml = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta charset="utf-8" /></head>
+            <body>
+                <table border="1">
+                    ${headerRow}
+                    ${dummyRows}
+                </table>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([tableHtml], { type: "application/vnd.ms-excel" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "villages_import_template.csv";
+        a.download = "villages_import_template.xls";
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -364,11 +383,24 @@ export default function VillagesManagement() {
             dataLines.forEach((line, idx) => {
                 const cols = line.split(",").map((c) => c.trim());
                 if (cols.length < 4) { errors.push(`Row ${idx + 2}: insufficient columns.`); skipped++; return; }
-                const [name, talukaName, districtName, censusCode] = cols;
-                if (!name || !talukaName || !districtName || !censusCode) { errors.push(`Row ${idx + 2}: missing required fields.`); skipped++; return; }
+                const [name, censusCode, latitude, longitude] = cols;
+                if (!name || !censusCode) { errors.push(`Row ${idx + 2}: missing required fields.`); skipped++; return; }
+                
+                // Skip if it's the example data (dummy data)
+                if (name.startsWith("Example Village")) { skipped++; return; }
+
                 const isDuplicate = villages.some((v) => v.censusCode === censusCode) || newVillages.some((v) => v.censusCode === censusCode);
                 if (isDuplicate) { errors.push(`Row ${idx + 2}: census code "${censusCode}" already exists — skipped.`); skipped++; return; }
-                newVillages.push({ id: (nextId++).toString(), name, talukaName, districtName, censusCode });
+                
+                newVillages.push({ 
+                    id: (nextId++).toString(), 
+                    name, 
+                    talukaName: selectedTaluka?.name || "Unassigned", 
+                    districtName: selectedDistrict?.name || "Unassigned", 
+                    censusCode,
+                    latitude: latitude || "",
+                    longitude: longitude || ""
+                });
                 added++;
             });
 

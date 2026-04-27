@@ -114,8 +114,7 @@ export default function ImportVillageModal({
 
                             {/* Format hint */}
                             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                                <p className="text-xs font-bold text-slate-600 mb-1">Expected CSV columns:</p>
-                                <code className="text-xs text-slate-500">Village Name, Taluka Name, District Name, Census Code</code>
+                                <code className="text-xs text-slate-500">Village Name, Census Code, Latitude, Longitude</code>
                             </div>
 
                             {/* Import Result */}
