@@ -31,7 +31,7 @@ export default function AllFormsHeader({ onOpenCreateModal, onExport, isViewOnly
         {!isViewOnly && (
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#3b52ab] text-white rounded-xl text-sm font-bold hover:bg-[#2e4085] transition-all shadow-sm shadow-[#3b52ab]/10 active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md active:scale-95 border-0"
           >
             <Plus size={18} /> Create New Form
           </button>

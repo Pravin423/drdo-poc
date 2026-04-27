@@ -14,6 +14,7 @@ import {
   CreateFormModal,
   AllFormsStats
 } from "../../../components/super-admin/activity-form";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 export default function AllForms() {
   const [search, setSearch] = useState("");
@@ -141,12 +142,29 @@ export default function AllForms() {
     inactive: forms.filter(f => f.status === "Inactive").length
   };
 
+  const handleExport = () => {
+    exportToExcel({
+      title: "Activity Forms Report",
+      headers: ["ID", "Title", "Description", "Fields Count", "Created By", "Created At", "Status"],
+      rows: filtered.map(f => [
+        f.id,
+        f.title,
+        f.description,
+        f.fields,
+        f.createdBy,
+        f.createdAt,
+        f.status
+      ]),
+      filename: `activity_forms_${new Date().toISOString().split('T')[0]}`
+    });
+  };
+
   return (
     <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
       <DashboardLayout>
         <div className="max-w-[1600px] mx-auto space-y-8 p-4">
 
-          <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} isViewOnly={isViewOnly} />
+          <AllFormsHeader onOpenCreateModal={handleOpenCreateModal} onExport={handleExport} isViewOnly={isViewOnly} />
 
           <AllFormsStats stats={stats} />
 
