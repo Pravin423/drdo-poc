@@ -11,6 +11,7 @@ export default function ShgRepositoryViewModal({
   onAddMember,
   onEditMember,
   onDeleteMember,
+  onStatusToggle,
   isViewOnly
 }) {
   return (
@@ -61,10 +62,34 @@ export default function ShgRepositoryViewModal({
                       <div>
                         <p className="text-lg font-bold text-slate-900">{viewSHGData.shgName}</p>
                         <p className="text-xs text-slate-500 mt-0.5">SHG ID: {viewSHGData.id}</p>
-                        <div className="flex gap-2 mt-2">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${viewSHGData.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-                            {viewSHGData.status || "—"}
-                          </span>
+                        <div className="flex items-center gap-4 mt-3">
+                          <div className="flex flex-col">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">SHG Status</p>
+                            {!isViewOnly ? (
+                              <button
+                                onClick={() => onStatusToggle?.(viewSHGData.id, viewSHGData.status === "Active" ? 1 : 0)}
+                                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm flex items-center gap-2 active:scale-95 ${
+                                  viewSHGData.status === "Active" 
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" 
+                                    : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
+                                }`}
+                              >
+                                <div className={`w-2 h-2 rounded-full animate-pulse ${viewSHGData.status === "Active" ? "bg-emerald-500" : "bg-rose-500"}`} />
+                                {viewSHGData.status === "Active" ? "Active" : "Deactive"}
+                              </button>
+                            ) : (
+                              <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${viewSHGData.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                                {viewSHGData.status}
+                              </span>
+                            )}
+                          </div>
+                          <div className="h-10 w-px bg-slate-100 mx-2" />
+                          <div className="flex flex-col">
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Quick Action</p>
+                             <p className="text-[11px] font-bold text-slate-500 italic opacity-80">
+                               Click to {viewSHGData.status === "Active" ? "deactivate" : "activate"} account
+                             </p>
+                          </div>
                         </div>
                       </div>
                     </div>

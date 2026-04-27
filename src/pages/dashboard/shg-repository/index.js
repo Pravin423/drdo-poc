@@ -37,7 +37,7 @@ export default function SHGRepository() {
       setShgs(arr.map((s, i) => {
         let statusStr = "Active";
         if (s.status === 1 || s.status === "1" || s.status === "Inactive" || s.status === "Deactive") {
-          statusStr = "Inactive";
+          statusStr = "Deactive";
         } else if (s.status === 2 || s.status === "2" || s.status === "Deleted") {
           statusStr = "Deleted";
         }
@@ -251,6 +251,41 @@ export default function SHGRepository() {
     } finally { setIsViewLoading(false); }
   };
 
+  const handleStatusToggle = async (id, newStatus) => {
+    const originalStatus = viewSHGData?.status;
+    const newStatusStr = newStatus === 0 ? "Active" : "Deactive";
+    
+    // Optimistic Update
+    if (viewSHGData && viewSHGData.id === id) {
+      setViewSHGData(prev => ({ ...prev, status: newStatusStr }));
+    }
+    setShgs(prev => prev.map(s => s.id === id ? { ...s, status: newStatusStr } : s));
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(`/api/shg-status-change?id=${id}&status=${newStatus}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const result = await res.json();
+      
+      if (result.status === true || result.status === 1) {
+        // Just fetch the list to keep everything in sync, 
+        // the optimistic update already handled the modal.
+        fetchSHGs();
+      } else {
+        throw new Error(result.message || "Failed to update status");
+      }
+    } catch (err) {
+      console.error("Status toggle error:", err);
+      // Revert on error
+      if (viewSHGData && viewSHGData.id === id) {
+        setViewSHGData(prev => ({ ...prev, status: originalStatus }));
+      }
+      setShgs(prev => prev.map(s => s.id === id ? { ...s, status: originalStatus } : s));
+      alert(err.message || "Failed to update status");
+    }
+  };
+
   // ── Member Management ─────────────────────────────────────────────────────
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [addMemberSHG, setAddMemberSHG] = useState(null);
@@ -454,6 +489,7 @@ export default function SHGRepository() {
         onAddMember={handleAddMemberClick}
         onEditMember={handleEditMemberClick}
         onDeleteMember={setMemberToDelete}
+        onStatusToggle={handleStatusToggle}
         isViewOnly={isViewOnly}
       />
 
