@@ -1,4 +1,4 @@
-import { Download, Upload, Plus } from "lucide-react";
+import { Download, Upload, Plus, UploadCloud } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function VillageHeader({ onExport, onImportClick, onAddClick, isViewOnly }) {
@@ -25,9 +25,9 @@ export default function VillageHeader({ onExport, onImportClick, onAddClick, isV
                 {!isViewOnly && (
                     <button
                         onClick={onImportClick}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm"
+                        className="flex items-center gap-2.5 px-6 py-2.5 bg-white border border-slate-100 text-slate-900 rounded-xl text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm active:scale-95"
                     >
-                        <Upload size={16} /> Import
+                        <UploadCloud size={15} className="stroke-[1.5]" /> Bulk Import
                     </button>
                 )}
                 <button
