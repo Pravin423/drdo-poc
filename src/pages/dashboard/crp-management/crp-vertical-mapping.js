@@ -84,7 +84,7 @@ export default function CRPVerticalMapping() {
           taskName: m.task_name || m.taskName || "N/A",
           verticalName: m.vertical_name || m.verticalName || m.title || "N/A",
           verticalCode: m.vertical_code || m.verticalCode || "N/A",
-          status: m.status === 0 || m.status === "0" || m.status === "Active" ? "Active" : "Inactive",
+          status: m.task_status === 0 || m.task_status === "0" ? "Active" : "Inactive",
         };
       });
 
