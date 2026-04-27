@@ -171,8 +171,9 @@ export default function CRPVerticalMapping() {
   useEffect(() => { setCurrentPage(1); }, [search]);
 
   const handleExport = () => {
-    const headers = ["CRP Name", "CRP Email", "CRP Mobile", "Task Type", "Task Name", "Vertical Name", "Vertical Code", "Status"];
-    const rows = filteredMappings.map(m => [
+    const headers = ["S.No", "CRP Name", "CRP Email", "CRP Mobile", "Task Type", "Task Name", "Vertical Name", "Vertical Code", "Status"];
+    const rows = filteredMappings.map((m, idx) => [
+      idx + 1,
       m.name,
       m.email,
       m.mobile,

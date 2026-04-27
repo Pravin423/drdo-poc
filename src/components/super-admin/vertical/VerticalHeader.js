@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Download, Plus, Search } from "lucide-react";
 
-export default function VerticalHeader({ searchQuery, setSearchQuery, onAddClick, isViewOnly }) {
+export default function VerticalHeader({ searchQuery, setSearchQuery, onAddClick, onExport, isViewOnly }) {
     return (
         <>
             {/* Page Title + Actions */}
@@ -23,7 +23,10 @@ export default function VerticalHeader({ searchQuery, setSearchQuery, onAddClick
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm">
+                    <button 
+                        onClick={onExport}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                    >
                         <Download size={16} /> Export CSV
                     </button>
                     {!isViewOnly && (

@@ -6,6 +6,7 @@ import DashboardLayout from "../../DashboardLayout";
 import SummaryCard from "../../common/SummaryCard";
 import { useRouter } from "next/router";
 import { AddVerticalModal, EditVerticalModal, ViewVerticalModal } from "../../VerticalModals";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 // ─── Data fetching helpers ────────────────────────────────────────────────────
 
@@ -190,6 +191,25 @@ export default function VerticalManagementComponent() {
         setViewModalOpen(true);
     };
 
+    // ── Export functionality ──────────────────────────────────────────────
+    const handleExport = () => {
+        exportToExcel({
+            title: "Goa Verticals — Domain Report",
+            headers: ["S.No", "Vertical Name", "Code", "Description", "Start Date", "End Date", "Created By", "Status"],
+            rows: filteredData.map((v, idx) => [
+                idx + 1,
+                v.name,
+                v.code,
+                v.desc,
+                v.start,
+                v.end,
+                v.createdBy,
+                v.status ? "Active" : "Inactive"
+            ]),
+            filename: `goa_verticals_${new Date().toISOString().split("T")[0]}`,
+        });
+    };
+
     // ── Render ──────────────────────────────────────────────────────────────
     return (
         <>
@@ -199,6 +219,7 @@ export default function VerticalManagementComponent() {
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
                         onAddClick={handleAddClick}
+                        onExport={handleExport}
                         isViewOnly={isViewOnly}
                     />
 
