@@ -26,14 +26,25 @@
     },
     {
       "id": 12,
-      "vertical_code": "NRLM-033",
-      "vertical_name": "MGNREGA Awareness",
+      "vertical_code": "NRLM-0332",
+      "vertical_name": "MGNREGA Awarenessa",
       "description": "Conduct village meetings to inform citizens about employment opportunities under MGNREGA.",
       "start_date": "2026-04-01",
       "end_date": "2027-03-31",
       "created_by": "Kiran",
       "status": 0,
       "created_at": "2026-03-10 10:34:37"
+    },
+    {
+      "id": 38,
+      "vertical_code": "1000io",
+      "vertical_name": "testingnew vertical",
+      "description": "hbsbd",
+      "start_date": "2026-04-27",
+      "end_date": "2026-04-28",
+      "created_by": "Kiran",
+      "status": 0,
+      "created_at": "2026-04-27 08:31:58"
     },
     {
       "id": 36,

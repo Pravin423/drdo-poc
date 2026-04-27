@@ -80,9 +80,9 @@ export default function CRPVerticalMapping() {
         else if (rawTaskType) parsedTaskType = rawTaskType;
 
         return {
-          id: m.id || m.mapping_id || idx + 1,
-          crpId: m.user_id || m.crpuser || m.crp_id || "",
-          verticalId: m.vertical_id || "",
+          id: m.id ?? m.mapping_id ?? idx + 1,
+          crpId: m.user_id ?? m.crpuser ?? m.crp_id ?? "",
+          verticalId: m.vertical_id ?? "",
           name: m.fullname || m.crp_name || m.name || "N/A",
           email: m.email || m.crp_email || "N/A",
           mobile: m.mobile || m.crp_mobile || "N/A",
@@ -225,7 +225,8 @@ export default function CRPVerticalMapping() {
 
   const handleUpdateMapping = async () => {
     setEditApiError(null);
-    if (!editFormData.crpuser || !editFormData.vertical_id) {
+    if (editFormData.crpuser === "" || editFormData.crpuser == null ||
+        editFormData.vertical_id === "" || editFormData.vertical_id == null) {
       setEditApiError("Please select both CRP and Vertical");
       return;
     }
@@ -245,7 +246,7 @@ export default function CRPVerticalMapping() {
       });
       let data;
       try { data = await res.json(); } catch (_) {}
-      if (!res.ok || data?.status === false) throw new Error((data && data.message) || "Failed to update mapping");
+      if (!res.ok || data?.status === false || data?.status === 0) throw new Error((data && data.message) || "Failed to update mapping");
       
       setSuccessMsg("The mapping has been updated successfully.");
       setShowSuccess(true);

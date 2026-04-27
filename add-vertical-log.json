@@ -1,10 +1,10 @@
 {
   "requestBody": {
-    "vertical_name": "sdylk",
-    "vertical_code": "45p96",
-    "start_date": "2026-04-21",
-    "end_date": "2026-04-29",
-    "description": "oiuytrertyui"
+    "vertical_name": "testingnew vertical",
+    "vertical_code": "1000io",
+    "start_date": "2026-04-27",
+    "end_date": "2026-04-28",
+    "description": "hbsbd"
   },
   "responseStatus": 200,
   "responseData": {

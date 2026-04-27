@@ -246,7 +246,7 @@ export default function VerticalManagementComponent() {
                 open={editModalOpen}
                 onClose={() => setEditModalOpen(false)}
                 formData={editFormData}
-                setFormData={setAddFormData}
+                setFormData={setEditFormData}
                 onSubmit={confirmEdit}
                 isSubmitting={isEditSubmitting}
                 formError={editFormError}
