@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Activity,
@@ -286,7 +287,15 @@ function DetailCard({ icon: Icon, iconColor, hoverBorder, hoverText, label, valu
     );
 }
 
-export function ViewVerticalModal({ open, onClose, data }) {
+export function ViewVerticalModal({ open, onClose, data, onStatusToggle }) {
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleToggle = async () => {
+        if (!data) return;
+        setIsUpdating(true);
+        await onStatusToggle(data.id, data.status);
+        setIsUpdating(false);
+    };
     return (
         <AnimatePresence>
             {open && data && (
@@ -343,13 +352,32 @@ export function ViewVerticalModal({ open, onClose, data }) {
                                     hoverBorder="hover:border-amber-300" hoverText="group-hover:text-amber-500"
                                     label="Created By" value={data.createdBy}
                                 />
-                                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-indigo-300 hover:shadow-md transition-all group">
-                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-indigo-500 transition-colors">
-                                        <Activity size={14} className="text-indigo-500" /> Status
+                                {/* Status Card with Toggle */}
+                                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-2 hover:border-indigo-300 hover:shadow-md transition-all group relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-50/30 rounded-bl-full -z-0 pointer-events-none" />
+                                    
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-indigo-500 transition-colors relative z-10">
+                                        <Activity size={14} className="text-indigo-500" /> Vertical Status
                                     </div>
-                                    <div>
-                                        <StatusBadge status={data.status} />
+                                    
+                                    <div className="mt-1 relative z-10">
+                                        <button
+                                            onClick={handleToggle}
+                                            disabled={isUpdating}
+                                            className={`w-1/2 flex items-center justify-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 border shadow-sm ${
+                                                data.status 
+                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" 
+                                                : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
+                                            }`}
+                                        >
+                                            <div className={`w-2 h-2 rounded-full animate-pulse ${data.status ? "bg-emerald-500" : "bg-rose-500"}`} />
+                                            {isUpdating ? "Updating..." : data.status ? "Active" : "Deactive"}
+                                        </button>
                                     </div>
+                                    
+                                    <p className="text-[9px] font-bold text-slate-400 italic text-center relative z-10 opacity-70">
+                                        Click to {data.status ? "deactivate" : "activate"} vertical
+                                    </p>
                                 </div>
                             </div>
 

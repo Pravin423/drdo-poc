@@ -191,6 +191,38 @@ export default function VerticalManagementComponent() {
         setViewModalOpen(true);
     };
 
+    const handleStatusToggle = async (id, currentStatus) => {
+        const newStatus = !currentStatus;
+        const newStatusValue = newStatus ? 0 : 1;
+
+        // Optimistic update
+        setVerticals(prev => prev.map(v => v.id === id ? { ...v, status: newStatus } : v));
+        if (viewData && viewData.id === id) {
+            setViewData(prev => ({ ...prev, status: newStatus }));
+        }
+
+        try {
+            const token = localStorage.getItem("authToken");
+            const res = await fetch(`/api/vertical-status-change?id=${id}&status=${newStatusValue}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const result = await res.json();
+            if (!res.ok || (result.status === false)) {
+                // Rollback
+                setVerticals(prev => prev.map(v => v.id === id ? { ...v, status: currentStatus } : v));
+                if (viewData && viewData.id === id) {
+                    setViewData(prev => ({ ...prev, status: currentStatus }));
+                }
+            }
+        } catch (error) {
+            // Rollback
+            setVerticals(prev => prev.map(v => v.id === id ? { ...v, status: currentStatus } : v));
+            if (viewData && viewData.id === id) {
+                setViewData(prev => ({ ...prev, status: currentStatus }));
+            }
+        }
+    };
+
     // ── Export functionality ──────────────────────────────────────────────
     const handleExport = () => {
         exportToExcel({
@@ -240,6 +272,7 @@ export default function VerticalManagementComponent() {
                         setSearchQuery={setSearchQuery}
                         onView={handleViewClick}
                         onEdit={handleEditClick}
+                        onStatusToggle={handleStatusToggle}
                         isViewOnly={isViewOnly}
                         footerProps={{
                             totalRecords: filteredData.length,
@@ -277,6 +310,7 @@ export default function VerticalManagementComponent() {
                 open={viewModalOpen}
                 onClose={() => setViewModalOpen(false)}
                 data={viewData}
+                onStatusToggle={handleStatusToggle}
             />
         </>
     );

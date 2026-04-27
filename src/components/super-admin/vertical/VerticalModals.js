@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Activity,
@@ -286,7 +287,15 @@ function DetailCard({ icon: Icon, iconColor, hoverBorder, hoverText, label, valu
     );
 }
 
-export function ViewVerticalModal({ open, onClose, data }) {
+export function ViewVerticalModal({ open, onClose, data, onStatusToggle }) {
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const handleToggle = async () => {
+        if (!data) return;
+        setIsUpdating(true);
+        await onStatusToggle(data.id, data.status);
+        setIsUpdating(false);
+    };
     return (
         <AnimatePresence>
             {open && data && (
@@ -343,12 +352,29 @@ export function ViewVerticalModal({ open, onClose, data }) {
                                     hoverBorder="hover:border-amber-300" hoverText="group-hover:text-amber-500"
                                     label="Created By" value={data.createdBy}
                                 />
+                                
+                                {/* Status Card with Toggle */}
                                 <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-1.5 hover:border-indigo-300 hover:shadow-md transition-all group">
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-indigo-500 transition-colors">
                                         <Activity size={14} className="text-indigo-500" /> Status
                                     </div>
-                                    <div>
+                                    <div className="flex items-center justify-between gap-2 mt-1">
                                         <StatusBadge status={data.status} />
+                                        <button
+                                            onClick={handleToggle}
+                                            disabled={isUpdating}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95 disabled:opacity-50 border shadow-sm ${
+                                                data.status 
+                                                ? "bg-rose-50 text-rose-600 hover:bg-rose-100 border-rose-100" 
+                                                : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100"
+                                            }`}
+                                        >
+                                            <div className="relative flex h-1.5 w-1.5">
+                                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${data.status ? "bg-rose-400" : "bg-emerald-400"}`}></span>
+                                                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${data.status ? "bg-rose-500" : "bg-emerald-500"}`}></span>
+                                            </div>
+                                            {isUpdating ? "Updating..." : data.status ? "Deactivate" : "Activate"}
+                                        </button>
                                     </div>
                                 </div>
                             </div>

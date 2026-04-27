@@ -15,7 +15,7 @@ function StatusBadge({ status }) {
     );
 }
 
-export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit, footerProps, isViewOnly }) {
+export default function VerticalTable({ isLoading, filteredData, searchQuery, setSearchQuery, onView, onEdit, onStatusToggle, footerProps, isViewOnly }) {
     // Define columns for the universal table
     const columns = [
         {
