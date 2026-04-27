@@ -12,6 +12,7 @@ export default function VerticalMappingTable({
   totalPages,
   setCurrentPage,
   onEdit,
+  onDelete,
   isViewOnly,
 }) {
   // ✅ Columns
@@ -53,7 +54,7 @@ export default function VerticalMappingTable({
       },{
         icon: Trash2,
         title: "Delete",
-        onClick: (row) => console.log("Delete", row),
+        onClick: onDelete,
         className: "hover:text-red-600 hover:bg-red-50",
       }
     );

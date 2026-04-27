@@ -12,7 +12,7 @@ import DashboardLayout from "../../../components/DashboardLayout";
 import VerticalMappingFilterBar from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingFilterBar";
 import VerticalMappingTable from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingTable";
 import VerticalMappingModal from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingModal";
-import { SuccessModal } from "../../../components/super-admin/location/village/ConfirmModals";
+import { SuccessModal, DeleteConfirmModal } from "../../../components/super-admin/location/village/ConfirmModals";
 
 export default function CRPVerticalMapping() {
   const router = useRouter();
@@ -25,6 +25,12 @@ export default function CRPVerticalMapping() {
   const [verticals, setVerticals] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+
+  // ── Delete State ──────────────────────────────────────────────────────────
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mappingToDelete, setMappingToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const fetchMappings = async () => {
     setIsLoading(true);
@@ -253,6 +259,37 @@ export default function CRPVerticalMapping() {
     }
   };
 
+  // ── Delete Logic ──────────────────────────────────────────────────────────
+  const handleDeleteClick = (mapping) => {
+    setMappingToDelete(mapping);
+    setDeleteError("");
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!mappingToDelete) return;
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch(`/api/vertical-delete/${mappingToDelete.id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== 1) throw new Error(data.message || "Failed to delete mapping");
+
+      setSuccessMsg("CRP to Vertical mapping has been deleted successfully.");
+      setShowSuccess(true);
+      setShowDeleteModal(false);
+      fetchMappings();
+    } catch (err) {
+      console.error(err);
+      setDeleteError(err.message || "An error occurred while deleting the mapping");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <ProtectedRoute allowedRole="super-admin">
@@ -304,6 +341,7 @@ export default function CRPVerticalMapping() {
               totalPages={totalPages}
               setCurrentPage={setCurrentPage}
               onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
               isViewOnly={isViewOnly}
             />
           </div>
@@ -344,8 +382,18 @@ export default function CRPVerticalMapping() {
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
-        title="Mapping Successful"
+        title="Operation Successful"
         message={successMsg}
+      />
+
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        deleteError={deleteError}
+        title="Delete Mapping?"
+        message="Are you sure you want to permanently delete this CRP to Vertical mapping?"
       />
     </ProtectedRoute>
   );
