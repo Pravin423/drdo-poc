@@ -43,6 +43,7 @@ import { useRouter } from "next/router";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import GISMapTab from "../../components/dashboard/GISMapTab";
+import DataTable from "../../components/common/DataTable";
 
 export default function AttendanceManagement() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function AttendanceManagement() {
   const tabs = [
     { id: "masterRole", label: "Attendance Report", icon: Users },
     { id: "workReport", label: "Employee Work Report", icon: FileCheck },
-    { id: "leaveList", label: "Leave List", icon: MapIcon },
+    { id: "leaveList", label: "Leave List", icon: FileText },
     { id: "holidays", label: "Holidays List", icon: MapIcon },
   ];
 
@@ -87,68 +88,67 @@ export default function AttendanceManagement() {
   return (
     <ProtectedRoute allowedRole="super-admin">
       <DashboardLayout>
-        <div className="min-h-screen  p-2 lg:p-3 xl:p-4">
+        <div className="min-h-screen p-2 lg:p-3 xl:p-4">
           <div className="max-w-[1600px] mx-auto space-y-8">
 
-            {/* --- Page Header --- */}
-            <motion.div
+            {/* Header */}
+            <motion.header
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col md:flex-row md:items-center justify-between gap-6"
+              transition={{ duration: 0.6 }}
+              className="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
             >
               <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                  Attendance <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">Management</span>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                  Attendance <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Management</span>
                 </h1>
-                <p className="text-slate-500 font-medium">
-                  Real-time tracking and geo-fencing validation across the hierarchy.
-                </p>
+                <p className="text-slate-500 font-bold text-lg">Real-time monitoring and reporting system for CRP operations.</p>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
-                  <div className="bg-indigo-50 p-2 rounded-xl">
-                    <Calendar className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div className="pr-4 hidden md:block">
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                      Status Date
-                    </p>
-                    <p className="text-sm font-bold text-slate-700">
-                      {new Date().toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2.5 transition-all shadow-sm hover:shadow-md active:scale-95"
+                  onClick={() => window.print()}
+                >
+                  <Download size={18} className="text-slate-400" /> Export PDF
+                </button>
+                <div className="h-8 w-px bg-slate-200 hidden lg:block mx-2" />
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">Live Syncing</span>
                 </div>
               </div>
-            </motion.div>
+            </motion.header>
 
-            {/* --- Overview section always visible --- */}
+            {/* Overview section always visible */}
             <OverviewGrid employees={employees} loading={loading} />
 
-            {/* --- Navigation Tabs --- */}
-            <div className="flex overflow-x-auto p-1.5 bg-slate-200/50 rounded-2xl w-fit backdrop-blur-sm border border-slate-200/50">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
+            {/* Tab Switcher */}
+            <div className="relative">
+              <div className="flex items-center gap-1.5 p-1.5 bg-slate-200/50 backdrop-blur-md rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar max-w-full shadow-inner border border-slate-200/60">
+                {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300
+                    className={`
+                      flex items-center gap-2.5 px-6 py-3 rounded-[1.25rem] text-sm font-bold transition-all duration-300 relative
                       ${activeTab === tab.id
-                        ? "bg-white text-[#1a2e7a] shadow-sm ring-1 ring-slate-200"
-                        : "text-slate-500 hover:text-slate-700 hover:bg-white/40"
-                      }`}
+                        ? "bg-white text-indigo-600 shadow-xl shadow-indigo-100 ring-1 ring-slate-200"
+                        : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                      }
+                    `}
                   >
-                    <Icon className="w-4 h-4" />
-                    {tab.label}
+                    <tab.icon size={18} className={activeTab === tab.id ? "text-indigo-600" : "text-slate-400"} />
+                    <span className="whitespace-nowrap">{tab.label}</span>
+                    {activeTab === tab.id && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-600"
+                      />
+                    )}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
 
             {/* --- Content Area with Animation --- */}
@@ -170,7 +170,8 @@ export default function AttendanceManagement() {
                   />
                 )}
                 { activeTab === "workReport" && <WorkReportTab employees={employees} />}
-                {(activeTab === "leaveList" || activeTab === "gisMap") && <GISMapTab />}
+                { activeTab === "leaveList" && <LeaveListTab /> }
+                { activeTab === "gisMap" && <GISMapTab />}
                 {activeTab === "holidays" && <HolidaysTab isViewOnly={isViewOnly} />}
               </motion.div>
             </AnimatePresence>
@@ -848,104 +849,114 @@ const MusterRollTab = memo(function MusterRollTab({
 
               </div>
 
-              {/* Attendance Record Cards */}
+              {/* Attendance Record Table */}
               <div className="p-6 bg-slate-50/30">
-                {isReportLoading ? (
-                  <div className="flex flex-col items-center justify-center py-20 gap-3">
-                    <RefreshCw className="w-10 h-10 text-indigo-500 animate-spin" />
-                    <p className="text-sm font-bold text-slate-500">Updating Records...</p>
-                  </div>
-                ) : attendanceEntries.length === 0 ? (
-                  <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-                    <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500 font-medium">No records found for {filters.date}</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                    {attendanceEntries.map((entry) => (
-                      <motion.div
-                        layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        key={entry.id}
-                        className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-4"
-                      >
-                        {/* Header: Profile + Status */}
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg uppercase shadow-lg shadow-indigo-100 overflow-hidden text-center">
-                              {entry.profile ? (
-                                <img src={entry.profile} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                entry.name?.charAt(0) || "U"
-                              )}
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-slate-900 text-base">{entry.name}</h3>
-                              <p className="text-xs font-medium text-slate-400">ID: {String(entry.employeeId).slice(-8)}</p>
+                <DataTable
+                  columns={[
+                    {
+                      header: "Employee Profile",
+                      key: "name",
+                      render: (val, row) => (
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm uppercase shadow-md overflow-hidden shrink-0">
+                            {row.profile ? (
+                              <img src={row.profile} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              val?.charAt(0) || "U"
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm tracking-tight">{val}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">ID: {String(row.employeeId).slice(-8)}</p>
+                          </div>
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Attendance State",
+                      key: "status",
+                      render: (val) => (
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border shadow-sm ${
+                          val === 'Present' 
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                            : 'bg-rose-50 text-rose-600 border-rose-100'
+                        }`}>
+                          <div className={`w-1 h-1 rounded-full ${val === 'Present' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                          {val}
+                        </span>
+                      )
+                    },
+                    {
+                      header: "Operational Area",
+                      key: "block",
+                      render: (val, row) => (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-bold text-slate-700">{val}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{row.district}</span>
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Temporal Metrics",
+                      key: "punchIn",
+                      render: (_, row) => (
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">In</span>
+                            <div className="flex items-center gap-1 text-xs font-black text-slate-700 tabular-nums">
+                              <Clock size={10} className="text-indigo-500" />
+                              {row.punchIn}
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${entry.status === 'Present'
-                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                              : entry.status === 'Absent'
-                                ? 'bg-rose-50 text-rose-600 border border-rose-100'
-                                : 'bg-amber-50 text-amber-600 border border-amber-100'
-                              }`}>
-                              {entry.status}
-                            </span>
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 border border-slate-100">
-                              <MapPin size={12} className="text-slate-400" />
-                              <span className="text-[10px] font-bold text-slate-600">{entry.block}</span>
+                          <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">Out</span>
+                            <div className="flex items-center gap-1 text-xs font-black text-slate-700 tabular-nums">
+                              <Clock size={10} className="text-slate-400" />
+                              {row.punchOut}
                             </div>
                           </div>
                         </div>
-
-                        {/* Time Grid Card */}
-                        <div className="grid grid-cols-3 gap-3 bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
-                          <div className="space-y-0.5 text-center md:text-left">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Punch In</p>
-                            <div className="flex items-center gap-1.5 justify-center md:justify-start">
-                              <Clock size={12} className="text-indigo-500" />
-                              <p className="text-xs font-bold text-slate-700">{entry.punchIn}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-0.5 border-x border-slate-200 px-3 text-center md:text-left">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Punch Out</p>
-                            <div className="flex items-center gap-1.5 justify-center md:justify-start">
-                              <Clock size={12} className="text-slate-400" />
-                              <p className="text-xs font-bold text-slate-700">{entry.punchOut}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-0.5 pl-3 text-center md:text-left">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Work Hours</p>
-                            <div className="flex items-center gap-1.5 justify-center md:justify-start">
-                              <Timer size={12} className="text-emerald-500" />
-                              <p className="text-xs font-bold text-emerald-700">{entry.workHours}</p>
-                            </div>
-                          </div>
+                      )
+                    },
+                    {
+                      header: "Productive Hours",
+                      key: "workHours",
+                      render: (val) => (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 rounded-lg border border-emerald-100/50">
+                          <Timer size={12} className="text-emerald-500" />
+                          <span className="text-xs font-black text-emerald-700 tabular-nums">{val}</span>
                         </div>
-
-                        {/* Bottom Info */}
-                        <div className="flex items-center justify-between text-[11px] px-1">
-                          <div className="flex items-center gap-1.5">
-                            <User size={13} className="text-slate-400" />
-                            <span className="text-slate-500 font-medium italic truncate max-w-[120px]">Approver: {entry.supervisor}</span>
-                          </div>
-                          {entry.approved ? (
-                            <div className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                              <ShieldCheck size={12} /> Approved
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
-                              <Clock size={12} /> Pending
-                            </div>
-                          )}
+                      )
+                    },
+                    {
+                      header: "Approval Workflow",
+                      key: "approvedStatus",
+                      render: (val, row) => (
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase rounded-lg w-fit ${
+                            row.approved 
+                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                              : 'bg-amber-50 text-amber-600 border border-amber-100'
+                          }`}>
+                            {row.approved ? <ShieldCheck size={10} /> : <Clock size={10} />}
+                            {val}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium italic truncate max-w-[100px]">By: {row.supervisor}</span>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                      )
+                    }
+                  ]}
+                  data={attendanceEntries}
+                  isLoading={isReportLoading}
+                  emptyState={{
+                    icon: Search,
+                    message: `No records found for ${filters.date}`
+                  }}
+                  footerProps={{
+                    totalRecords: attendanceEntries.length,
+                    showPagination: false
+                  }}
+                />
               </div>
             </div>
           )}
@@ -1379,54 +1390,96 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
 
       {/* Tasks Breakdown section */}
       {reportData?.tasks && reportData.tasks.length > 0 && (
-        <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden p-6 mt-6">
-          <div className="flex items-center justify-between mb-4">
-             <h3 className="text-xl font-bold text-slate-900">Assigned Tasks</h3>
-             <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">{reportData.tasks.length} Total Tasks</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 text-slate-500 font-medium border-y border-slate-100">
-                <tr>
-                  <th className="px-4 py-3">Task Name</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Form Name</th>
-                  <th className="px-4 py-3">Start Date</th>
-                  <th className="px-4 py-3">End Date</th>
-                  <th className="px-4 py-3 text-right">Honorarium</th>
-                  <th className="px-4 py-3 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {reportData.tasks.map((task) => (
-                  <tr key={task.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-4">
-                        <p className="text-slate-900 font-bold">{task.task_name}</p>
-                        {task.task_description && (
-                            <p className="text-xs text-slate-500 mt-1 max-w-[200px] lg:max-w-md truncate" title={task.task_description}>
-                                {task.task_description}
-                            </p>
-                        )}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded-md ${task.task_type === 'special' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                        {task.task_type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-slate-600 font-medium">{task.form_name || '-'}</td>
-                    <td className="px-4 py-4 text-slate-600">{new Date(task.start_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric'})}</td>
-                    <td className="px-4 py-4 text-slate-600">{new Date(task.end_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric'})}</td>
-                    <td className="px-4 py-4 text-emerald-600 font-black text-right tracking-wide">₹ {task.honorarium_amount}</td>
-                    <td className="px-4 py-4 text-center">
-                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full capitalize ${task.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : task.status === 'inprogress' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>
-                        {task.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="mt-8">
+          <DataTable
+            columns={[
+              {
+                header: "Task Information",
+                key: "task_name",
+                render: (val, row) => (
+                  <div className="py-1">
+                    <p className="text-slate-900 font-bold text-sm tracking-tight">{val}</p>
+                    {row.task_description && (
+                      <p className="text-[11px] text-slate-500 font-medium mt-0.5 max-w-[280px] line-clamp-1" title={row.task_description}>
+                        {row.task_description}
+                      </p>
+                    )}
+                  </div>
+                )
+              },
+              {
+                header: "Categorization",
+                key: "task_type",
+                render: (val) => (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                    val === 'special' 
+                      ? 'bg-purple-50 text-purple-600 border border-purple-100' 
+                      : 'bg-blue-50 text-blue-600 border border-blue-100'
+                  }`}>
+                    <div className={`w-1 h-1 rounded-full ${val === 'special' ? 'bg-purple-500' : 'bg-blue-500'}`} />
+                    {val}
+                  </span>
+                )
+              },
+              {
+                header: "Assigned Form",
+                key: "form_name",
+                render: (val) => <span className="text-sm font-semibold text-slate-600">{val || '—'}</span>
+              },
+              {
+                header: "Temporal Range",
+                key: "start_date",
+                render: (_, row) => (
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-700">
+                      {new Date(row.start_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })} — {new Date(row.end_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                      {new Date(row.start_date).getFullYear()}
+                    </span>
+                  </div>
+                )
+              },
+              {
+                header: "Compensation",
+                key: "honorarium_amount",
+                align: "right",
+                render: (val) => (
+                  <span className="text-sm font-black text-emerald-600 tracking-tight">
+                    ₹ {Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                )
+              },
+              {
+                header: "Execution Status",
+                key: "status",
+                align: "center",
+                render: (val) => (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    val === 'approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                    val === 'inprogress' ? 'bg-amber-50 text-amber-600 border border-amber-100' :
+                    'bg-slate-50 text-slate-600 border border-slate-100'
+                  }`}>
+                    {val}
+                  </span>
+                )
+              }
+            ]}
+            data={reportData.tasks}
+            isLoading={loading}
+            headerActions={
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-black text-slate-900 tracking-tight">Assigned Tasks</h3>
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-100">
+                  {reportData.tasks.length} Total
+                </span>
+              </div>
+            }
+            footerProps={{
+              totalRecords: reportData.tasks.length,
+              showPagination: false
+            }}
+          />
         </div>
       )}
     </div>
@@ -1799,94 +1852,83 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
           )}
         </div>
 
-        <div className="relative overflow-hidden">
-          <div
-            className="divide-y divide-slate-100 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
-            style={{
-              maskImage: 'linear-gradient(to bottom, transparent, black 15px, black calc(100% - 25px), transparent)',
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15px, black calc(100% - 25px), transparent)',
-            }}
-          >
-            {loading ? (
-              <div className="p-6 text-center text-slate-500">Loading holidays...</div>
-            ) : holidays.length === 0 ? (
-              <div className="p-6 text-center text-slate-400">No holidays found</div>
-            ) : (
-              holidays.map((holiday) => {
-                const isMultiDay = holiday.end_date && holiday.end_date !== holiday.date;
-                return (
-                  <div
-                    key={holiday.id}
-                    onClick={() => setCurrentDate(new Date(holiday.date))}
-                    className="p-5 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-300 group cursor-pointer border-l-4 border-transparent hover:border-indigo-500"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Date badge */}
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <span className="text-lg leading-none mb-0.5">
-                          {new Date(holiday.date).getDate()}
-                        </span>
-                        <span className="text-[10px] uppercase tracking-wider text-indigo-400">
-                          {monthNames[new Date(holiday.date).getMonth()]?.substring(0, 3) || "N/A"}
-                        </span>
-                      </div>
-
-                      <div>
-                        <h3 className="font-bold text-[15px] text-slate-900 group-hover:text-indigo-600 transition-colors duration-300">
-                          {holiday.name}
-                        </h3>
-
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          {/* Day of week */}
-                          <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {holiday.day}
-                          </span>
-
-                          {/* Date range pill */}
-                          <span className="text-[12px] font-semibold text-indigo-600 flex items-center gap-1 bg-indigo-50 px-2.5 py-0.5 rounded-md ring-1 ring-indigo-100">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(holiday.date)}
-                            {isMultiDay && (
-                              <><span className="text-indigo-300 mx-0.5">→</span>{formatDate(holiday.end_date)}</>
-                            )}
-                          </span>
-
-                          {/* Multi-day badge */}
-                          {isMultiDay && (
-                            <span className="px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-600">
-                              Multi-day
-                            </span>
-                          )}
-                        </div>
-                      </div>
+        <div className="p-0">
+          <DataTable
+            columns={[
+              {
+                header: "Calendar Date",
+                key: "date",
+                render: (val, row) => (
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0">
+                      <span className="text-lg leading-none mb-0.5">{new Date(val).getDate()}</span>
+                      <span className="text-[9px] uppercase tracking-wider text-indigo-400">
+                        {new Date(val).toLocaleDateString('en-US', { month: 'short' })}
+                      </span>
                     </div>
-
-                    {/* Edit / Delete */}
-                    {!isViewOnly && (
-                      <div
-                        className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={() => openEditModal(holiday)}
-                          className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all hover:scale-110"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(holiday)}
-                          className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all hover:scale-110"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-slate-800">{new Date(val).toLocaleDateString('en-US', { weekday: 'long' })}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{new Date(val).getFullYear()}</span>
+                    </div>
                   </div>
-                );
-              })
-            )}
-          </div>
+                )
+              },
+              {
+                header: "Holiday Designation",
+                key: "name",
+                render: (val, row) => (
+                   <div className="flex flex-col gap-1">
+                      <p className="font-bold text-slate-900 text-[15px] tracking-tight">{val}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/50">
+                          {formatDate(row.date)}
+                        </span>
+                        {row.end_date && row.end_date !== row.date && (
+                           <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/50 uppercase tracking-tighter">
+                             Multi-day Event
+                           </span>
+                        )}
+                      </div>
+                   </div>
+                )
+              },
+              {
+                header: "Status",
+                key: "status",
+                render: (val) => (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    val === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'
+                  }`}>
+                    {val || 'active'}
+                  </span>
+                )
+              }
+            ]}
+            data={holidays}
+            isLoading={loading}
+            emptyState={{
+              icon: MapIcon,
+              message: "No holidays found for this period"
+            }}
+            actions={!isViewOnly ? [
+              {
+                icon: Edit,
+                title: "Edit Holiday",
+                onClick: (row) => openEditModal(row),
+                className: "hover:text-blue-600 hover:bg-blue-50"
+              },
+              {
+                icon: Trash2,
+                title: "Delete Holiday",
+                onClick: (row) => openDeleteModal(row),
+                className: "hover:text-rose-600 hover:bg-rose-50"
+              }
+            ] : []}
+            footerProps={{
+              totalRecords: holidays.length,
+              showPagination: false
+            }}
+          />
         </div>
       </div>
 
@@ -2288,6 +2330,245 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
         document.body
       )}
 
+    </div>
+  );
+});
+
+const LeaveListTab = memo(function LeaveListTab() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const [leaves, setLeaves] = useState([
+    {
+      id: "LR-001",
+      employeeName: "Rajesh Kumar Naik",
+      employeeId: "CRP2024001",
+      leaveType: "Sick Leave",
+      startDate: "2026-04-10",
+      endDate: "2026-04-12",
+      days: 3,
+      status: "Approved",
+      reason: "Viral fever",
+      appliedOn: "2026-04-08",
+      profile: null
+    },
+    {
+      id: "LR-002",
+      employeeName: "Priya Desai",
+      employeeId: "CRP2024002",
+      leaveType: "Casual Leave",
+      startDate: "2026-04-15",
+      endDate: "2026-04-15",
+      days: 1,
+      status: "Pending",
+      reason: "Family function",
+      appliedOn: "2026-04-12",
+      profile: null
+    },
+    {
+      id: "LR-003",
+      employeeName: "Amit Prabhu Dessai",
+      employeeId: "CRP2024003",
+      leaveType: "Earned Leave",
+      startDate: "2026-04-20",
+      endDate: "2026-04-25",
+      days: 6,
+      status: "Rejected",
+      reason: "Urgent project deadline",
+      appliedOn: "2026-04-15",
+      profile: null
+    },
+    {
+      id: "LR-004",
+      employeeName: "Sunita Gaonkar",
+      employeeId: "CRP2024004",
+      leaveType: "Sick Leave",
+      startDate: "2026-04-22",
+      endDate: "2026-04-22",
+      days: 1,
+      status: "Approved",
+      reason: "Regular checkup",
+      appliedOn: "2026-04-20",
+      profile: null
+    },
+    {
+      id: "LR-005",
+      employeeName: "Mangesh Naik",
+      employeeId: "CRP2024005",
+      leaveType: "Casual Leave",
+      startDate: "2026-04-25",
+      endDate: "2026-04-26",
+      days: 2,
+      status: "Pending",
+      reason: "Personal work",
+      appliedOn: "2026-04-22",
+      profile: null
+    }
+  ]);
+
+  const filteredLeaves = leaves.filter(leave => {
+    const matchesSearch = leave.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          leave.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || leave.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    total: leaves.length,
+    pending: leaves.filter(l => l.status === "Pending").length,
+    approved: leaves.filter(l => l.status === "Approved").length,
+    rejected: leaves.filter(l => l.status === "Rejected").length,
+  };
+
+  const handleStatusChange = (id, newStatus) => {
+    setLeaves(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+  };
+
+  const columns = [
+    {
+      header: "Employee Identification",
+      key: "employeeName",
+      render: (val, row) => (
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
+              {row.profile ? <img src={row.profile} className="w-full h-full object-cover" /> : val.charAt(0)}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{val}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Reference: {row.employeeId}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      header: "Leave Categorization",
+      key: "leaveType",
+      render: (val) => (
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200/50">
+          <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+          <span className="text-xs font-bold text-slate-700">{val}</span>
+        </div>
+      )
+    },
+    {
+      header: "Temporal Range",
+      key: "startDate",
+      render: (_, row) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-black text-slate-800 tabular-nums">
+            {new Date(row.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} — {new Date(row.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+          </span>
+          <div className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 uppercase">
+             <Calendar size={10} />
+             {row.days} Business Day(s)
+          </div>
+        </div>
+      )
+    },
+    {
+      header: "Context / Justification",
+      key: "reason",
+      render: (val) => (
+        <p className="text-sm text-slate-500 font-semibold max-w-[240px] line-clamp-2 leading-relaxed" title={val}>{val}</p>
+      )
+    },
+    {
+      header: "Approval State",
+      key: "status",
+      render: (val) => (
+        <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border shadow-sm ${
+          val === 'Approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+          val === 'Rejected' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+          'bg-amber-50 text-amber-600 border-amber-100'
+        }`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${
+            val === 'Approved' ? 'bg-emerald-500' :
+            val === 'Rejected' ? 'bg-rose-500' :
+            'bg-amber-500'
+          }`} />
+          {val}
+        </span>
+      )
+    }
+  ];
+
+  const actions = [
+    {
+      icon: CheckCircle2,
+      title: "Approve Request",
+      onClick: (row) => handleStatusChange(row.id, 'Approved'),
+      className: "hover:text-emerald-600 hover:bg-emerald-50",
+      show: (row) => row.status === 'Pending'
+    },
+    {
+      icon: XCircle,
+      title: "Reject Request",
+      onClick: (row) => handleStatusChange(row.id, 'Rejected'),
+      className: "hover:text-rose-600 hover:bg-rose-50",
+      show: (row) => row.status === 'Pending'
+    },
+    {
+      icon: Eye,
+      title: "View Details",
+      onClick: (row) => {},
+      className: "hover:text-indigo-600 hover:bg-indigo-50"
+    }
+  ];
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Leave <span className="text-indigo-600">Requests</span>
+            </h2>
+            {stats.pending > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-200 shadow-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                {stats.pending} Pending
+              </div>
+            )}
+          </div>
+          <p className="text-[13px] font-bold text-slate-500">Review and manage employee leave applications</p>
+        </div>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={filteredLeaves}
+        isLoading={false}
+        searchProps={{
+          placeholder: "Filter by name, ID or role...",
+          value: searchQuery,
+          onChange: setSearchQuery
+        }}
+        headerActions={
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-200/50 rounded-[1.75rem] border border-slate-200/40">
+            {["all", "pending", "approved", "rejected"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-6 py-2.5 rounded-[1.25rem] text-[11px] font-black uppercase tracking-widest transition-all ${
+                  statusFilter === status 
+                    ? "bg-white text-indigo-600 shadow-lg shadow-indigo-100 scale-105" 
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        }
+        actions={actions}
+        footerProps={{
+          totalRecords: filteredLeaves.length,
+          showPagination: false
+        }}
+      />
     </div>
   );
 });

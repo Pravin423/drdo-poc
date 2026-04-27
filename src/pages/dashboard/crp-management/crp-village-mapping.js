@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon, Download } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
@@ -13,6 +13,7 @@ import VillageMappingFilterBar from "../../../components/super-admin/crp/village
 import VillageMappingTable from "../../../components/super-admin/crp/village-mapping/VillageMappingTable";
 import VillageMappingModal from "../../../components/super-admin/crp/village-mapping/VillageMappingModal";
 import { SuccessModal } from "../../../components/super-admin/location/village/ConfirmModals";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 export default function CRPVillageMapping() {
   const router = useRouter();
@@ -79,6 +80,27 @@ export default function CRPVillageMapping() {
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
+
+  const handleExport = () => {
+    const headers = ["CRP Name", "CRP Email", "CRP Mobile", "SHG Name", "Village", "Taluka", "District", "Status"];
+    const rows = filteredMappings.map(m => [
+      m.name,
+      m.email,
+      m.mobile,
+      m.shgName,
+      m.village,
+      m.taluka,
+      m.district,
+      m.status
+    ]);
+
+    exportToExcel({
+      title: "CRP - Village Mapping Detailed Report",
+      headers,
+      rows,
+      filename: `crp_village_mappings_${new Date().toISOString().split('T')[0]}`
+    });
+  };
 
   const totalPages = Math.max(1, Math.ceil(filteredMappings.length / itemsPerPage));
   
@@ -201,12 +223,20 @@ export default function CRPVillageMapping() {
             </div>
 
             {!isViewOnly && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
-              >
-                <LinkIcon size={16} /> Link CRP to Village
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleExport}
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 flex items-center gap-2 transition-colors shadow-sm"
+                >
+                  <Download size={16} /> Export Data
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
+                >
+                  <LinkIcon size={16} /> Link CRP to Village
+                </button>
+              </div>
             )}
           </motion.header>
 

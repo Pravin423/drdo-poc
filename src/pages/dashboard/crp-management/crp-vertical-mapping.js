@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon, Download } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
@@ -13,6 +13,7 @@ import VerticalMappingFilterBar from "../../../components/super-admin/crp/vertic
 import VerticalMappingTable from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingTable";
 import VerticalMappingModal from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingModal";
 import { SuccessModal, DeleteConfirmModal } from "../../../components/super-admin/location/village/ConfirmModals";
+import { exportToExcel } from "../../../lib/exportToExcel";
 
 export default function CRPVerticalMapping() {
   const router = useRouter();
@@ -139,6 +140,17 @@ export default function CRPVerticalMapping() {
 
   useEffect(() => { fetchMappings(); }, []);
 
+  const stats = useMemo(() => {
+    const active = mappings.filter(m => m.status === "Active").length;
+    const inactive = mappings.length - active;
+    return [
+      { label: "Total Mappings", value: mappings.length, icon: LinkIcon, color: "text-blue-600 bg-blue-50" },
+      { label: "Active Connections", value: active, icon: LinkIcon, color: "text-emerald-600 bg-emerald-50" },
+      { label: "Inactive / Pending", value: inactive, icon: LinkIcon, color: "text-amber-600 bg-amber-50" },
+      { label: "Verticals Covered", value: verticals.length, icon: LinkIcon, color: "text-purple-600 bg-purple-50" },
+    ];
+  }, [mappings, verticals]);
+
   // ── Filter & Pagination ───────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,6 +169,27 @@ export default function CRPVerticalMapping() {
 
   // Reset to page 1 whenever search changes
   useEffect(() => { setCurrentPage(1); }, [search]);
+
+  const handleExport = () => {
+    const headers = ["CRP Name", "CRP Email", "CRP Mobile", "Task Type", "Task Name", "Vertical Name", "Vertical Code", "Status"];
+    const rows = filteredMappings.map(m => [
+      m.name,
+      m.email,
+      m.mobile,
+      m.taskType,
+      m.taskName,
+      m.verticalName,
+      m.verticalCode,
+      m.status
+    ]);
+
+    exportToExcel({
+      title: "CRP - Vertical Mapping Detailed Report",
+      headers,
+      rows,
+      filename: `crp_vertical_mappings_${new Date().toISOString().split('T')[0]}`
+    });
+  };
 
   const totalPages = Math.max(1, Math.ceil(filteredMappings.length / itemsPerPage));
   const paginatedMappings = useMemo(() => {
@@ -302,27 +335,54 @@ export default function CRPVerticalMapping() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+            className="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
           >
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                CRP - Vertical{" "}
-                <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
-                  Mapping
-                </span>
+            <div className="space-y-1">
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                CRP - Vertical <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Mapping</span>
               </h1>
-              <p className="text-slate-500 font-medium">Manage and view mappings between CRPs and Verticals</p>
+              <p className="text-slate-500 font-bold text-lg">Relationship engine for program assignment and oversight.</p>
             </div>
 
             {!isViewOnly && (
-              <button
-                onClick={() => { setApiError(null); setIsModalOpen(true); }}
-                className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
-              >
-                <LinkIcon size={16} /> Link CRP to Vertical
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleExport}
+                  className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2.5 transition-all shadow-sm hover:shadow-md active:scale-95"
+                >
+                  <Download size={18} className="text-slate-400" /> Export Data
+                </button>
+                <button
+                  onClick={() => { setApiError(null); setIsModalOpen(true); }}
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 flex items-center gap-2.5 transition-all shadow-xl shadow-indigo-200 active:scale-95 border border-indigo-500/20"
+                >
+                  <LinkIcon size={18} /> Link CRP to Vertical
+                </button>
+              </div>
             )}
           </motion.header>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between mb-4">
+                   <div className={`p-2.5 rounded-2xl ${stat.color} transition-transform group-hover:scale-110`}>
+                     <stat.icon size={20} />
+                   </div>
+                   <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                </div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">{stat.label}</p>
+                <p className="text-3xl font-black text-slate-900 tracking-tighter">{isLoading ? "..." : stat.value}</p>
+              </motion.div>
+            ))}
+          </div>
 
           {/* Table card */}
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

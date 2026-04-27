@@ -148,6 +148,9 @@ export default function DataTable({
                                             <div className="flex items-center justify-end gap-2">
                                                 {actions.map((action, actionIdx) => {
                                                     const Icon = action.icon;
+                                                    const isVisible = typeof action.show === 'function' ? action.show(row) : action.show !== false;
+                                                    if (!isVisible) return null;
+                                                    
                                                     return (
                                                         <button
                                                             key={actionIdx}

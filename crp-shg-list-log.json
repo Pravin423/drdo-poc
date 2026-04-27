@@ -105,6 +105,19 @@
       "taluka": "Bardez",
       "village": "Arpora",
       "status": 0
+    },
+    {
+      "id": 12,
+      "user_id": 21,
+      "fullname": "Rohit Kumar",
+      "mobile": 7003484990,
+      "email": "rohit@runtime-solutions.com",
+      "shg_name": "Santoshi Mata SHG",
+      "shg_id": 5,
+      "district": "South Goa",
+      "taluka": "Mormugao",
+      "village": "Cuelim",
+      "status": 0
     }
   ],
   "shglist": [
