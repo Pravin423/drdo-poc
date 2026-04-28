@@ -244,18 +244,17 @@ export default function PerformanceOverview({ user }) {
                     </div>
 
                     {/* Expanded Content */}
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence>
                       {isExpanded && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ 
-                            type: "spring", 
-                            stiffness: 300, 
-                            damping: 30,
-                            opacity: { duration: 0.2 } 
+                            height: { duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] },
+                            opacity: { duration: 0.25, ease: "linear" }
                           }}
+                          className="overflow-hidden"
                         >
                           <div className="px-5 pb-6 pt-2 border-t border-slate-100/50 bg-white/50">
                             <motion.div 
@@ -274,8 +273,7 @@ export default function PerformanceOverview({ user }) {
                             >
                               {[
                                 { label: 'Villages', val: t.villageCount || 0, color: 'slate' },
-                                { label: 'Active CRPs', val: '0', color: 'slate' },
-                                { label: 'Tasks Done', val: '0', color: 'slate' },
+                                { label: 'SHGs Mapped', val: '0', color: 'slate' },
                                 { label: 'Efficiency', val: '0%', color: 'emerald' },
                               ].map((stat, i) => (
                                 <motion.div 
