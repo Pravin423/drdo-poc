@@ -55,18 +55,29 @@ export default function PerformanceOverview({ user }) {
         const eJson = await eRes.json();
         const allEmployees = eJson.status && eJson.data ? eJson.data : [];
 
+        // 5. Fetch SHGs to map counts
+        const sRes = await fetch(`/api/shg-list`);
+        const sJson = await sRes.json();
+        const allSHGs = sJson.status && sJson.data ? sJson.data : [];
+
         if (json.status && json.data) {
           const filtered = json.data
             .filter(t => stringIds.includes(String(t.id)))
             .map(t => {
-              // Count villages that match this taluka ID (check various possible field names)
+              // Count villages
               const vCount = allVillages.filter(v => 
                 String(v.taluka_id || v.talukaId || v.block_id || v.blockId || "") === String(t.id)
+              ).length;
+
+              // Count SHGs for this taluka
+              const sCount = allSHGs.filter(s => 
+                String(s.taluka_id || s.block_id || s.talukaId || "") === String(t.id)
               ).length;
               
               return {
                 ...t,
-                villageCount: vCount
+                villageCount: vCount,
+                shgCount: sCount
               };
             });
           setTalukas(filtered);
@@ -273,7 +284,7 @@ export default function PerformanceOverview({ user }) {
                             >
                               {[
                                 { label: 'Villages', val: t.villageCount || 0, color: 'slate' },
-                                { label: 'SHGs Mapped', val: '0', color: 'slate' },
+                                { label: 'SHGs Mapped', val: t.shgCount || 0, color: 'slate' },
                                 { label: 'Efficiency', val: '0%', color: 'emerald' },
                               ].map((stat, i) => (
                                 <motion.div 
@@ -288,15 +299,6 @@ export default function PerformanceOverview({ user }) {
                                   <p className={`text-lg font-black mt-1 ${stat.color === 'emerald' ? 'text-emerald-600' : 'text-slate-900'}`}>{stat.val}</p>
                                 </motion.div>
                               ))}
-                            </motion.div>
-                            <motion.div 
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              transition={{ delay: 0.3 }}
-                              className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex items-center justify-between"
-                            >
-                              <p className="text-xs font-medium text-blue-700">Detailed analytics for this block will synchronize in the next cycle.</p>
-                              <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">Sync Now</button>
                             </motion.div>
                           </div>
                         </motion.div>
