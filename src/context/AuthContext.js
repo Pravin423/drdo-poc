@@ -24,8 +24,8 @@ export const AuthProvider = ({ children }) => {
     { match: "super admin",                          role: "super-admin",    dashboard: "/dashboard/super-admin" },
     { match: "state program manager - mis",          role: "state-admin",    dashboard: "/dashboard/super-admin" },
     { match: "state program manager - hr",           role: "state-admin",    dashboard: "/dashboard/super-admin" },
-    { match: "block manager",                        role: "district-admin", dashboard: "/dashboard/district-admin" },
-    { match: "block program manager",                role: "district-admin", dashboard: "/dashboard/district-admin" },
+    { match: "block manager",                        role: "Block-admin",    dashboard: "/dashboard/block-admin" },
+    { match: "block program manager",                role: "Block-admin",    dashboard: "/dashboard/block-admin" },
     { match: "block resource person",                role: "supervisor",     dashboard: "/dashboard/supervisor" },
     { match: "internal mentor im",                   role: "supervisor",     dashboard: "/dashboard/supervisor" },
     { match: "block coordinator - bc",               role: "supervisor",     dashboard: "/dashboard/supervisor" },
@@ -87,6 +87,8 @@ export const AuthProvider = ({ children }) => {
         role:      mapped.role,
         role_name: roleName,
         profile:   data?.data?.profile || "",
+        district_id: data?.data?.district_id,
+        taluka_id:   data?.data?.taluka_id,
       };
 
       // authToken is intentionally not stored in localStorage anymore as it is managed via HttpOnly cookie
@@ -130,9 +132,39 @@ export const AuthProvider = ({ children }) => {
     return { success: true };
   };
 
+  const refreshUserSession = async () => {
+    try {
+      const res = await fetch("/api/profile");
+      const data = await res.json();
+      if (data.status === 1 && data.data) {
+        const roleName = (data.data.role_name || "").trim();
+        const mapped = resolveRole(roleName);
+        if (mapped) {
+          const updatedUser = {
+            ...user,
+            id: data.data.id,
+            name: data.data.fullname || roleName,
+            email: data.data.email,
+            role: mapped.role,
+            role_name: roleName,
+            district_id: data.data.district_id,
+            taluka_id: data.data.taluka_id,
+            profile: data.data.profile || "",
+          };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          setUser(updatedUser);
+          return true;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to refresh session:", err);
+    }
+    return false;
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, authLoading, login, logout, verifyPhone, updatePassword }}
+      value={{ user, authLoading, login, logout, verifyPhone, updatePassword, refreshUserSession }}
     >
       {children}
     </AuthContext.Provider>
