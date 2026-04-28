@@ -3,18 +3,19 @@ import SummaryCard from '../common/SummaryCard'
 import { Map, MapPin, Activity, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
+  PieChart, 
+  Pie, 
+  Cell, 
   Tooltip, 
-  ResponsiveContainer, 
-  Cell 
+  ResponsiveContainer,
+  Legend
 } from 'recharts'
+
+const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
 
 export default function PerformanceOverview({ user }) {
   const [talukas, setTalukas] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedBlockId, setExpandedBlockId] = useState(null);
 
@@ -49,6 +50,11 @@ export default function PerformanceOverview({ user }) {
         const vJson = await vRes.json();
         const allVillages = vJson.status && vJson.data ? vJson.data : [];
 
+        // 4. Fetch all employees to filter for active staff
+        const eRes = await fetch(`/api/employees`);
+        const eJson = await eRes.json();
+        const allEmployees = eJson.status && eJson.data ? eJson.data : [];
+
         if (json.status && json.data) {
           const filtered = json.data
             .filter(t => stringIds.includes(String(t.id)))
@@ -64,6 +70,12 @@ export default function PerformanceOverview({ user }) {
               };
             });
           setTalukas(filtered);
+
+          // Filter employees for these talukas
+          const assignedEmployees = allEmployees.filter(emp => 
+            stringIds.includes(String(emp.taluka_id || emp.block_id || ""))
+          );
+          setEmployees(assignedEmployees);
         }
       } catch (e) {
         console.error("Error fetching taluka performance data:", e);
@@ -74,6 +86,10 @@ export default function PerformanceOverview({ user }) {
 
     fetchNames();
   }, [districtId, assignedTalukaIds]);
+
+  const totalVillagesInBlocks = talukas.reduce((acc, curr) => acc + (curr.villageCount || 0), 0);
+  const activeStaffCount = employees.length;
+  const coveragePercent = totalVillagesInBlocks > 0 ? Math.min(Math.round((activeStaffCount / talukas.length) * 100), 100) : 0;
 
   return (
     <div className="space-y-8">
@@ -120,96 +136,63 @@ export default function PerformanceOverview({ user }) {
       </div>
 
       {/* Performance Chart Section */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden p-8 flex flex-col h-[450px]">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Village Distribution</h3>
-              <p className="text-sm text-slate-500">Comparison of village coverage across blocks.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-600" />
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-tighter">Villages</span>
-            </div>
+      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden p-8 flex flex-col h-[550px]">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Village Distribution</h3>
+            <p className="text-sm text-slate-500">Proportional breakdown of village coverage across all assigned blocks.</p>
           </div>
-          
-          <div className="flex-1 w-full min-h-0">
-            {isLoading ? (
-              <div className="w-full h-full bg-slate-50 rounded-2xl animate-pulse" />
-            ) : (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-600" />
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-tighter">Villages</span>
+          </div>
+        </div>
+        
+        <div className="flex-1 w-full min-h-0 relative">
+          {isLoading ? (
+            <div className="w-full h-full bg-slate-50 rounded-2xl animate-pulse" />
+          ) : (
+            <>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={talukas} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: '#f8fafc' }}
-                    contentStyle={{ 
-                      borderRadius: '16px', 
-                      border: 'none', 
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                      padding: '12px'
-                    }}
-                    labelStyle={{ fontWeight: 800, marginBottom: '4px', color: '#1e293b' }}
-                  />
-                  <Bar 
-                    dataKey="villageCount" 
-                    radius={[6, 6, 0, 0]} 
-                    barSize={40}
+                <PieChart>
+                  <Pie
+                    data={talukas}
+                    cx="50%"
+                    cy="45%"
+                    innerRadius={110}
+                    outerRadius={160}
+                    paddingAngle={5}
+                    dataKey="villageCount"
                     animationDuration={1500}
                   >
                     {talukas.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={index % 2 === 0 ? '#3b82f6' : '#6366f1'} 
-                        fillOpacity={0.9}
-                      />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                     ))}
-                  </Bar>
-                </BarChart>
+                  </Pie>
+                  <Tooltip 
+                      contentStyle={{ 
+                        borderRadius: '16px', 
+                        border: 'none', 
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        padding: '12px'
+                      }}
+                      itemStyle={{ fontWeight: 800, color: '#1e293b' }}
+                  />
+                  <Legend 
+                      verticalAlign="bottom" 
+                      height={36} 
+                      iconType="circle"
+                      formatter={(value) => <span className="text-[10px] font-bold text-slate-500 uppercase">{value}</span>}
+                  />
+                </PieChart>
               </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-900 to-indigo-950 rounded-[2rem] p-8 text-white flex flex-col justify-between relative overflow-hidden">
-          <div className="relative z-10">
-            <h3 className="text-xl font-bold mb-2">Efficiency Insights</h3>
-            <p className="text-blue-200/80 text-sm leading-relaxed">
-              Your blocks are currently operating at a baseline. Increase activity forms to see performance trends.
-            </p>
-          </div>
-          
-          <div className="space-y-6 relative z-10">
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-blue-300">
-                <span>Coverage Score</span>
-                <span>{talukas.length > 0 ? "Normal" : "--"}</span>
+              {/* Central Label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mb-14">
+                <span className="text-4xl font-black text-slate-900 leading-none">{totalVillagesInBlocks}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Total Villages</span>
               </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: "65%" }}
-                  transition={{ duration: 1.5, delay: 0.5 }}
-                  className="h-full bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.5)]" 
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Decorative Elements */}
-          <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl" />
-          <div className="absolute -left-20 -top-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+            </>
+          )}
         </div>
       </div>
 

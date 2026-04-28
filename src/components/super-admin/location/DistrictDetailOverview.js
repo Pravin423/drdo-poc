@@ -134,58 +134,7 @@ export default function DistrictDetailOverview({ districtId, assignedTalukaIds =
                 </div>
             </div>
 
-            {/* Talukas List Section */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
-                <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-900">Talukas in {districtData?.distName}</h2>
-                        <p className="text-sm text-slate-500">Manage operations for specific blocks</p>
-                    </div>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all">
-                        View All <ArrowRight size={14} />
-                    </button>
-                </div>
-
-                <div className="p-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {talukas.length > 0 ? (
-                        talukas.map((taluka, idx) => (
-                            <motion.div
-                                key={taluka.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: idx * 0.05 }}
-                                className="group p-5 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-tech-blue-200 hover:shadow-lg hover:shadow-tech-blue-500/5 transition-all cursor-pointer"
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-tech-blue-500 group-hover:border-tech-blue-100 transition-all shadow-sm">
-                                        <Home size={20} />
-                                    </div>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID: {taluka.id}</span>
-                                </div>
-                                <h3 className="font-bold text-slate-800 group-hover:text-tech-blue-700 transition-colors">{taluka.name}</h3>
-                                <p className="text-xs text-slate-500 mt-1 line-clamp-1">{taluka.distName || districtData?.distName} District</p>
-                                
-                                <div className="mt-4 pt-4 border-t border-slate-100/50 flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar size={12} className="text-slate-400" />
-                                        <span className="text-[10px] font-bold text-slate-400">Created: {new Date(taluka.created_at).toLocaleDateString()}</span>
-                                    </div>
-                                    <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-tech-blue-600 group-hover:text-white transition-all">
-                                        <ArrowRight size={14} />
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))
-                    ) : (
-                        <div className="col-span-full py-12 flex flex-col items-center justify-center text-center space-y-3">
-                            <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200">
-                                <Map size={32} />
-                            </div>
-                            <p className="text-sm font-bold text-slate-400 italic">No talukas found for this district.</p>
-                        </div>
-                    )}
-                </div>
-            </div>
+            
         </div>
     );
 }
