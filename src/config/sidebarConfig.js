@@ -104,7 +104,10 @@ export const SIDEBAR_CONFIG = {
   "Block-admin": [
     {
       section: "DASHBOARD",
-      items: [{ name: "Block Overview", path: "/dashboard/block-admin" }],
+      items: [
+        { name: "Block Overview", path: "/dashboard/block-admin" },
+        { name: "Talukas Performance", path: "/dashboard/block-admin/performance" },
+      ],
     },
   ],
 
