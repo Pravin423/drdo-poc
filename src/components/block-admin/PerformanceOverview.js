@@ -285,7 +285,11 @@ export default function PerformanceOverview({ user }) {
                               {[
                                 { label: 'Villages', val: t.villageCount || 0, color: 'slate' },
                                 { label: 'SHGs Mapped', val: t.shgCount || 0, color: 'slate' },
-                                { label: 'Efficiency', val: '0%', color: 'emerald' },
+                                { 
+                                  label: 'Efficiency', 
+                                  val: `${Math.min(Math.round(((t.shgCount || 0) / ((t.villageCount || 1) * 5)) * 100), 100)}%`, 
+                                  color: 'emerald' 
+                                },
                               ].map((stat, i) => (
                                 <motion.div 
                                   key={i}
