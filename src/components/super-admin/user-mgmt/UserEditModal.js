@@ -140,6 +140,20 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
     if (!/^\d{10}$/.test(form.mobile)) e.mobile = "Enter a valid 10-digit mobile number.";
     if (!form.email?.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = "Valid email is required.";
     if (!form.role_id) e.role_id = "Please select a role.";
+
+    // Role-based mandatory fields: District and Taluka for Block Managers
+    const selectedRole = roles.find(r => r.value === form.role_id)?.label;
+    const isBlockRole = selectedRole === "Block Manager" || selectedRole === "Block Program Manager";
+
+    if (isBlockRole) {
+      if (!form.district_id) {
+        e.district_id = "District is mandatory for Block roles.";
+      }
+      if (!form.taluka_ids || form.taluka_ids.length === 0) {
+        e.taluka_ids = "At least one taluka is mandatory for Block roles.";
+      }
+    }
+
     return e;
   };
 
@@ -294,7 +308,9 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
 
               {/* District */}
               <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-slate-700">District</label>
+                <label className="block text-sm font-semibold text-slate-700">
+                  District {["Block Manager", "Block Program Manager"].includes(roles.find(r => r.value === form.role_id)?.label) && <span className="text-rose-500">*</span>}
+                </label>
                 <div className="relative group">
                   <MapPin size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-tech-blue-500 transition-colors pointer-events-none" />
                   <select value={form.district_id} onChange={set("district_id")} className={`${inputClass("district_id")} appearance-none bg-white pr-10`} disabled={districtsLoading}>
@@ -303,6 +319,7 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
                   </select>
                   <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
+                {errors.district_id && <p className="text-xs text-rose-600 font-medium">{errors.district_id}</p>}
               </div>
 
               {/* Profile Photo */}
@@ -334,7 +351,9 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
               {/* Taluka Selection */}
               <div className="space-y-3 md:col-span-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-semibold text-slate-700">Assigned Talukas</label>
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Assigned Talukas {["Block Manager", "Block Program Manager"].includes(roles.find(r => r.value === form.role_id)?.label) && <span className="text-rose-500">*</span>}
+                  </label>
                   {talukas.length > 0 && (
                     <button type="button" onClick={handleSelectAllTalukas} className="text-xs font-bold text-tech-blue-600 hover:text-tech-blue-700">
                       {form.taluka_ids.length === talukas.length ? "Deselect All" : "Select All"}
@@ -389,6 +408,7 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
                     )}
                   </div>
                 </div>
+                {errors.taluka_ids && <p className="text-xs text-rose-600 font-medium">{errors.taluka_ids}</p>}
               </div>
             </div>
           </div>

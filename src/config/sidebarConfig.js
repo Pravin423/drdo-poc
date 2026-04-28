@@ -101,6 +101,13 @@ export const SIDEBAR_CONFIG = {
     },
   ],
 
+  "Block-admin": [
+    {
+      section: "DASHBOARD",
+      items: [{ name: "Block Overview", path: "/dashboard/block-admin" }],
+    },
+  ],
+
   "supervisor": [
     {
       section: "DASHBOARD",
