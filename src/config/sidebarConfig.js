@@ -103,10 +103,17 @@ export const SIDEBAR_CONFIG = {
 
   "Block-admin": [
     {
+      section: "SELF MANAGEMENT",
+      items: [
+        { name: "My Attendance & Leave", path: "/dashboard/block-admin/self-management" },
+      ],
+    },
+    {
       section: "DASHBOARD",
       items: [
         { name: "Block Overview", path: "/dashboard/block-admin" },
         { name: "Talukas Performance", path: "/dashboard/block-admin/performance" },
+        { name: "Identify low-performing CRPs", path: "/dashboard/block-admin/low-performing-crps" },
       ],
     },
   ],
