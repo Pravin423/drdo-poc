@@ -112,8 +112,8 @@ export const SIDEBAR_CONFIG = {
       section: "DASHBOARD",
       items: [
         { name: "Block Overview", path: "/dashboard/block-admin" },
-        { name: "Talukas Performance", path: "/dashboard/block-admin/performance" },
-        { name: "Identify low-performing CRPs", path: "/dashboard/block-admin/low-performing-crps" },
+        { name: "Performance across talukas", path: "/dashboard/block-admin/performance" },
+        { name: "CRP Performance Insights", path: "/dashboard/block-admin/low-performing-crps" },
       ],
     },
   ],

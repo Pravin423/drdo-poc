@@ -8,7 +8,12 @@ import {
   Cell, 
   Tooltip, 
   ResponsiveContainer,
-  Legend
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid
 } from 'recharts'
 
 const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
@@ -203,6 +208,62 @@ export default function PerformanceOverview({ user }) {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Total Villages</span>
               </div>
             </>
+          )}
+        </div>
+      </div>
+
+      {/* Taluka Comparison Section */}
+      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden p-8 flex flex-col h-[500px]">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Comparative Performance Analysis</h3>
+            <p className="text-sm text-slate-500">Comparing SHG mapping progress across all assigned talukas.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-indigo-600" />
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-tighter">SHGs Mapped</span>
+          </div>
+        </div>
+
+        <div className="flex-1 w-full min-h-0">
+          {isLoading ? (
+            <div className="w-full h-full bg-slate-50 rounded-2xl animate-pulse" />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={talukas} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+                  angle={-45}
+                  textAnchor="end"
+                  interval={0}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ 
+                    borderRadius: '16px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                    padding: '12px'
+                  }}
+                />
+                <Bar 
+                  dataKey="shgCount" 
+                  fill="#6366f1" 
+                  radius={[8, 8, 0, 0]} 
+                  barSize={40}
+                  animationDuration={1500}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           )}
         </div>
       </div>
