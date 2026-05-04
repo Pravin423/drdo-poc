@@ -19,7 +19,7 @@ import ResetPasswordForm from "../components/Login/ResetPasswordForm";
 import LoginFooter from "../components/Login/LoginFooter";
 
 export default function Login() {
-  const { login, verifyPhone, updatePassword } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
   const [view, setView] = useState("login"); // "login" | "forgot" | "otp" | "reset"
@@ -157,19 +157,28 @@ export default function Login() {
     setSuccessMessage("");
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    try {
+      const res = await fetch("/api/forgot-password?action=send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile: phone }),
+      });
 
-    const result = verifyPhone(phone);
-    setIsLoading(false);
+      const data = await res.json();
 
-    if (!result.success) {
-      setError(result.message);
-      return;
+      if (!res.ok || data.status === 0) {
+        setError(data.message || "Failed to send OTP. Please try again.");
+        return;
+      }
+
+      setSuccessMessage(data.message || "OTP sent successfully.");
+      setView("otp");
+      setOtp("");
+    } catch {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setSuccessMessage("OTP sent to " + phone);
-    setView("otp");
-    setOtp("");
   };
 
   const handleOtpSubmit = async (e) => {
@@ -178,16 +187,27 @@ export default function Login() {
     setSuccessMessage("");
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setIsLoading(false);
+    try {
+      const res = await fetch("/api/forgot-password?action=verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile: phone, otp }),
+      });
 
-    if (otp !== "1234") {
-      setError("Invalid OTP. Please enter 1234.");
-      return;
+      const data = await res.json();
+
+      if (!res.ok || data.status === 0) {
+        setError(data.message || "Invalid OTP. Please try again.");
+        return;
+      }
+
+      setSuccessMessage("OTP verified successfully.");
+      setView("reset");
+    } catch {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setIsLoading(false);
     }
-
-    setSuccessMessage("OTP verified successfully");
-    setView("reset");
   };
 
   const handleResetSubmit = async (e) => {
@@ -206,27 +226,42 @@ export default function Login() {
     }
 
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
 
-    const result = updatePassword(phone, newPassword);
+    try {
+      // reset_token cookie (set during OTP verification) is read server-side from cookies
+      const res = await fetch("/api/forgot-password?action=reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mobile: phone,             // user's phone number from state
+          password: newPassword,
+          password_confirmation: confirmPassword,
+        }),
+      });
 
-    if (!result.success) {
-      setError(result.message);
+      const data = await res.json();
+
+      if (!res.ok || data.status === 0) {
+        setError(data.message || "Failed to reset password. Please try again.");
+        return;
+      }
+
+      setSuccessMessage("Password reset successfully. Logging you in...");
+
+      // Auto-login after successful reset
+      const loginResult = await login(phone, newPassword);
+
+      if (loginResult.success) {
+        setTimeout(() => {
+          router.push(`/dashboard/${loginResult.role}`);
+        }, 1000);
+      } else {
+        setView("login");
+      }
+    } catch {
+      setError("Network error. Please check your connection.");
+    } finally {
       setIsLoading(false);
-      return;
-    }
-
-    setSuccessMessage("Password status updated. Logging you in...");
-
-    const loginResult = await login(phone, newPassword);
-
-    if (loginResult.success) {
-      setTimeout(() => {
-        router.push(`/dashboard/${loginResult.role}`);
-      }, 1000);
-    } else {
-      setIsLoading(false);
-      setView("login");
     }
   };
 

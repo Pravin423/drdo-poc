@@ -19,7 +19,7 @@ const OtpForm = ({
     >
       <div className="space-y-2">
         <label htmlFor="otp" className="block text-sm font-semibold text-slate-700">
-          One-Time Password (OTP 1234)
+          One-Time Password (OTP)
         </label>
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -28,8 +28,8 @@ const OtpForm = ({
           <input
             id="otp"
             type="text"
-            maxLength={4}
-            placeholder="Enter 4-digit OTP"
+            maxLength={6}
+            placeholder="Enter 6-digit OTP"
             value={otp}
             onChange={(e) => onOtpChange(e.target.value.replace(/[^0-9]/g, ""))}
             required
@@ -40,7 +40,7 @@ const OtpForm = ({
 
       <motion.button
         type="submit"
-        disabled={isLoading || otp.length < 4}
+        disabled={isLoading || otp.length < 6}
         whileHover={{ scale: 1.01, y: -2 }}
         whileTap={{ scale: 0.98 }}
         className="w-full mt-6 px-6 py-4 rounded-xl bg-gradient-to-r from-tech-blue-600 to-tech-blue-500 text-white font-bold text-sm shadow-lg shadow-tech-blue-500/30 hover:shadow-xl hover:shadow-tech-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
