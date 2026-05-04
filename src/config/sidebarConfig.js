@@ -116,6 +116,12 @@ export const SIDEBAR_CONFIG = {
         { name: "CRP Performance Insights", path: "/dashboard/block-admin/low-performing-crps" },
       ],
     },
+    {
+      section: "COMMUNICATION & ESCALATIONS",
+      items: [
+        { name: "Escalate to SPM", path: "/dashboard/block-admin/escalations" },
+      ],
+    },
   ],
 
   "supervisor": [
