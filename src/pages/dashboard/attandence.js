@@ -73,9 +73,9 @@ export default function AttendanceManagement() {
             >
               <div className="space-y-1">
                 <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                  Attendance <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Management</span>
+                  Attendance <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">Management</span>
                 </h1>
-                <p className="text-slate-500 font-bold text-lg">Real-time monitoring and reporting system for CRP operations.</p>
+                <p className="text-slate-500 font-medium text-lg">Real-time monitoring and reporting system for CRP operations.</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
