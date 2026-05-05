@@ -7,8 +7,8 @@ import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import { useRouter } from "next/router";
 // Extracted Components
+import SummaryCard from "../../components/common/SummaryCard";
 import { 
-  StatsCard, 
   ActiveTasksList, 
   CreateTaskModal 
 } from "../../components/super-admin/all-task";
@@ -190,47 +190,42 @@ export default function TaskAssignment() {
 
     return [
       {
-        label: "Total Tasks",
-        value: tasks.length.toString(),
+        title: "Total Tasks",
+        value: tasks.length,
         delta: "2",
-        isPositive: true,
-        accent: "text-slate-600 bg-slate-50 border-slate-200",
+        variant: "slate",
         icon: ClipboardList,
       },
       {
-        label: "Active Tasks",
-        value: active.toString(),
+        title: "Active Tasks",
+        value: active,
         delta: "1",
-        isPositive: true,
-        accent: "text-blue-600 bg-blue-50 border-blue-200",
+        variant: "blue",
         icon: Activity,
       },
       {
-        label: "Completed",
-        value: completed.toString(),
-        delta: null,
-        isPositive: null,
-        accent: "text-emerald-600 bg-emerald-50 border-emerald-200",
+        title: "Completed",
+        value: completed,
+        variant: "emerald",
         icon: CheckCircle,
       },
       {
-        label: "Overdue",
-        value: overdue.toString(),
+        title: "Overdue",
+        value: overdue,
         delta: "1",
-        isPositive: false,
-        accent: "text-rose-600 bg-rose-50 border-rose-200",
+        variant: "rose",
         icon: AlertCircle,
       },
       {
-        label: "Avg Progress",
+        title: "Avg Progress",
         value: `${avgProgress}%`,
         delta: "5%",
-        isPositive: true,
-        accent: "text-orange-600 bg-orange-50 border-orange-200",
+        variant: "amber",
         icon: TrendingUp,
       },
     ];
   }, [tasks]);
+
 
   return (
     <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
@@ -276,7 +271,7 @@ export default function TaskAssignment() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {stats.map((card) => (
-                <StatsCard key={card.label} {...card} />
+                <SummaryCard key={card.title} {...card} />
               ))}
             </div>
 

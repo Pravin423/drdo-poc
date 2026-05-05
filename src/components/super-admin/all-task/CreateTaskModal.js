@@ -1,237 +1,224 @@
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ListTodo, X, AlertCircle, ChevronDown } from "lucide-react";
+import { 
+    ListTodo, 
+    X, 
+    AlertCircle, 
+    ChevronDown,
+    FileText,
+    Calendar,
+    MapPin,
+    UserCheck,
+    Briefcase,
+    Zap,
+    LocateFixed,
+    Layers,
+    CheckCircle
+} from "lucide-react";
+import {
+    FormModal,
+    FormHeader,
+    FormInput,
+    FormSelect,
+    FormActions,
+    FormSection,
+    FormError
+} from "../../common/FormUI";
+
+const TASK_TYPES = [
+    { value: "SPECIAL", label: "SPECIAL (Manual Selection)" },
+    { value: "REGULAR", label: "REGULAR (Auto Assignment)" }
+];
 
 const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputChange, handleCreateTask, handleClearForm, onClose, apiError }) {
-  const [taskCreationData, setTaskCreationData] = useState({ forms: [], crps: [], verticals: [] });
-  const [dataLoading, setDataLoading] = useState(true);
+    const [taskCreationData, setTaskCreationData] = useState({ forms: [], crps: [], verticals: [] });
+    const [dataLoading, setDataLoading] = useState(true);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = "unset"; };
-  }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setDataLoading(true);
+                const res = await fetch("/api/activity-form-list");
+                const result = await res.json();
+                const d = result?.data || {};
+                setTaskCreationData({
+                    forms: Array.isArray(d.forms) ? d.forms.map(f => ({ value: f.id, label: f.form_name })) : [],
+                    crps: Array.isArray(d.crps) ? d.crps.map(c => ({ value: c.id, label: `${c.fullname} (${c.crp_id})` })) : [],
+                    verticals: Array.isArray(d.verticals) ? d.verticals.map(v => ({ value: v.id, label: `${v.vertical_name} (${v.vertical_code})` })) : [],
+                });
+            } catch (err) {
+                console.error("Failed to fetch task creation data", err);
+            } finally {
+                setDataLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setDataLoading(true);
-        const res = await fetch("/api/activity-form-list");
-        const result = await res.json();
-        const d = result?.data || {};
-        setTaskCreationData({
-          forms: Array.isArray(d.forms) ? d.forms : [],
-          crps: Array.isArray(d.crps) ? d.crps : [],
-          verticals: Array.isArray(d.verticals) ? d.verticals : [],
-        });
-      } catch (err) {
-        console.error("Failed to fetch task creation data", err);
-      } finally {
-        setDataLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+    return (
+        <FormModal isOpen={true} onClose={onClose} maxWidth="max-w-4xl">
+            <FormHeader 
+                title="Assign Activity Task" 
+                subtitle="Mission Deployment • Workforce Orchestration" 
+                icon={ListTodo} 
+                onClose={onClose} 
+            />
 
-  const fieldClass = "w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none bg-white placeholder:text-slate-400";
-  const selectClass = `${fieldClass} appearance-none disabled:opacity-60`;
-  const labelClass = "block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5";
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar overscroll-contain transform-gpu">
+                <FormError error={apiError} />
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-      />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97, y: 24 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.97, y: 24 }}
-        transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
-      >
+                <div className="space-y-12">
+                    {/* Section 1: Task Identity */}
+                    <FormSection title="Task Identity" description="Core parameters and operational type." icon={Briefcase}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormInput 
+                                label="Task Name *" 
+                                name="taskName" 
+                                icon={FileText} 
+                                placeholder="e.g. Annual SHG Survey" 
+                                value={formData.taskName} 
+                                onChange={handleInputChange} 
+                            />
+                            <FormSelect 
+                                label="Task Type *" 
+                                name="taskType" 
+                                icon={Zap} 
+                                options={TASK_TYPES} 
+                                value={formData.taskType} 
+                                onChange={handleInputChange} 
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Task Objectives & Description</p>
+                            <textarea 
+                                name="taskDescription" 
+                                value={formData.taskDescription} 
+                                onChange={handleInputChange} 
+                                placeholder="Detailed operational requirements..."
+                                className="w-full bg-slate-50 border-2 border-transparent rounded-[1.5rem] px-5 py-4 text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-[#3b52ab]/20 focus:ring-4 focus:ring-[#3b52ab]/5 transition-all min-h-[100px] resize-none"
+                            />
+                        </div>
+                    </FormSection>
 
-        {/* ── Dark Header ── */}
-        <div className="bg-[#0f1c3f] px-6 py-5 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center">
-              <ListTodo size={22} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-[17px] font-bold text-white leading-tight">Assign New Activity Task</h2>
-              <p className="text-[12px] text-slate-400 mt-0.5">Fill in the details to create and assign a task</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
-            <X size={16} />
-          </button>
-        </div>
+                    <div className="h-px bg-slate-100" />
 
-        {/* ── Scrollable Body ── */}
-        <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
-          {apiError && (
-            <div className="bg-red-50 text-red-600 px-6 py-4 border-b border-red-100 text-sm font-semibold flex items-start gap-3">
-              <AlertCircle size={18} className="shrink-0 mt-0.5" />
-              <span>{apiError}</span>
-            </div>
-          )}
+                    {/* Section 2: Timeline & Schema */}
+                    <FormSection title="Timeline & Payload" description="Set schedule and reporting structure." icon={Layers}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormInput 
+                                label="Execution Start *" 
+                                name="startDate" 
+                                type="date" 
+                                icon={Calendar} 
+                                value={formData.startDate} 
+                                onChange={handleInputChange} 
+                            />
+                            <FormInput 
+                                label="Deadline Date *" 
+                                name="endDate" 
+                                type="date" 
+                                icon={Calendar} 
+                                value={formData.endDate} 
+                                onChange={handleInputChange} 
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormSelect 
+                                label="Activity Form *" 
+                                name="activityForm" 
+                                icon={Layers} 
+                                options={taskCreationData.forms} 
+                                value={formData.activityForm} 
+                                onChange={handleInputChange} 
+                                placeholder={dataLoading ? "Loading forms..." : "Select reporting schema..."}
+                                disabled={dataLoading}
+                            />
+                            {formData.taskType === "SPECIAL" && (
+                                <FormInput 
+                                    label="Honorarium Budget (₹)" 
+                                    name="honorariumAmount" 
+                                    type="number" 
+                                    icon={Briefcase} 
+                                    placeholder="0.00" 
+                                    value={formData.honorariumAmount} 
+                                    onChange={handleInputChange} 
+                                />
+                            )}
+                        </div>
+                    </FormSection>
 
-          {/* Section 1 — Task Details */}
-          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
-            <div>
-              <p className="text-[14px] font-bold text-slate-800">Task Details</p>
-              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">Core information and type of the task being created.</p>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Task Name <span className="text-red-500">*</span></label>
-                  <input type="text" name="taskName" value={formData.taskName} onChange={handleInputChange} placeholder="e.g. Field Survey" className={fieldClass} />
+                    <div className="h-px bg-slate-100" />
+
+                    {/* Section 3: Geographic Boundary */}
+                    <FormSection title="Geographic Constraint" description="Define the operational radius." icon={MapPin}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <FormInput 
+                                label="Center Latitude *" 
+                                name="latitude" 
+                                icon={LocateFixed} 
+                                placeholder="15.2993" 
+                                value={formData.latitude} 
+                                onChange={handleInputChange} 
+                            />
+                            <FormInput 
+                                label="Center Longitude *" 
+                                name="longitude" 
+                                icon={LocateFixed} 
+                                placeholder="74.1240" 
+                                value={formData.longitude} 
+                                onChange={handleInputChange} 
+                            />
+                            <FormInput 
+                                label="Geo-Radius (Meters) *" 
+                                name="radius" 
+                                icon={MapPin} 
+                                placeholder="500" 
+                                value={formData.radius} 
+                                onChange={handleInputChange} 
+                            />
+                        </div>
+                    </FormSection>
+
+                    <div className="h-px bg-slate-100" />
+
+                    {/* Section 4: Workforce Assignment */}
+                    <FormSection title="Workforce Assignment" description="Dispatch to CRP or Vertical." icon={UserCheck}>
+                        {formData.taskType === "SPECIAL" ? (
+                            <FormSelect 
+                                label="Target CRP Agent *" 
+                                name="assignToCrp" 
+                                icon={UserCheck} 
+                                options={taskCreationData.crps} 
+                                value={formData.assignToCrp} 
+                                onChange={handleInputChange} 
+                                placeholder={dataLoading ? "Loading workforce..." : "Choose agent for manual assignment..."}
+                                disabled={dataLoading}
+                            />
+                        ) : (
+                            <FormSelect 
+                                label="Target Operational Vertical *" 
+                                name="vertical_id" 
+                                icon={Layers} 
+                                options={taskCreationData.verticals} 
+                                value={formData.vertical_id} 
+                                onChange={handleInputChange} 
+                                placeholder={dataLoading ? "Loading verticals..." : "Select vertical for auto-dispatch..."}
+                                disabled={dataLoading}
+                            />
+                        )}
+                    </FormSection>
+
+                    <FormActions 
+                        onCancel={onClose} 
+                        onConfirm={handleCreateTask} 
+                        isLoading={false} 
+                        confirmText="Deploy Task" 
+                        confirmIcon={CheckCircle} 
+                    />
                 </div>
-                <div>
-                  <label className={labelClass}>Task Type <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select name="taskType" value={formData.taskType} onChange={handleInputChange} className={selectClass}>
-                      <option value="SPECIAL">SPECIAL</option>
-                      <option value="REGULAR">REGULAR</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>Task Description <span className="text-red-500">*</span></label>
-                <textarea name="taskDescription" value={formData.taskDescription} onChange={handleInputChange} rows="3" placeholder="Brief description of the task..." className={`${fieldClass} resize-none`} />
-              </div>
             </div>
-          </div>
-
-          {/* Section 2 — Schedule & Form */}
-          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
-            <div>
-              <p className="text-[14px] font-bold text-slate-800">Schedule & Form</p>
-              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">Set the timeline and link the activity form.</p>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Start Date <span className="text-red-500">*</span></label>
-                  <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} className={fieldClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>End Date <span className="text-red-500">*</span></label>
-                  <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} className={fieldClass} />
-                </div>
-              </div>
-              <div className={formData.taskType === "SPECIAL" ? "grid grid-cols-2 gap-4" : ""}>
-                <div>
-                  <label className={labelClass}>Activity Form <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select name="activityForm" value={formData.activityForm} onChange={handleInputChange} disabled={dataLoading} className={selectClass}>
-                      <option value="">{dataLoading ? "Loading..." : "Choose form..."}</option>
-                      {taskCreationData.forms.map((form) => (
-                        <option key={form.id} value={form.id}>{form.form_name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </div>
-                {formData.taskType === "SPECIAL" && (
-                  <div>
-                    <label className={labelClass}>Honorarium Amount (₹)</label>
-                    <input type="number" name="honorariumAmount" value={formData.honorariumAmount} onChange={handleInputChange} placeholder="0" className={fieldClass} />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3 — Location */}
-          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
-            <div>
-              <p className="text-[14px] font-bold text-slate-800">Location Settings</p>
-              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">Specify where this task operates geographically.</p>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Latitude <span className="text-red-500">*</span></label>
-                  <input type="text" name="latitude" value={formData.latitude} onChange={handleInputChange} placeholder="e.g. 15.2993" className={fieldClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Longitude <span className="text-red-500">*</span></label>
-                  <input type="text" name="longitude" value={formData.longitude} onChange={handleInputChange} placeholder="e.g. 74.1240" className={fieldClass} />
-                </div>
-              </div>
-              <div className="w-1/2 pr-2">
-                <label className={labelClass}>Radius (Meters) <span className="text-red-500">*</span></label>
-                <input type="text" name="radius" value={formData.radius} onChange={handleInputChange} placeholder="e.g. 100" className={fieldClass} />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 4 — Assignment */}
-          <div className="grid grid-cols-[200px_1fr] gap-8 px-6 py-6">
-            <div>
-              <p className="text-[14px] font-bold text-slate-800">Assignment</p>
-              <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">
-                {formData.taskType === "SPECIAL" ? "Assign directly to a specific CRP." : "Link to a vertical for auto-assignment."}
-              </p>
-            </div>
-            <div>
-              {formData.taskType === "SPECIAL" ? (
-                <div>
-                  <label className={labelClass}>Assign to CRP <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select name="assignToCrp" value={formData.assignToCrp} onChange={handleInputChange} disabled={dataLoading} className={selectClass}>
-                      <option value="">{dataLoading ? "Loading..." : "Choose CRP..."}</option>
-                      {taskCreationData.crps.map((crp) => (
-                        <option key={crp.id} value={crp.id}>{crp.fullname} ({crp.crp_id})</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <label className={labelClass}>Vertical <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select name="vertical_id" value={formData.vertical_id} onChange={handleInputChange} disabled={dataLoading} className={selectClass}>
-                      <option value="">{dataLoading ? "Loading..." : "Choose Vertical..."}</option>
-                      {taskCreationData.verticals.map((v) => (
-                        <option key={v.id} value={v.id}>{v.vertical_name} ({v.vertical_code})</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="px-6 py-4 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0">
-          <button
-            onClick={() => { handleClearForm(); onClose(); }}
-            className="px-5 py-2.5 text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCreateTask}
-            className="px-6 py-2.5 text-[13px] font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            Assign Task
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
+        </FormModal>
+    );
 });
 
 export default CreateTaskModal;
