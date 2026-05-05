@@ -54,8 +54,8 @@ function ProfileDetail({ icon: Icon, label, value, color = "blue" }) {
                 <Icon size={18} strokeWidth={2.5} />
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
-                <p className="text-sm font-black text-slate-800">{value || <span className="text-slate-300 font-bold">Unspecified</span>}</p>
+                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
+                <p className="text-sm font-semibold text-slate-800">{value || <span className="text-slate-300 font-medium">Unspecified</span>}</p>
             </div>
         </div>
     );
@@ -136,21 +136,21 @@ export default function ProfileModal({ isOpen, onClose }) {
                         </div>
                         <div className="mb-4 space-y-3">
                             <div className="flex items-center gap-4">
-                                <h2 className="text-5xl font-black text-white tracking-tighter leading-none drop-shadow-sm">{name}</h2>
+                                <h2 className="text-5xl font-bold text-white tracking-tighter leading-none drop-shadow-sm">{name}</h2>
                                 <div className="px-3.5 py-1.5 bg-emerald-500/10 backdrop-blur-md rounded-xl border border-emerald-500/20 flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-pulse" />
-                                    <span className="text-[10px] font-black text-emerald-50 uppercase tracking-[0.25em]">Verified Account</span>
+                                    <span className="text-[10px] font-bold text-emerald-50 uppercase tracking-[0.25em]">Verified Account</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2 px-5 py-2 bg-blue-500/20 backdrop-blur-md rounded-full border border-blue-400/30">
                                     <Shield size={14} className="text-blue-300" />
-                                    <span className="text-[11px] font-black text-white uppercase tracking-[0.15em]">{role}</span>
+                                    <span className="text-[11px] font-bold text-white uppercase tracking-[0.15em]">{role}</span>
                                 </div>
                                 <div className="h-5 w-px bg-white/20" />
                                 <div className="flex items-center gap-2 px-5 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
                                     <MapPin size={14} className="text-slate-300" />
-                                    <span className="text-[11px] font-black text-slate-100 uppercase tracking-[0.15em]">Goa DRDA Admin</span>
+                                    <span className="text-[11px] font-bold text-slate-100 uppercase tracking-[0.15em]">Goa DRDA Admin</span>
                                 </div>
                             </div>
                         </div>
@@ -163,7 +163,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                         {loading ? (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-20 gap-4">
                                 <div className="w-12 h-12 border-4 border-[#3b52ab]/10 border-t-[#3b52ab] rounded-full animate-spin" />
-                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Retrieving Secure Profile Data...</p>
+                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Retrieving Secure Profile Data...</p>
                             </motion.div>
                         ) : (
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
@@ -173,7 +173,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#3b52ab] flex items-center justify-center border border-blue-100">
                                             <Zap size={16} strokeWidth={3} />
                                         </div>
-                                        <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Identity & Communication</h3>
+                                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Identity & Communication</h3>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <ProfileDetail icon={User} label="Authorized Name" value={name} color="blue" />
@@ -191,7 +191,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
                                             <Info size={16} strokeWidth={3} />
                                         </div>
-                                        <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Legal & Demographics</h3>
+                                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Legal & Demographics</h3>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <ProfileDetail icon={VenetianMask} label="Gender Identity" value={p.gender} color="rose" />
@@ -205,13 +205,13 @@ export default function ProfileModal({ isOpen, onClose }) {
                                 <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[#0f1c3f] to-[#1a2e7a] text-white flex items-center justify-between shadow-2xl shadow-blue-900/20 mt-6 relative overflow-hidden">
                                     <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "16px 16px" }} />
                                     <div className="relative z-10">
-                                        <p className="text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1">Session Integrity</p>
+                                        <p className="text-[10px] font-bold text-blue-300 uppercase tracking-widest mb-1">Session Integrity</p>
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                            <p className="text-sm font-bold">Secure Connection Established</p>
+                                            <p className="text-sm font-semibold">Secure Connection Established</p>
                                         </div>
                                     </div>
-                                    <button onClick={fetchProfile} className="relative z-10 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <button onClick={fetchProfile} className="relative z-10 px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
                                         <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
                                         Refresh Data
                                     </button>
