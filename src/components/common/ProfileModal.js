@@ -101,9 +101,9 @@ export default function ProfileModal({ isOpen, onClose }) {
         <FormModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-4xl">
             <div className="relative flex flex-col bg-[#f8fafc] max-h-inherit overflow-hidden">
                 {/* Visual Header / Cover */}
-                <div className="relative h-56 bg-gradient-to-br from-[#0a1945] via-[#0f1c3f] to-[#1a2e7a] shrink-0 overflow-hidden">
-                    {/* Background Logo Watermark */}
-                    <div className="absolute right-0 top-0 w-80 h-80 opacity-[0.07] translate-x-1/4 -translate-y-1/4 pointer-events-none">
+                <div className="relative h-60 bg-gradient-to-br from-[#0a1945] via-[#0f1c3f] to-[#1a2e7a] shrink-0 overflow-hidden">
+                    {/* Background Logo Watermark - Centered & Large */}
+                    <div className="absolute right-0 top-0 w-96 h-96 opacity-[0.08] translate-x-1/4 -translate-y-1/4 pointer-events-none transition-opacity duration-1000">
                         <img 
                             src="/Seal_of_Goa.webp" 
                             alt="Watermark" 
@@ -112,16 +112,16 @@ export default function ProfileModal({ isOpen, onClose }) {
                     </div>
 
                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-                    <div className="absolute top-10 right-10 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute -bottom-20 -left-10 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl" />
+                    <div className="absolute top-10 right-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-24 -left-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-2xl" />
                     
                     <button onClick={onClose} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/20 hover:bg-black/40 text-white flex items-center justify-center transition-all z-20 backdrop-blur-md border border-white/10">
                         <X size={20} />
                     </button>
 
-                    <div className="absolute bottom-8 left-12 flex items-end gap-8">
+                    <div className="absolute bottom-10 left-12 flex items-end gap-10">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-[2.5rem] bg-white p-2 shadow-2xl relative z-10 overflow-hidden group-hover:rotate-2 transition-transform duration-500">
+                            <div className="w-36 h-36 rounded-[2.5rem] bg-white p-2 shadow-2xl relative z-10 overflow-hidden transition-transform duration-500">
                                 <div className="w-full h-full rounded-[2rem] bg-gradient-to-br from-[#3b52ab] to-[#1a2e7a] flex items-center justify-center overflow-hidden border-2 border-slate-50">
                                     {avatarUrl ? (
                                         <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
@@ -130,27 +130,27 @@ export default function ProfileModal({ isOpen, onClose }) {
                                     )}
                                 </div>
                             </div>
-                            <button className="absolute -bottom-2 -right-2 w-11 h-11 rounded-2xl bg-white text-[#3b52ab] shadow-2xl flex items-center justify-center hover:bg-[#3b52ab] hover:text-white transition-all z-20 border-4 border-[#f8fafc]">
-                                <Camera size={18} strokeWidth={2.5} />
+                            <button className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl bg-white text-[#3b52ab] shadow-2xl flex items-center justify-center hover:bg-[#3b52ab] hover:text-white transition-all z-20 border-4 border-[#f8fafc]">
+                                <Camera size={20} strokeWidth={2.5} />
                             </button>
                         </div>
-                        <div className="mb-2 space-y-2">
-                            <div className="flex items-center gap-3">
-                                <h2 className="text-4xl font-black text-white tracking-tighter leading-none">{name}</h2>
-                                <div className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/10 flex items-center gap-1.5">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
-                                    <span className="text-[9px] font-black text-white uppercase tracking-[0.2em]">Verified</span>
+                        <div className="mb-4 space-y-3">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-5xl font-black text-white tracking-tighter leading-none drop-shadow-sm">{name}</h2>
+                                <div className="px-3.5 py-1.5 bg-emerald-500/10 backdrop-blur-md rounded-xl border border-emerald-500/20 flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-pulse" />
+                                    <span className="text-[10px] font-black text-emerald-50 uppercase tracking-[0.25em]">Verified Account</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-500/20 backdrop-blur-md rounded-full border border-blue-400/20">
-                                    <Shield size={12} className="text-blue-300" />
-                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{role}</span>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 px-5 py-2 bg-blue-500/20 backdrop-blur-md rounded-full border border-blue-400/30">
+                                    <Shield size={14} className="text-blue-300" />
+                                    <span className="text-[11px] font-black text-white uppercase tracking-[0.15em]">{role}</span>
                                 </div>
-                                <div className="h-4 w-px bg-white/20" />
-                                <div className="flex items-center gap-1.5 px-4 py-1.5 bg-white/5 backdrop-blur-md rounded-full border border-white/5">
-                                    <MapPin size={12} className="text-slate-300" />
-                                    <span className="text-[10px] font-black text-slate-100 uppercase tracking-widest text-shadow-sm">Goa Administration</span>
+                                <div className="h-5 w-px bg-white/20" />
+                                <div className="flex items-center gap-2 px-5 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
+                                    <MapPin size={14} className="text-slate-300" />
+                                    <span className="text-[11px] font-black text-slate-100 uppercase tracking-[0.15em]">Goa DRDA Admin</span>
                                 </div>
                             </div>
                         </div>
