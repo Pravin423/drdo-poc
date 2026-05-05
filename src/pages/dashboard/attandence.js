@@ -72,23 +72,25 @@ export default function AttendanceManagement() {
               className="flex flex-col lg:flex-row lg:items-center justify-between gap-6"
             >
               <div className="space-y-1">
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                  Attendance <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">Management</span>
+                <h1 className="text-4xl font-black tracking-tight">
+                  <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">Attendance Management</span>
                 </h1>
                 <p className="text-slate-500 font-medium text-lg">Real-time monitoring and reporting system for CRP operations.</p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-4">
                 <button
-                  className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2.5 transition-all shadow-sm hover:shadow-md active:scale-95"
+                  className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-full text-sm font-bold hover:bg-slate-50 flex items-center gap-2.5 transition-all shadow-sm hover:shadow-md active:scale-95"
                   onClick={() => window.print()}
                 >
                   <Download size={18} className="text-slate-400" /> Export PDF
                 </button>
-                <div className="h-8 w-px bg-slate-200 hidden lg:block mx-2" />
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">Live Syncing</span>
+                
+                <div className="h-8 w-px bg-slate-200 hidden lg:block" />
+                
+                <div className="flex items-center gap-2.5 px-5 py-3 bg-emerald-50 border border-emerald-100 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
+                  <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">Live Syncing</span>
                 </div>
               </div>
             </motion.header>
@@ -100,26 +102,26 @@ export default function AttendanceManagement() {
             <div className="relative">
               <div className="flex items-center gap-1.5 p-1.5 bg-slate-200/50 backdrop-blur-md rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar max-w-full shadow-inner border border-slate-200/60">
                 {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      flex items-center gap-2.5 px-6 py-3 rounded-[1.25rem] text-sm font-bold transition-all duration-300 relative
-                      ${activeTab === tab.id
-                        ? "bg-white text-indigo-600 shadow-xl shadow-indigo-100 ring-1 ring-slate-200"
-                        : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
-                      }
-                    `}
-                  >
-                    <tab.icon size={18} className={activeTab === tab.id ? "text-indigo-600" : "text-slate-400"} />
-                    <span className="whitespace-nowrap">{tab.label}</span>
-                    {activeTab === tab.id && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-600"
-                      />
-                    )}
-                  </button>
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`
+                        flex items-center gap-2.5 px-6 py-3 rounded-[1.25rem] text-sm font-bold transition-all duration-300 relative
+                        ${activeTab === tab.id
+                          ? "bg-white text-[#3b52ab] shadow-[0_20px_40px_-15px_rgba(59,82,171,0.15)] ring-1 ring-slate-200"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
+                        }
+                      `}
+                    >
+                      <tab.icon size={18} className={activeTab === tab.id ? "text-[#3b52ab]" : "text-slate-400"} />
+                      <span className="whitespace-nowrap">{tab.label}</span>
+                      {activeTab === tab.id && (
+                        <motion.div
+                          layoutId="activeTab"
+                          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#3b52ab]"
+                        />
+                      )}
+                    </button>
                 ))}
               </div>
             </div>

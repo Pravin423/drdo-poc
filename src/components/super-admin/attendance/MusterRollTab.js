@@ -140,7 +140,7 @@ const MusterRollTab = memo(function MusterRollTab({
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm"
           >
-            <CalendarIcon className="w-4 h-4 text-indigo-600" />
+            <CalendarIcon className="w-4 h-4 text-[#3b52ab]" />
             <p className="text-sm font-bold text-slate-700">Attendance Record for {filters.date}</p>
           </motion.div>
         )}
@@ -180,7 +180,7 @@ const MusterRollTab = memo(function MusterRollTab({
                         type="date"
                         value={filters.date}
                         onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none bg-white font-medium transition-all"
+                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] outline-none bg-white font-medium transition-all"
                       />
                     </div>
                   </div>
@@ -194,7 +194,7 @@ const MusterRollTab = memo(function MusterRollTab({
                         placeholder="Search by name..."
                         value={filters.search}
                         onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none bg-white font-medium transition-all"
+                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] outline-none bg-white font-medium transition-all"
                       />
                     </div>
                   </div>
@@ -209,7 +209,7 @@ const MusterRollTab = memo(function MusterRollTab({
                       key: "name",
                       render: (val, row) => (
                         <div className="flex items-center gap-3 py-1">
-                          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm uppercase shadow-md overflow-hidden shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-[#3b52ab] flex items-center justify-center text-white font-bold text-sm uppercase shadow-md overflow-hidden shrink-0">
                             {row.profile ? (
                               <img src={row.profile} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -255,7 +255,7 @@ const MusterRollTab = memo(function MusterRollTab({
                           <div className="flex flex-col">
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">In</span>
                             <div className="flex items-center gap-1 text-xs font-black text-slate-700 tabular-nums">
-                              <Clock size={10} className="text-indigo-500" />
+                              <Clock size={10} className="text-[#3b52ab]" />
                               {row.punchIn}
                             </div>
                           </div>

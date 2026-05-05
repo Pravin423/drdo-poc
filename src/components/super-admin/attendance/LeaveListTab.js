@@ -138,13 +138,13 @@ const LeaveListTab = memo(function LeaveListTab() {
       render: (val, row) => (
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-12 h-12 rounded-[100%] bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 rounded-[100%] bg-gradient-to-br from-[#3b52ab] to-[#1a2e7a] flex items-center justify-center text-white font-black text-lg shadow-lg shadow-[0_8px_20px_-8px_rgba(59,82,171,0.2)] group-hover:scale-110 transition-transform">
               {row.profile ? <img src={row.profile} className="w-full h-full object-cover rounded-[100%]" /> : val.charAt(0)}
             </div>
             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
           </div>
           <div>
-            <p className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{val}</p>
+            <p className="text-sm font-black text-slate-900 group-hover:text-[#3b52ab] transition-colors">{val}</p>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Reference: {row.employeeId}</p>
           </div>
         </div>
@@ -168,7 +168,7 @@ const LeaveListTab = memo(function LeaveListTab() {
           <span className="text-sm font-black text-slate-800 tabular-nums">
             {new Date(row.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} — {new Date(row.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
           </span>
-          <div className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 uppercase">
+          <div className="flex items-center gap-1.5 text-[10px] font-black text-[#3b52ab] uppercase">
              <Calendar size={10} />
              {row.days} Business Day(s)
           </div>
@@ -201,7 +201,6 @@ const LeaveListTab = memo(function LeaveListTab() {
       )
     }
   ];
-
   const actions = [
     {
       icon: CheckCircle2,
@@ -221,7 +220,7 @@ const LeaveListTab = memo(function LeaveListTab() {
       icon: Eye,
       title: "View Details",
       onClick: (row) => {},
-      className: "hover:text-indigo-600 hover:bg-indigo-50"
+      className: "hover:text-[#3b52ab] hover:bg-[#eff2ff]"
     }
   ];
 
@@ -231,7 +230,7 @@ const LeaveListTab = memo(function LeaveListTab() {
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-              Leave <span className="text-indigo-600">Requests</span>
+              Leave <span className="text-[#3b52ab]">Requests</span>
             </h2>
             {stats.pending > 0 && (
               <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-200 shadow-sm">
@@ -261,7 +260,7 @@ const LeaveListTab = memo(function LeaveListTab() {
                 onClick={() => setStatusFilter(status)}
                 className={`px-6 py-2.5 rounded-[1.25rem] text-[11px] font-black uppercase tracking-widest transition-all ${
                   statusFilter === status 
-                    ? "bg-white text-indigo-600 shadow-lg shadow-indigo-100 scale-105" 
+                    ? "bg-white text-[#3b52ab] shadow-lg shadow-indigo-50 scale-105" 
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
