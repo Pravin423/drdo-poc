@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link as LinkIcon, Download } from "lucide-react";
+import { Layers, Activity, Clock, MapPin, Download, Link as LinkIcon } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
+
+import SummaryCard from "../../../components/common/SummaryCard";
 
 // Village Mapping components
 import VillageMappingFilterBar from "../../../components/super-admin/crp/village-mapping/VillageMappingFilterBar";
@@ -68,6 +70,19 @@ export default function CRPVillageMapping() {
   };
 
   useEffect(() => { fetchMappings(); }, []);
+
+  const stats = useMemo(() => {
+    const active = mappings.filter(m => m.status === "Active").length;
+    const inactive = mappings.length - active;
+    const uniqueVillages = new Set(mappings.map(m => m.village).filter(v => v && v !== "N/A")).size;
+    
+    return [
+      { label: "Total Mappings", value: mappings.length, icon: Layers, variant: "blue" },
+      { label: "Active Connections", value: active, icon: Activity, variant: "emerald" },
+      { label: "Inactive / Pending", value: inactive, icon: Clock, variant: "amber" },
+      { label: "Villages Covered", value: uniqueVillages, icon: MapPin, variant: "indigo" },
+    ];
+  }, [mappings]);
 
   // ── Filter & Pagination ───────────────────────────────────────────────────
   const filteredMappings = useMemo(() => {
@@ -213,32 +228,43 @@ export default function CRPVillageMapping() {
             className="flex flex-col md:flex-row md:items-center justify-between gap-4"
           >
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                CRP - Village{" "}
-                <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">
-                  Mapping
-                </span>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                CRP - Village <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">Mapping</span>
               </h1>
-              <p className="text-slate-500 font-medium">Manage and view mappings between CRPs and Villages</p>
+              <p className="text-slate-500 font-bold text-lg">Manage and view mappings between CRPs and Villages</p>
             </div>
 
             {!isViewOnly && (
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleExport}
-                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 flex items-center gap-2 transition-colors shadow-sm"
+                  className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-bold hover:bg-slate-50 flex items-center gap-2.5 transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
-                  <Download size={16} /> Export Data
+                  <Download size={18} className="text-slate-400" /> Export Data
                 </button>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="px-4 py-2 bg-[#3b52ab] text-white rounded-xl text-sm font-semibold hover:bg-gray-100 hover:text-[#3b52ab] flex items-center gap-2 transition-colors cursor-pointer w-fit"
+                  className="px-6 py-3 bg-[#3b52ab] text-white rounded-2xl text-sm font-bold hover:bg-[#2e418a] flex items-center gap-2.5 transition-all shadow-xl shadow-indigo-100 active:scale-95 border border-indigo-500/20"
                 >
-                  <LinkIcon size={16} /> Link CRP to Village
+                  <LinkIcon size={18} /> Link CRP to Village
                 </button>
               </div>
             )}
           </motion.header>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, i) => (
+              <SummaryCard
+                key={i}
+                title={stat.label}
+                value={isLoading ? "..." : stat.value}
+                icon={stat.icon}
+                variant={stat.variant}
+                delay={i * 0.1}
+              />
+            ))}
+          </div>
 
           {/* Table card */}
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -302,3 +328,4 @@ export default function CRPVillageMapping() {
     </ProtectedRoute>
   );
 }
+
