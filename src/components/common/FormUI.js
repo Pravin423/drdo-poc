@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, XCircle } from "lucide-react";
+import { X, XCircle, ChevronDown } from "lucide-react";
 
 /**
  * Common Modal Wrapper for Forms
@@ -148,6 +148,57 @@ export const FormActions = ({ onCancel, onConfirm, cancelText = "Cancel", confir
                 {ConfirmIcon && <ConfirmIcon className="w-5 h-5" />}
                 <span>{confirmText}</span>
             </button>
+        </div>
+    );
+};
+
+/**
+ * Common Select Field for Forms
+ */
+export const FormSelect = ({ 
+    label, 
+    icon: Icon, 
+    value, 
+    onChange, 
+    error, 
+    options = [],
+    placeholder = "Select option",
+    ...props 
+}) => {
+    return (
+        <div className="space-y-2">
+            {label && (
+                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                    {label}
+                </label>
+            )}
+            <div className="relative group">
+                {Icon && (
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                        <Icon className="w-5 h-5" />
+                    </div>
+                )}
+                <select
+                    value={value}
+                    onChange={onChange}
+                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer ${
+                        error
+                            ? "border-rose-300 focus:border-rose-500"
+                            : "border-slate-200 focus:border-indigo-500 focus:bg-white"
+                    }`}
+                    {...props}
+                >
+                    <option value="">{placeholder}</option>
+                    {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </option>
+                    ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
+                    <ChevronDown className="w-4 h-4" />
+                </div>
+            </div>
         </div>
     );
 };
