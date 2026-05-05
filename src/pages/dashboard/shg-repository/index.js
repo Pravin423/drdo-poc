@@ -14,7 +14,7 @@ import ShgRepositoryModal from "../../../components/super-admin/shg-repository/S
 import ShgRepositoryViewModal from "../../../components/super-admin/shg-repository/ShgRepositoryViewModal";
 import ShgMemberAddModal from "../../../components/super-admin/shg-repository/ShgMemberAddModal";
 import ShgMemberEditModal from "../../../components/super-admin/shg-repository/ShgMemberEditModal";
-import DeleteConfirmationModal from "../../../components/super-admin/shg-repository/DeleteConfirmationModal";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import ShgBulkImportModal from "../../../components/super-admin/shg-repository/ShgBulkImportModal";
 
 export default function SHGRepository() {
@@ -606,13 +606,15 @@ export default function SHGRepository() {
         isUpdatingMember={isUpdatingMember}
       />
 
-      <DeleteConfirmationModal
+      <ConfirmationModal
         isOpen={!!memberToDelete}
         onClose={() => setMemberToDelete(null)}
         title="Delete Member"
         message={<>Are you sure you want to delete <span className="font-semibold text-slate-700">{memberToDelete?.member_name || memberToDelete?.name}</span>?<br /><span className="text-xs text-red-500 font-medium">This action cannot be undone.</span></>}
         onConfirm={confirmDeleteMember}
-        isDeleting={isDeletingMember}
+        isLoading={isDeletingMember}
+        type="delete"
+        confirmText="Yes, Delete"
       />
 
       <ShgBulkImportModal

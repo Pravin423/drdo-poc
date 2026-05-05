@@ -24,7 +24,7 @@ export default function ShgRepositoryModal({
         onClose={onClose} 
       />
       
-      <div className="p-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 overscroll-contain transform-gpu">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Group 1: General Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

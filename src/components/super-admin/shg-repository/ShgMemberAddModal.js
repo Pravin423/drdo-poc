@@ -23,7 +23,7 @@ export default function ShgMemberAddModal({
         onClose={onClose} 
       />
       
-      <div className="p-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 overscroll-contain transform-gpu">
         <form id="add-members-form" onSubmit={handleSubmit} className="space-y-6">
           <div className="hidden md:grid md:grid-cols-[1fr_1fr_1fr_50px] gap-6 px-1 mb-2">
             <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Member Name</label>

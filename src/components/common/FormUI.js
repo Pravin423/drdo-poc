@@ -17,7 +17,7 @@ export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) 
         <AnimatePresence>
             {isOpen && (
                 <div 
-                    className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto px-4 py-8 custom-scrollbar"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-8 pointer-events-none"
                 >
                     {/* Backdrop */}
                     <motion.div
@@ -25,16 +25,16 @@ export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-[8px] z-0"
+                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[4px] pointer-events-auto transition-all duration-300"
                     />
 
-                    {/* Modal Container */}
+                    {/* Modal Content */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className={`bg-white rounded-[32px] shadow-2xl w-full ${maxWidth} overflow-hidden relative z-10 will-change-transform shadow-indigo-900/10`}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                        className={`relative w-full ${maxWidth} max-h-[90vh] bg-white rounded-[40px] shadow-[0_30px_70px_-10px_rgba(0,0,0,0.15)] overflow-hidden border border-slate-100 flex flex-col pointer-events-auto transform-gpu will-change-transform overscroll-contain`}
                     >
                         {children}
                     </motion.div>

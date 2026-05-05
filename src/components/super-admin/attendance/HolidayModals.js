@@ -15,7 +15,7 @@ export const AddHolidayModal = ({
         icon={Calendar} 
         onClose={onClose} 
       />
-      <div className="p-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         <FormError error={error} />
         <div className="space-y-6">
           <FormInput 
