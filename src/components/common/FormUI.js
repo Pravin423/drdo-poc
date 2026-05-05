@@ -249,13 +249,68 @@ export const FormSelect = ({
 /**
  * Common Info Display for View Modals
  */
-export const FormInfo = ({ label, value }) => {
+export const FormInfo = ({ label, value, icon: Icon }) => {
     return (
-        <div className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 transition-all duration-300 hover:bg-white hover:shadow-sm hover:border-slate-200 group">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1 group-hover:text-[#3b52ab] transition-colors">{label}</p>
-            <p className="text-[15px] font-bold text-slate-800 ml-1">{value || "N/A"}</p>
+        <div className="p-5 rounded-[28px] bg-slate-50/50 border border-slate-100 transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 group">
+            <div className="flex items-center gap-2 mb-1.5 ml-1">
+                {Icon && <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#3b52ab] transition-colors" />}
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest group-hover:text-[#3b52ab] transition-colors">{label}</p>
+            </div>
+            <p className="text-[15px] font-black text-slate-800 ml-1 leading-tight">{value || "N/A"}</p>
         </div>
     );
 };
 
 
+/**
+ * Common Text Area for Forms
+ */
+export const FormTextArea = ({ 
+    label, 
+    icon: Icon, 
+    placeholder, 
+    value, 
+    onChange, 
+    error, 
+    rows = 4,
+    ...props 
+}) => {
+    return (
+        <div className="space-y-2 group/field">
+            {label && (
+                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1 group-focus-within/field:text-[#3b52ab] transition-colors duration-300">
+                    {label}
+                </label>
+            )}
+            <div className="relative group/input">
+                {Icon && (
+                    <div className="absolute top-4 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-[#3b52ab] transition-colors duration-300">
+                        <Icon className="w-5 h-5 group-hover/input:scale-110 transition-transform duration-300" />
+                    </div>
+                )}
+                <textarea
+                    rows={rows}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 transition-all duration-300 resize-none ${
+                        error
+                            ? "border-rose-300 focus:border-rose-500 shadow-sm shadow-rose-100"
+                            : "border-slate-100 hover:border-slate-300 focus:border-[#3b52ab] focus:bg-white focus:shadow-sm"
+                    }`}
+                    {...props}
+                />
+            </div>
+            {error && (
+                <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] font-bold text-rose-500 ml-1 mt-1 flex items-center gap-1.5"
+                >
+                    <span className="w-1 h-1 rounded-full bg-rose-500" />
+                    {error}
+                </motion.p>
+            )}
+        </div>
+    );
+};

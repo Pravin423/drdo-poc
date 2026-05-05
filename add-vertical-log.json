@@ -1,10 +1,10 @@
 {
   "requestBody": {
-    "vertical_name": "testingnew vertical",
-    "vertical_code": "1000io",
-    "start_date": "2026-04-27",
-    "end_date": "2026-04-28",
-    "description": "hbsbd"
+    "vertical_name": "test vertical",
+    "vertical_code": "9898",
+    "start_date": "2026-05-06",
+    "end_date": "2026-05-14",
+    "description": "eue"
   },
   "responseStatus": 200,
   "responseData": {

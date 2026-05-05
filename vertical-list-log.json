@@ -36,6 +36,17 @@
       "created_at": "2026-03-10 10:34:37"
     },
     {
+      "id": 39,
+      "vertical_code": "98982",
+      "vertical_name": "test vertical hehe",
+      "description": "eue",
+      "start_date": "2026-05-06",
+      "end_date": "2026-05-14",
+      "created_by": "Kiran",
+      "status": 1,
+      "created_at": "2026-05-05 13:45:14"
+    },
+    {
       "id": 38,
       "vertical_code": "1000io",
       "vertical_name": "testingnew vertical",
