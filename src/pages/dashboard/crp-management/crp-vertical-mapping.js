@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Link as LinkIcon, Download } from "lucide-react";
+import { Layers, Activity, Clock, Target, Download, Link as LinkIcon } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
 import DashboardLayout from "../../../components/DashboardLayout";
+
+import SummaryCard from "../../../components/common/SummaryCard";
 
 // Vertical Mapping components
 import VerticalMappingFilterBar from "../../../components/super-admin/crp/vertical-mapping/VerticalMappingFilterBar";
@@ -144,12 +146,13 @@ export default function CRPVerticalMapping() {
     const active = mappings.filter(m => m.status === "Active").length;
     const inactive = mappings.length - active;
     return [
-      { label: "Total Mappings", value: mappings.length, icon: LinkIcon, color: "text-blue-600 bg-blue-50" },
-      { label: "Active Connections", value: active, icon: LinkIcon, color: "text-emerald-600 bg-emerald-50" },
-      { label: "Inactive / Pending", value: inactive, icon: LinkIcon, color: "text-amber-600 bg-amber-50" },
-      { label: "Verticals Covered", value: verticals.length, icon: LinkIcon, color: "text-purple-600 bg-purple-50" },
+      { label: "Total Mappings", value: mappings.length, icon: Layers, variant: "blue" },
+      { label: "Active Connections", value: active, icon: Activity, variant: "emerald" },
+      { label: "Inactive / Pending", value: inactive, icon: Clock, variant: "amber" },
+      { label: "Verticals Covered", value: verticals.length, icon: Target, variant: "indigo" },
     ];
   }, [mappings, verticals]);
+
 
   // ── Filter & Pagination ───────────────────────────────────────────────────
   const [search, setSearch] = useState("");
@@ -340,7 +343,7 @@ export default function CRPVerticalMapping() {
           >
             <div className="space-y-1">
               <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                CRP - Vertical <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">Mapping</span>
+                CRP - Vertical <span className="bg-gradient-to-b from-[#3b52ab] to-[#1a2e7a] bg-clip-text text-transparent">Mapping</span>
               </h1>
               <p className="text-slate-500 font-bold text-lg">Relationship engine for program assignment and oversight.</p>
             </div>
@@ -355,33 +358,26 @@ export default function CRPVerticalMapping() {
                 </button>
                 <button
                   onClick={() => { setApiError(null); setIsModalOpen(true); }}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 flex items-center gap-2.5 transition-all shadow-xl shadow-indigo-200 active:scale-95 border border-indigo-500/20"
+                  className="px-6 py-3 bg-[#3b52ab] text-white rounded-2xl text-sm font-bold hover:bg-[#2e418a] flex items-center gap-2.5 transition-all shadow-xl shadow-indigo-100 active:scale-95 border border-indigo-500/20"
                 >
                   <LinkIcon size={18} /> Link CRP to Vertical
                 </button>
               </div>
             )}
+
           </motion.header>
 
           {/* Stats Overview */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
-              <motion.div
+              <SummaryCard
                 key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                   <div className={`p-2.5 rounded-2xl ${stat.color} transition-transform group-hover:scale-110`}>
-                     <stat.icon size={20} />
-                   </div>
-                   <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
-                </div>
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-                <p className="text-3xl font-black text-slate-900 tracking-tighter">{isLoading ? "..." : stat.value}</p>
-              </motion.div>
+                title={stat.label}
+                value={isLoading ? "..." : stat.value}
+                icon={stat.icon}
+                variant={stat.variant}
+                delay={i * 0.1}
+              />
             ))}
           </div>
 
