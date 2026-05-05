@@ -1,10 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, XCircle, ChevronDown } from "lucide-react";
-
-/**
- * Common Modal Wrapper for Forms
- */
 import { createPortal } from "react-dom";
 
 /**
@@ -25,16 +21,15 @@ export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[4px] pointer-events-auto transition-all duration-300"
+                        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] pointer-events-auto transition-all duration-500"
                     />
 
                     {/* Modal Content */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.98, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                        className={`relative w-full ${maxWidth} max-h-[90vh] bg-white rounded-[40px] shadow-[0_30px_70px_-10px_rgba(0,0,0,0.15)] overflow-hidden border border-slate-100 flex flex-col pointer-events-auto transform-gpu will-change-transform overscroll-contain`}
+                        exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                        className={`relative w-full ${maxWidth} max-h-[94vh] bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] overflow-hidden border border-slate-200 flex flex-col pointer-events-auto transform-gpu overscroll-contain`}
                     >
                         {children}
                     </motion.div>
@@ -45,30 +40,28 @@ export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) 
     );
 };
 
-
-
 /**
  * Common Header for Forms
  */
 export const FormHeader = ({ title, subtitle, icon: Icon, onClose }) => {
     return (
-        <div className="bg-gradient-to-r from-[#3b52ab] to-[#1a2e7a] p-8 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#1a2e7a] to-[#3b52ab] px-10 py-8 text-white relative shrink-0">
             {Icon && (
-                <div className="absolute top-0 right-0 p-8 opacity-10">
-                    <Icon className="w-24 h-24 rotate-12" />
+                <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
+                    <Icon className="w-40 h-40 -rotate-12" />
                 </div>
             )}
             <div className="relative z-10 flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-black tracking-tight">{title}</h2>
-                    {subtitle && <p className="text-indigo-100/80 text-sm font-medium mt-1">{subtitle}</p>}
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-black tracking-tight leading-tight">{title}</h2>
+                    {subtitle && <p className="text-blue-100/60 text-[10px] font-bold uppercase tracking-[0.2em]">{subtitle}</p>}
                 </div>
                 {onClose && (
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
+                        className="p-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all active:scale-95 border border-white/10"
                     >
-                        <X className="w-5 h-5" />
+                        <X size={18} strokeWidth={2.5} />
                     </button>
                 )}
             </div>
@@ -87,11 +80,9 @@ export const FormError = ({ error }) => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 px-5 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold rounded-2xl flex items-center gap-3"
+                    className="mb-8 px-6 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold rounded-2xl flex items-center gap-3"
                 >
-                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                        <XCircle className="w-4 h-4" />
-                    </div>
+                    <XCircle size={18} strokeWidth={2.5} />
                     {error}
                 </motion.div>
             )}
@@ -114,16 +105,16 @@ export const FormInput = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2 group/field">
+        <div className="space-y-2 group/field w-full">
             {label && (
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1 group-focus-within/field:text-[#3b52ab] transition-colors duration-300">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within/field:text-[#3b52ab] transition-colors">
                     {label}
                 </label>
             )}
-            <div className="relative group/input">
+            <div className="relative">
                 {Icon && (
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-[#3b52ab] transition-colors duration-300">
-                        <Icon className="w-5 h-5 group-hover/input:scale-110 transition-transform duration-300" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/field:text-[#3b52ab] transition-colors">
+                        <Icon size={16} strokeWidth={2.5} />
                     </div>
                 )}
                 <input
@@ -132,53 +123,48 @@ export const FormInput = ({
                     placeholder={placeholder}
                     value={value}
                     onChange={onChange}
-                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 transition-all duration-300 ${
-                        error
-                            ? "border-rose-300 focus:border-rose-500 shadow-sm shadow-rose-100"
-                            : "border-slate-100 hover:border-slate-300 focus:border-[#3b52ab] focus:bg-white focus:shadow-sm"
+                    className={`w-full ${Icon ? 'pl-11' : 'pl-5'} pr-5 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[#3b52ab] transition-all outline-none text-sm font-bold text-slate-800 shadow-sm ${
+                        error ? "border-rose-500 bg-rose-50/30" : ""
                     }`}
                     {...props}
                 />
             </div>
             {error && (
-                <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-[11px] font-bold text-rose-500 ml-1 mt-1 flex items-center gap-1.5"
-                >
-                    <span className="w-1 h-1 rounded-full bg-rose-500" />
-                    {error}
-                </motion.p>
+                <p className="text-[10px] font-bold text-rose-500 ml-1 mt-1">{error}</p>
             )}
         </div>
     );
 };
 
-
 /**
  * Common Actions (Cancel/Confirm) for Forms
  */
-export const FormActions = ({ onCancel, onConfirm, cancelText = "Cancel", confirmText = "Confirm & Save", confirmIcon: ConfirmIcon, isLoading }) => {
+export const FormActions = ({ onCancel, onConfirm, cancelText = "Cancel", confirmText = "Confirm", confirmIcon: ConfirmIcon, isLoading, confirmDisabled }) => {
     return (
-        <div className="flex items-center gap-4 mt-10">
+        <div className="flex justify-end items-center gap-4 mt-12 pt-8 border-t border-slate-100">
             <button
+                type="button"
                 onClick={onCancel}
-                disabled={isLoading}
-                className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all duration-300 active:scale-[0.98] disabled:opacity-50"
+                className="px-8 py-3 rounded-2xl text-[10px] font-black text-slate-500 hover:bg-slate-50 transition-all uppercase tracking-widest"
             >
                 {cancelText}
             </button>
             <button
+                type="button"
                 onClick={onConfirm}
-                disabled={isLoading}
-                className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#3b52ab] to-[#1a2e7a] rounded-2xl shadow-xl shadow-[#1a2e7a]/10 hover:shadow-2xl hover:shadow-[#1a2e7a]/20 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group disabled:opacity-60"
+                disabled={isLoading || confirmDisabled}
+                className={`px-12 py-3 rounded-2xl text-[10px] font-black transition-all shadow-xl uppercase tracking-widest flex items-center gap-3 ${
+                    !isLoading && !confirmDisabled
+                    ? "bg-[#3b52ab] text-white hover:bg-[#1a2e7a] shadow-[#3b52ab]/20 active:scale-95"
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                }`}
             >
                 {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                    ConfirmIcon && <ConfirmIcon className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                    ConfirmIcon && <ConfirmIcon size={14} strokeWidth={3} />
                 )}
-                <span>{isLoading ? "Processing..." : confirmText}</span>
+                {isLoading ? "Syncing..." : confirmText}
             </button>
         </div>
     );
@@ -198,25 +184,23 @@ export const FormSelect = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2 group/field">
+        <div className="space-y-2 group/field w-full">
             {label && (
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1 group-focus-within/field:text-[#3b52ab] transition-colors duration-300">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within/field:text-[#3b52ab] transition-colors">
                     {label}
                 </label>
             )}
-            <div className="relative group/input">
+            <div className="relative">
                 {Icon && (
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-[#3b52ab] transition-colors duration-300">
-                        <Icon className="w-5 h-5 group-hover/input:scale-110 transition-transform duration-300" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/field:text-[#3b52ab] transition-colors">
+                        <Icon size={16} strokeWidth={2.5} />
                     </div>
                 )}
                 <select
                     value={value}
                     onChange={onChange}
-                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 transition-all duration-300 appearance-none cursor-pointer ${
-                        error
-                            ? "border-rose-300 focus:border-rose-500"
-                            : "border-slate-100 hover:border-slate-300 focus:border-[#3b52ab] focus:bg-white focus:shadow-sm"
+                    className={`w-full ${Icon ? 'pl-11' : 'pl-5'} pr-10 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[#3b52ab] transition-all outline-none appearance-none text-sm font-bold text-slate-800 shadow-sm ${
+                        error ? "border-rose-500 bg-rose-50/30" : ""
                     }`}
                     {...props}
                 >
@@ -227,40 +211,29 @@ export const FormSelect = ({
                         </option>
                     ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-[#3b52ab] transition-colors duration-300">
-                    <ChevronDown className="w-4 h-4 group-hover/input:translate-y-0.5 transition-transform duration-300" />
-                </div>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-focus-within/field:text-[#3b52ab] transition-colors" />
             </div>
             {error && (
-                <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-[11px] font-bold text-rose-500 ml-1 mt-1 flex items-center gap-1.5"
-                >
-                    <span className="w-1 h-1 rounded-full bg-rose-500" />
-                    {error}
-                </motion.p>
+                <p className="text-[10px] font-bold text-rose-500 ml-1 mt-1">{error}</p>
             )}
         </div>
     );
 };
-
 
 /**
  * Common Info Display for View Modals
  */
 export const FormInfo = ({ label, value, icon: Icon }) => {
     return (
-        <div className="p-5 rounded-[28px] bg-slate-50/50 border border-slate-100 transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 group">
-            <div className="flex items-center gap-2 mb-1.5 ml-1">
-                {Icon && <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#3b52ab] transition-colors" />}
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest group-hover:text-[#3b52ab] transition-colors">{label}</p>
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+            <div className="flex items-center gap-2 mb-1 opacity-60">
+                {Icon && <Icon size={12} strokeWidth={3} className="text-slate-400" />}
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{label}</p>
             </div>
-            <p className="text-[15px] font-black text-slate-800 ml-1 leading-tight">{value || "N/A"}</p>
+            <p className="text-[13px] font-extrabold text-slate-800 leading-tight">{value || "---"}</p>
         </div>
     );
 };
-
 
 /**
  * Common Text Area for Forms
@@ -276,16 +249,16 @@ export const FormTextArea = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2 group/field">
+        <div className="space-y-2 group/field w-full">
             {label && (
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1 group-focus-within/field:text-[#3b52ab] transition-colors duration-300">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within/field:text-[#3b52ab] transition-colors">
                     {label}
                 </label>
             )}
-            <div className="relative group/input">
+            <div className="relative">
                 {Icon && (
-                    <div className="absolute top-4 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-[#3b52ab] transition-colors duration-300">
-                        <Icon className="w-5 h-5 group-hover/input:scale-110 transition-transform duration-300" />
+                    <div className="absolute top-4 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/field:text-[#3b52ab] transition-colors">
+                        <Icon size={16} strokeWidth={2.5} />
                     </div>
                 )}
                 <textarea
@@ -293,23 +266,71 @@ export const FormTextArea = ({
                     placeholder={placeholder}
                     value={value}
                     onChange={onChange}
-                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 transition-all duration-300 resize-none ${
-                        error
-                            ? "border-rose-300 focus:border-rose-500 shadow-sm shadow-rose-100"
-                            : "border-slate-100 hover:border-slate-300 focus:border-[#3b52ab] focus:bg-white focus:shadow-sm"
+                    className={`w-full ${Icon ? 'pl-11' : 'pl-5'} pr-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[#3b52ab] transition-all outline-none text-sm font-bold text-slate-800 shadow-sm resize-none ${
+                        error ? "border-rose-500 bg-rose-50/30" : ""
                     }`}
                     {...props}
                 />
             </div>
             {error && (
-                <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-[11px] font-bold text-rose-500 ml-1 mt-1 flex items-center gap-1.5"
-                >
-                    <span className="w-1 h-1 rounded-full bg-rose-500" />
-                    {error}
-                </motion.p>
+                <p className="text-[10px] font-bold text-rose-500 ml-1 mt-1">{error}</p>
+            )}
+        </div>
+    );
+};
+
+/**
+ * Common Section Header for Complex Forms
+ */
+export const FormSection = ({ title, description, icon: Icon, children }) => {
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 py-2">
+            <div className="lg:col-span-4 space-y-1.5">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-slate-100 rounded-xl text-slate-500">
+                        {Icon && <Icon size={16} strokeWidth={2.5} />}
+                    </div>
+                    <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-widest">{title}</h3>
+                </div>
+                {description && <p className="text-[10px] font-bold text-slate-400 leading-relaxed pl-1">{description}</p>}
+            </div>
+            <div className="lg:col-span-8 space-y-5">
+                {children}
+            </div>
+        </div>
+    );
+};
+
+/**
+ * Common Checkbox for Forms
+ */
+export const FormCheckbox = ({ label, checked, onChange, error }) => {
+    return (
+        <div className="space-y-2">
+            <label className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-slate-100 transition-all cursor-pointer group">
+                <div className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
+                    checked 
+                    ? 'bg-[#3b52ab] border-[#3b52ab]' 
+                    : 'bg-white border-slate-200 group-hover:border-slate-300'
+                }`}>
+                    <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={checked}
+                        onChange={(e) => onChange(e.target.checked)}
+                    />
+                    {checked && (
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    )}
+                </div>
+                <span className="text-xs font-bold text-slate-600 leading-tight select-none">
+                    {label}
+                </span>
+            </label>
+            {error && (
+                <p className="text-[10px] font-bold text-rose-500 ml-1">{error}</p>
             )}
         </div>
     );
