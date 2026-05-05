@@ -517,7 +517,13 @@ export default function CrpManagement() {
         isViewLoading={isViewLoading}
         onPreviewImage={setPreviewImage}
         fetchCRPs={fetchCRPs}
+        onStatusChange={(newStatus) => {
+          if (viewCRPData) {
+            setViewCRPData({ ...viewCRPData, status: newStatus });
+          }
+        }}
       />
+
 
       <CrpProfileImageModal previewImage={previewImage} onClose={() => setPreviewImage(null)} />
 
