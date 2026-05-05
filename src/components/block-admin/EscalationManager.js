@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import SummaryCard from '../common/SummaryCard'
-import { AlertCircle, Send, MessageSquare, Clock, CheckCircle2, ChevronRight, Filter, Plus, X, ShieldAlert } from 'lucide-react'
+import { AlertCircle, Send, MessageSquare, Clock, CheckCircle2, ChevronRight, Filter, Plus, X, ShieldAlert, Zap } from 'lucide-react'
+import { FormModal, FormHeader, FormInput, FormSelect, FormTextArea, FormActions } from '../common/FormUI'
 
 export default function EscalationManager({ user }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -162,91 +163,62 @@ export default function EscalationManager({ user }) {
       </div>
 
       {/* New Escalation Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+      <FormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="max-w-2xl">
+        <FormHeader 
+          title="New Escalation" 
+          subtitle="Direct SPM Intervention Request" 
+          icon={ShieldAlert} 
+          onClose={() => setIsModalOpen(false)} 
+        />
+        
+        <div className="p-10 space-y-8">
+          <div className="space-y-6">
+            <FormInput 
+              label="Subject / Issue Title"
+              icon={AlertCircle}
+              placeholder="e.g. Critical mapping delay in Bicholim Block"
             />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-[2.5rem] w-full max-w-xl overflow-hidden shadow-2xl relative z-10 border border-slate-200"
-            >
-              <div className="p-10 space-y-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">New <span className="text-rose-600">Escalation</span></h2>
-                    <p className="text-sm text-slate-500 font-medium mt-1">Provide detailed info for SPM review.</p>
-                  </div>
-                  <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
-                    <X size={20} />
-                  </button>
-                </div>
 
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject / Issue Title</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Critical mapping delay in Bicholim Block"
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all"
-                    />
-                  </div>
+            <div className="grid grid-cols-2 gap-6">
+              <FormSelect 
+                label="Category"
+                icon={Filter}
+                options={[
+                  { label: "Technical Issue", value: "technical" },
+                  { label: "Data Discrepancy", value: "data" },
+                  { label: "Operational Delay", value: "operational" },
+                  { label: "Finance/Honorarium", value: "finance" },
+                ]}
+              />
+              <FormSelect 
+                label="Priority"
+                icon={Zap}
+                options={[
+                  { label: "Low", value: "low" },
+                  { label: "Medium", value: "medium" },
+                  { label: "High", value: "high" },
+                  { label: "Critical", value: "critical" },
+                ]}
+              />
+            </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category</label>
-                      <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none appearance-none">
-                        <option>Technical Issue</option>
-                        <option>Data Discrepancy</option>
-                        <option>Operational Delay</option>
-                        <option>Finance/Honorarium</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Priority</label>
-                      <select className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 outline-none appearance-none">
-                        <option>Low</option>
-                        <option>Medium</option>
-                        <option>High</option>
-                        <option>Critical</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Detailed Description</label>
-                    <textarea
-                      placeholder="Describe the issue in detail, including specific CRP IDs or village names if applicable..."
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 outline-none focus:border-rose-500 transition-all min-h-[150px] resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
-                  >
-                    Discard
-                  </button>
-                  <button
-                    className="flex-[2] py-4 bg-rose-600 text-white rounded-2xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 flex items-center justify-center gap-2"
-                  >
-                    <Send size={18} /> Send to SPM
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+            <FormTextArea 
+              label="Detailed Description"
+              icon={MessageSquare}
+              placeholder="Describe the issue in detail, including specific CRP IDs or village names if applicable..."
+              rows={5}
+            />
           </div>
-        )}
-      </AnimatePresence>
+
+          <FormActions 
+            onCancel={() => setIsModalOpen(false)}
+            onConfirm={() => setIsModalOpen(false)}
+            confirmText="Send to SPM"
+            confirmIcon={Send}
+            cancelText="Discard"
+          />
+        </div>
+      </FormModal>
     </div>
   )
 }
