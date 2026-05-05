@@ -192,7 +192,7 @@ function SidebarItem({ item, isActive, onNavigate, depth = 0, viewOnly = false }
 }
 
 /* ─────────────────────────────── SidebarContent ─────────────────────────────── */
-function SidebarContent({ onNavigate, onToggle }) {
+function SidebarContent({ onNavigate, onToggle, onProfileClick }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { collapsed } = useContext(SidebarContext);
@@ -349,13 +349,13 @@ function SidebarContent({ onNavigate, onToggle }) {
                   <p className="text-[11px] text-slate-400 capitalize">{user.role} role</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <Link
-                    href="/dashboard/profile"
+                  <button
+                    onClick={onProfileClick}
                     title="View Profile"
                     className="flex items-center justify-center w-7 h-7 rounded-full border border-slate-700/80 bg-slate-900/80 text-slate-300 hover:text-blue-300 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-200"
                   >
                     <User size={13} />
-                  </Link>
+                  </button>
                   <button
                     onClick={async () => {
                       await logout();
@@ -376,7 +376,7 @@ function SidebarContent({ onNavigate, onToggle }) {
 }
 
 /* ─────────────────────────────── Desktop Sidebar ─────────────────────────────── */
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, onProfileClick }) {
   return (
     <SidebarContext.Provider value={{ collapsed }}>
       <motion.aside
@@ -384,14 +384,14 @@ export default function Sidebar({ collapsed, onToggle }) {
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className="hidden lg:flex fixed z-20 h-screen flex-col border-r border-slate-800/60 bg-gradient-to-b from-blue-950 via-blue-900 to-slate-950 text-slate-50 overflow-hidden"
       >
-        <SidebarContent onToggle={onToggle} />
+        <SidebarContent onToggle={onToggle} onProfileClick={onProfileClick} />
       </motion.aside>
     </SidebarContext.Provider>
   );
 }
 
 /* ─────────────────────────────── Mobile Sidebar ─────────────────────────────── */
-export function MobileSidebar({ open, onClose }) {
+export function MobileSidebar({ open, onClose, onProfileClick }) {
   if (!open) return null;
 
   return (
@@ -406,7 +406,7 @@ export function MobileSidebar({ open, onClose }) {
         />
         {/* Aside stays stacked above due to relative positioning */}
         <aside className="w-72 max-w-[80%] min-h-full flex flex-col border-r border-slate-800 bg-gradient-to-b from-blue-950 via-blue-900 to-slate-950 text-slate-50 shadow-2xl relative z-10">
-          <SidebarContent onNavigate={onClose} />
+          <SidebarContent onNavigate={onClose} onProfileClick={onProfileClick} />
         </aside>
       </div>
     </SidebarContext.Provider>

@@ -3,6 +3,7 @@ import Sidebar, { MobileSidebar } from "./Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, MapPin, RefreshCw, Menu, Activity } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import ProfileModal from "./common/ProfileModal";
 
 const SIDEBAR_EXPANDED_W = 320;
 const SIDEBAR_COLLAPSED_W = 72;
@@ -10,6 +11,7 @@ const SIDEBAR_COLLAPSED_W = 72;
 export default function DashboardLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user } = useAuth();
 
   const sidebarW = sidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_EXPANDED_W;
@@ -22,10 +24,15 @@ export default function DashboardLayout({ children }) {
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed((c) => !c)}
+        onProfileClick={() => setIsProfileOpen(true)}
       />
 
       {/* Mobile Sidebar */}
-      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileSidebar 
+        open={mobileOpen} 
+        onClose={() => setMobileOpen(false)} 
+        onProfileClick={() => setIsProfileOpen(true)}
+      />
 
       {/* Main content — offset matches sidebar width, animated on desktop only */}
       <main
@@ -133,6 +140,8 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       </main>
+
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </div>
   );
 }
