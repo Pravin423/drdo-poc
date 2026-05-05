@@ -14,8 +14,8 @@ export default function EscalationManager({ user }) {
     { id: 'ESC003', subject: 'Honorarium Discrepancy', category: 'Finance', priority: 'Critical', status: 'Pending', date: '2026-04-29', description: 'CRP Rajesh Kumar reporting 2 days missing in honorarium calculation.' },
   ];
 
-  const filteredEscalations = activeFilter === 'all' 
-    ? escalations 
+  const filteredEscalations = activeFilter === 'all'
+    ? escalations
     : escalations.filter(e => e.status.toLowerCase().includes(activeFilter.toLowerCase()));
 
   return (
@@ -28,7 +28,7 @@ export default function EscalationManager({ user }) {
           </h1>
           <p className="text-slate-500 font-medium">Escalate critical issues directly to the SPM for immediate intervention.</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="px-6 py-3 bg-[#3b52ab] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center gap-2 active:scale-95"
         >
@@ -38,33 +38,33 @@ export default function EscalationManager({ user }) {
 
       {/* Stats Summary using SummaryCard */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <SummaryCard 
-          title="Total Escalations" 
-          value={escalations.length} 
-          icon={MessageSquare} 
-          variant="blue" 
-          delay={0.1} 
+        <SummaryCard
+          title="Total Escalations"
+          value={escalations.length}
+          icon={MessageSquare}
+          variant="blue"
+          delay={0.1}
         />
-        <SummaryCard 
-          title="High Priority" 
-          value={escalations.filter(e => e.priority === 'High' || e.priority === 'Critical').length} 
-          icon={ShieldAlert} 
-          variant="rose" 
-          delay={0.2} 
+        <SummaryCard
+          title="High Priority"
+          value={escalations.filter(e => e.priority === 'High' || e.priority === 'Critical').length}
+          icon={ShieldAlert}
+          variant="rose"
+          delay={0.2}
         />
-        <SummaryCard 
-          title="In Review" 
-          value={escalations.filter(e => e.status === 'In Review').length} 
-          icon={Clock} 
-          variant="amber" 
-          delay={0.3} 
+        <SummaryCard
+          title="In Review"
+          value={escalations.filter(e => e.status === 'In Review').length}
+          icon={Clock}
+          variant="amber"
+          delay={0.3}
         />
-        <SummaryCard 
-          title="Resolved" 
-          value={escalations.filter(e => e.status === 'Resolved').length} 
-          icon={CheckCircle2} 
-          variant="emerald" 
-          delay={0.4} 
+        <SummaryCard
+          title="Resolved"
+          value={escalations.filter(e => e.status === 'Resolved').length}
+          icon={CheckCircle2}
+          variant="emerald"
+          delay={0.4}
         />
       </div>
 
@@ -102,17 +102,16 @@ export default function EscalationManager({ user }) {
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="space-y-4 flex-1">
                       <div className="flex items-center gap-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
-                          esc.priority === 'Critical' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                          esc.priority === 'High' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                          'bg-blue-50 text-blue-600 border-blue-100'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${esc.priority === 'Critical' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                            esc.priority === 'High' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                              'bg-blue-50 text-blue-600 border-blue-100'
+                          }`}>
                           {esc.priority} Priority
                         </span>
                         <span className="text-xs font-bold text-slate-300">|</span>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{esc.category}</p>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <h4 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">
                           {esc.subject}
@@ -135,11 +134,10 @@ export default function EscalationManager({ user }) {
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${
-                          esc.status === 'Resolved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                          esc.status === 'In Review' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                          'bg-slate-100 text-slate-500 border-slate-200'
-                        }`}>
+                        <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${esc.status === 'Resolved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                            esc.status === 'In Review' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                              'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}>
                           {esc.status === 'Resolved' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                           {esc.status}
                         </div>
@@ -167,14 +165,14 @@ export default function EscalationManager({ user }) {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -194,8 +192,8 @@ export default function EscalationManager({ user }) {
                 <div className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject / Issue Title</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="e.g. Critical mapping delay in Bicholim Block"
                       className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all"
                     />
@@ -224,7 +222,7 @@ export default function EscalationManager({ user }) {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Detailed Description</label>
-                    <textarea 
+                    <textarea
                       placeholder="Describe the issue in detail, including specific CRP IDs or village names if applicable..."
                       className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 outline-none focus:border-rose-500 transition-all min-h-[150px] resize-none"
                     />
@@ -232,13 +230,13 @@ export default function EscalationManager({ user }) {
                 </div>
 
                 <div className="flex gap-4">
-                  <button 
+                  <button
                     onClick={() => setIsModalOpen(false)}
                     className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
                   >
                     Discard
                   </button>
-                  <button 
+                  <button
                     className="flex-[2] py-4 bg-rose-600 text-white rounded-2xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 flex items-center justify-center gap-2"
                   >
                     <Send size={18} /> Send to SPM
