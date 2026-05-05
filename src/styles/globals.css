@@ -88,11 +88,15 @@
 }
 
 @layer base {
+  :root {
+    --font-sans: 'Poppins', sans-serif;
+  }
 
   html,
   body,
   #__next {
     height: 100%;
+    font-family: var(--font-sans);
   }
 
   body {

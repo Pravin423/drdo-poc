@@ -35,7 +35,6 @@ const ConfirmationModal = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            style={{ fontFamily: "'Poppins', sans-serif" }}
             className="relative w-full max-w-[420px] bg-white rounded-[40px] p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] text-center overflow-hidden border border-slate-100"
           >
             {/* Top Icon - Soft rounded background */}
@@ -89,7 +88,7 @@ const ConfirmationModal = ({
                 className={`flex-1 py-4.5 text-white rounded-[20px] text-[15px] font-bold transition-all active:scale-95 shadow-lg
                   ${type === 'delete' ? 'bg-[#ee0000] shadow-[0_8px_16px_-4px_rgba(238,0,0,0.25)] hover:bg-[#cc0000]' : 
                     type === 'success' ? 'bg-[#16a34a] shadow-[0_8px_16px_-4px_rgba(22,163,74,0.25)] hover:bg-[#15803d]' : 
-                    'bg-[#1a2e7a] shadow-[0_8px_16px_-4px_rgba(26,46,122,0.25)] hover:bg-[#111e54]'}`}
+                    'bg-[#3b52ab] shadow-[0_8px_16px_-4px_rgba(59,82,171,0.25)] hover:bg-[#2a44a1]'}`}
               >
                 <div className="flex items-center justify-center gap-2">
                   {isLoading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}

@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import "../styles/globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { Poppins } from "next/font/google";
@@ -8,11 +9,13 @@ const poppins = Poppins({
 });
 
 export default function App({ Component, pageProps }) {
+  useEffect(() => {
+    document.body.className = `${poppins.className} antialiased`;
+  }, []);
+
   return (
     <AuthProvider>
-      <div className={poppins.className}>
-        <Component {...pageProps} />
-      </div>
+      <Component {...pageProps} />
     </AuthProvider>
   );
 }

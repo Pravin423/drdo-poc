@@ -1,16 +1,15 @@
 import React, { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronLeft, ChevronRight, Edit, Trash2, X, XCircle, 
-  CheckCircle2, Tag, Calendar, Activity, ChevronDown, MapIcon 
+  ChevronLeft, ChevronRight, Edit, Trash2, Tag, Calendar, Activity, MapIcon 
 } from "lucide-react";
-import { createPortal } from "react-dom";
 import DataTable from "../../common/DataTable";
 import ConfirmationModal from "../../common/ConfirmationModal";
+import { AddHolidayModal, EditHolidayModal } from "./HolidayModals";
 
 const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
   const today = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -449,303 +448,25 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
         </div>
       </div>
 
-      {showAddModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4 overflow-y-auto py-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg overflow-hidden relative"
-          >
-            <div className="bg-gradient-to-r from-[#3b52ab] to-[#1a2e7a] p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Calendar className="w-24 h-24 rotate-12" />
-              </div>
-              <div className="relative z-10 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight">Add New Holiday</h2>
-                  <p className="text-indigo-100/80 text-sm font-medium mt-1">Configure a new date in the calendar</p>
-                </div>
-                <button
-                  onClick={() => { setShowAddModal(false); setAddError(''); }}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+      <AddHolidayModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)}
+        form={addForm}
+        setForm={setAddForm}
+        loading={addLoading}
+        error={addError}
+        onConfirm={handleAddHoliday}
+      />
 
-            <div className="p-8">
-              <AnimatePresence>
-                {addError && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 px-5 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold rounded-2xl flex items-center gap-3"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                      <XCircle className="w-4 h-4" />
-                    </div>
-                    {addError}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Holiday Name</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
-                      <Tag className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="e.g. Diwali Festival"
-                      value={addForm.holiday_name}
-                      onChange={e => setAddForm(p => ({ ...p, holiday_name: e.target.value }))}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Start Date</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                      <input
-                        type="date"
-                        value={addForm.start_date}
-                        onChange={e => setAddForm(p => ({
-                          ...p,
-                          start_date: e.target.value,
-                          end_date: p.end_date || e.target.value,
-                        }))}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all appearance-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">End Date</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                      <input
-                        type="date"
-                        value={addForm.end_date}
-                        min={addForm.start_date}
-                        onChange={e => setAddForm(p => ({ ...p, end_date: e.target.value }))}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all appearance-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Status</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
-                      <Activity className="w-5 h-5" />
-                    </div>
-                    <select
-                      value={addForm.status}
-                      onChange={e => setAddForm(p => ({ ...p, status: e.target.value }))}
-                      className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all appearance-none cursor-pointer"
-                    >
-                      <option value="active">Active Entry</option>
-                      <option value="deactive">Inactive / Archive</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 mt-10">
-                <button
-                  onClick={() => { setShowAddModal(false); setAddError(''); }}
-                  disabled={addLoading}
-                  className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddHoliday}
-                  disabled={addLoading}
-                  className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#3b52ab] to-[#1a2e7a] rounded-2xl shadow-xl shadow-[#1a2e7a]/20 hover:shadow-2xl hover:shadow-[#1a2e7a]/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {addLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Saving Holiday...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>Confirm & Save</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
-
-      {showEditModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4 overflow-y-auto py-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg overflow-hidden relative"
-          >
-            <div className="bg-gradient-to-r from-[#0f6e4f] to-[#1a9e70] p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Calendar className="w-24 h-24 rotate-12" />
-              </div>
-              <div className="relative z-10 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight">Edit Holiday</h2>
-                  <p className="text-emerald-100/80 text-sm font-medium mt-1">Update the selected holiday details</p>
-                </div>
-                <button
-                  onClick={() => { setShowEditModal(false); setEditError(''); }}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-8">
-              <AnimatePresence>
-                {editError && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-6 px-5 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-sm font-semibold rounded-2xl flex items-center gap-3"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                      <XCircle className="w-4 h-4" />
-                    </div>
-                    {editError}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Holiday Name</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                      <Tag className="w-5 h-5" />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="e.g. Diwali Festival"
-                      value={editForm.holiday_name}
-                      onChange={e => setEditForm(p => ({ ...p, holiday_name: e.target.value }))}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Start Date</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                      <input
-                        type="date"
-                        value={editForm.start_date}
-                        onChange={e => setEditForm(p => ({
-                          ...p,
-                          start_date: e.target.value,
-                          end_date: p.end_date < e.target.value ? e.target.value : p.end_date,
-                        }))}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all appearance-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">End Date</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                        <Calendar className="w-5 h-5" />
-                      </div>
-                      <input
-                        type="date"
-                        value={editForm.end_date}
-                        min={editForm.start_date}
-                        onChange={e => setEditForm(p => ({ ...p, end_date: e.target.value }))}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all appearance-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Status</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                      <Activity className="w-5 h-5" />
-                    </div>
-                    <select
-                      value={editForm.status}
-                      onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}
-                      className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all appearance-none cursor-pointer"
-                    >
-                      <option value="active">Active Entry</option>
-                      <option value="deactive">Inactive / Archive</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 mt-10">
-                <button
-                  onClick={() => { setShowEditModal(false); setEditError(''); }}
-                  disabled={editLoading}
-                  className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateHoliday}
-                  disabled={editLoading}
-                  className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#0f6e4f] to-[#1a9e70] rounded-2xl shadow-xl shadow-emerald-900/20 hover:shadow-2xl hover:shadow-emerald-900/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {editLoading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Updating Holiday...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span>Save Changes</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
+      <EditHolidayModal 
+        isOpen={showEditModal} 
+        onClose={() => setShowEditModal(false)}
+        form={editForm}
+        setForm={setEditForm}
+        loading={editLoading}
+        error={editError}
+        onConfirm={handleUpdateHoliday}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmationModal
