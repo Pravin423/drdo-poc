@@ -299,7 +299,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
             </button>
             <button
               onClick={() => setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1))}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-indigo-200 bg-indigo-50 text-indigo-600 text-[12px] font-bold hover:bg-indigo-100 transition-colors shadow-sm shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-[#3b52ab]/20 bg-[#eff2ff] text-[#3b52ab] text-[12px] font-bold hover:bg-[#3b52ab]/10 transition-colors shadow-sm shrink-0"
               title="Go to today"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -329,7 +329,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                   ${isDayToday
                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-[1.05] z-10'
                     : holi
-                      ? 'bg-[#5542f6] text-white shadow-lg shadow-[#5542f6]/30 scale-[1.05] z-10'
+                      ? 'bg-[#3b52ab] text-white shadow-lg shadow-[#3b52ab]/30 scale-[1.05] z-10'
                       : 'bg-[#fafafa] text-[#374151] hover:bg-slate-100 cursor-pointer border border-transparent'}
                 `}
                 title={holi ? holi.name : isDayToday ? "Today" : ""}
@@ -347,7 +347,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
             <span>Today's Date</span>
           </div>
           <div className="flex items-center gap-2.5 transition-all hover:translate-x-1">
-            <span className="w-3.5 h-3.5 bg-[#5542f6] rounded-full inline-block shadow-sm ring-2 ring-indigo-50 shadow-[#5542f6]/20"></span>
+            <span className="w-3.5 h-3.5 bg-[#3b52ab] rounded-full inline-block shadow-sm ring-2 ring-[#eff2ff] shadow-[#3b52ab]/20"></span>
             <span>Official Holidays</span>
           </div>
         </div>
@@ -377,9 +377,9 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                 key: "date",
                 render: (val, row) => (
                   <div className="flex items-center gap-3 py-1">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-600 flex flex-col items-center justify-center font-bold ring-1 ring-indigo-100/50 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#eff2ff] to-[#f0f4ff] text-[#3b52ab] flex flex-col items-center justify-center font-bold ring-1 ring-[#3b52ab]/10 flex-shrink-0">
                       <span className="text-lg leading-none mb-0.5">{new Date(val).getDate()}</span>
-                      <span className="text-[9px] uppercase tracking-wider text-indigo-400">
+                      <span className="text-[9px] uppercase tracking-wider text-[#3b52ab]/60">
                         {new Date(val).toLocaleDateString('en-US', { month: 'short' })}
                       </span>
                     </div>
@@ -397,7 +397,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                    <div className="flex flex-col gap-1">
                       <p className="font-bold text-slate-900 text-[15px] tracking-tight">{val}</p>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/50">
+                        <span className="text-[10px] font-bold text-[#3b52ab] bg-[#eff2ff] px-2 py-0.5 rounded-md border border-[#3b52ab]/10">
                           {formatDate(row.date)}
                         </span>
                         {row.end_date && row.end_date !== row.date && (
@@ -432,7 +432,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                 icon: Edit,
                 title: "Edit Holiday",
                 onClick: (row) => openEditModal(row),
-                className: "hover:text-blue-600 hover:bg-blue-50"
+                className: "hover:text-[#3b52ab] hover:bg-[#eff2ff]"
               },
               {
                 icon: Trash2,
@@ -456,7 +456,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg overflow-hidden relative"
           >
-            <div className="bg-gradient-to-r from-[#1a2e7a] to-[#2a44a1] p-8 text-white relative overflow-hidden">
+            <div className="bg-gradient-to-r from-[#3b52ab] to-[#1a2e7a] p-8 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <Calendar className="w-24 h-24 rotate-12" />
               </div>
@@ -495,7 +495,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                 <div className="space-y-2">
                   <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Holiday Name</label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
                       <Tag className="w-5 h-5" />
                     </div>
                     <input
@@ -503,7 +503,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                       placeholder="e.g. Diwali Festival"
                       value={addForm.holiday_name}
                       onChange={e => setAddForm(p => ({ ...p, holiday_name: e.target.value }))}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all"
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all"
                     />
                   </div>
                 </div>
@@ -512,7 +512,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                   <div className="space-y-2">
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Start Date</label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
                         <Calendar className="w-5 h-5" />
                       </div>
                       <input
@@ -523,7 +523,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                           start_date: e.target.value,
                           end_date: p.end_date || e.target.value,
                         }))}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all appearance-none"
                       />
                     </div>
                   </div>
@@ -531,7 +531,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                   <div className="space-y-2">
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">End Date</label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
                         <Calendar className="w-5 h-5" />
                       </div>
                       <input
@@ -539,7 +539,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                         value={addForm.end_date}
                         min={addForm.start_date}
                         onChange={e => setAddForm(p => ({ ...p, end_date: e.target.value }))}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all appearance-none"
                       />
                     </div>
                   </div>
@@ -548,13 +548,13 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                 <div className="space-y-2">
                   <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Status</label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#3b52ab] transition-colors">
                       <Activity className="w-5 h-5" />
                     </div>
                     <select
                       value={addForm.status}
                       onChange={e => setAddForm(p => ({ ...p, status: e.target.value }))}
-                      className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all appearance-none cursor-pointer"
+                      className="w-full pl-12 pr-10 py-4 rounded-2xl border border-slate-200 bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-[#3b52ab]/10 focus:border-[#3b52ab] focus:bg-white transition-all appearance-none cursor-pointer"
                     >
                       <option value="active">Active Entry</option>
                       <option value="deactive">Inactive / Archive</option>
@@ -577,7 +577,7 @@ const HolidaysTab = memo(function HolidaysTab({ isViewOnly }) {
                 <button
                   onClick={handleAddHoliday}
                   disabled={addLoading}
-                  className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#1a2e7a] to-[#2a44a1] rounded-2xl shadow-xl shadow-indigo-900/20 hover:shadow-2xl hover:shadow-indigo-900/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#3b52ab] to-[#1a2e7a] rounded-2xl shadow-xl shadow-[#1a2e7a]/20 hover:shadow-2xl hover:shadow-[#1a2e7a]/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {addLoading ? (
                     <>
