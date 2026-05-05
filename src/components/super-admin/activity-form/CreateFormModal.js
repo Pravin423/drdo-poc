@@ -1,346 +1,343 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Save, FilePlus2, Trash2, Plus, Edit2, AlertCircle } from "lucide-react";
+import { 
+    X, 
+    Save, 
+    FilePlus2, 
+    Trash2, 
+    Plus, 
+    Edit2, 
+    AlertCircle,
+    FileText,
+    Settings2,
+    LayoutGrid,
+    CheckCircle,
+    Info,
+    Trash,
+    Layers,
+    Type,
+    Hash,
+    Calendar as CalendarIcon,
+    ChevronDown,
+    PlusCircle
+} from "lucide-react";
+import {
+    FormModal,
+    FormHeader,
+    FormInput,
+    FormSelect,
+    FormActions,
+    FormSection,
+    FormError,
+    FormCheckbox
+} from "../../common/FormUI";
+import ConfirmationModal from "../../common/ConfirmationModal";
+
+const FIELD_TYPES = [
+    { value: "text", label: "Text (Short)" },
+    { value: "textarea", label: "Textarea (Long)" },
+    { value: "number", label: "Numeric Value" },
+    { value: "date", label: "Date Selection" },
+    { value: "dropdown", label: "Dropdown Select" },
+    { value: "radio", label: "Radio Selection" },
+    { value: "checkbox", label: "Checkbox Toggle" },
+    { value: "file", label: "Media Upload" }
+];
 
 export default function CreateFormModal({ isOpen, onClose, formId, onSaveSuccess }) {
-  const [formName, setFormName] = useState("");
-  const [description, setDescription] = useState("");
-  const [fields, setFields] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [loading, setLoading] = useState(false);
+    const [formName, setFormName] = useState("");
+    const [description, setDescription] = useState("");
+    const [fields, setFields] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formError, setFormError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-  // Field state
-  const [isAddingField, setIsAddingField] = useState(false);
-  const [fieldError, setFieldError] = useState("");
-  const [fieldData, setFieldData] = useState({
-    label: "",
-    name: "",
-    type: "text",
-    is_required: false,
-    options: ""
-  });
+    // Field state
+    const [isAddingField, setIsAddingField] = useState(false);
+    const [fieldError, setFieldError] = useState("");
+    const [fieldData, setFieldData] = useState({
+        label: "",
+        name: "",
+        type: "text",
+        is_required: false,
+        options: ""
+    });
 
-  const isEditing = Boolean(formId);
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: "", message: "", type: "success" });
 
-  useEffect(() => {
-    if (isOpen && formId) {
-      fetchFormDetails();
-    } else if (isOpen && !formId) {
-      // Reset for new form
-      setFormName("");
-      setDescription("");
-      setFields([]);
-      setFormError("");
-    }
-  }, [isOpen, formId]);
+    const isEditing = Boolean(formId);
 
-  const fetchFormDetails = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(`/api/activity-form-details?id=${formId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const body = await response.json();
-        if (body.data) {
-          setFormName(body.data.form_name || "");
-          setDescription(body.data.description || "");
+    useEffect(() => {
+        if (isOpen && formId) {
+            fetchFormDetails();
+        } else if (isOpen && !formId) {
+            setFormName("");
+            setDescription("");
+            setFields([]);
+            setFormError("");
         }
-        if (body.fields) {
-          setFields(body.fields);
+    }, [isOpen, formId]);
+
+    const fetchFormDetails = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            const response = await fetch(`/api/activity-form-details?id=${formId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const body = await response.json();
+                if (body.data) {
+                    setFormName(body.data.form_name || "");
+                    setDescription(body.data.description || "");
+                }
+                if (body.fields) setFields(body.fields);
+            }
+        } finally { setIsLoading(false); }
+    };
+
+    const handleSaveForm = async () => {
+        if (!formName.trim()) { setFormError("Form name is required."); return; }
+        setIsSubmitting(true);
+        try {
+            const token = localStorage.getItem("authToken");
+            const url = isEditing ? `/api/activity-form-update?id=${formId}` : "/api/activity-forms";
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ form_name: formName, description: description }),
+            });
+            
+            if (!response.ok) throw new Error("Sync failed.");
+            const result = await response.json();
+            const newId = isEditing ? formId : result.data?.id;
+
+            // If it's a new form and we have local fields, we need to sync them
+            if (!isEditing && fields.length > 0) {
+                for (const field of fields) {
+                    await fetch(`/api/activity-form-add-field?id=${newId}`, {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ ...field, is_required: field.is_required ? 1 : 0 })
+                    });
+                }
+            }
+
+            onSaveSuccess(newId);
+            setConfirmModal({ 
+                isOpen: true, 
+                title: isEditing ? "Changes Saved" : "Form Integrated", 
+                message: isEditing ? "Form structure has been successfully updated." : "New activity form has been initialized with all draft fields.", 
+                type: "success" 
+            });
+        } catch (error) { 
+            setFormError(error.message); 
+        } finally { 
+            setIsSubmitting(false); 
         }
-      }
-    } catch (e) {
-      console.error("Failed to fetch form details");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const validateForm = () => {
-    setFormError("");
-    if (!formName.trim()) { setFormError("Form Name is required."); return false; }
-    if (formName.length < 3) { setFormError("Form Name must be at least 3 characters."); return false; }
-    return true;
-  };
+    const confirmAddField = async () => {
+        if (!fieldData.label.trim()) { setFieldError("Label is required"); return; }
+        
+        if (isEditing) {
+            setIsAddingField(true);
+            try {
+                const token = localStorage.getItem("authToken");
+                const response = await fetch(`/api/activity-form-add-field?id=${formId}`, {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...fieldData, is_required: fieldData.is_required ? 1 : 0 })
+                });
+                if (!response.ok) throw new Error("Field sync failed.");
+                const addedField = await response.json();
+                setFields(prev => [...prev, { id: addedField.data?.id || Date.now(), ...fieldData }]);
+            } catch (err) { 
+                setFieldError(err.message); 
+                return;
+            } finally { 
+                setIsAddingField(false); 
+            }
+        } else {
+            // Local mode for new forms
+            setFields(prev => [...prev, { id: Date.now(), ...fieldData }]);
+        }
+        
+        setFieldData({ label: "", name: "", type: "text", is_required: false, options: "" });
+        setFieldError("");
+    };
 
-  const handleSaveForm = async () => {
-    if (!validateForm()) return;
+    const handleDeleteField = async (fieldId) => {
+        if (isEditing) {
+            try {
+                const token = localStorage.getItem("authToken");
+                const response = await fetch(`/api/activity-form-field-delete?id=${fieldId}`, {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.ok) setFields(prev => prev.filter(f => f.id !== fieldId));
+            } catch (err) { console.error(err); }
+        } else {
+            setFields(prev => prev.filter(f => f.id !== fieldId));
+        }
+    };
 
-    setIsSubmitting(true);
-    try {
-      const token = localStorage.getItem("authToken");
-      const url = isEditing ? `/api/activity-form-update?id=${formId}` : "/api/activity-forms";
-      
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          form_name: formName,
-          description: description,
-        }),
-      });
+    return (
+        <FormModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-5xl">
+            <FormHeader 
+                title={isEditing ? "Modify Activity Form" : "Create Activity Form"} 
+                subtitle="Reporting Engine • Core Management" 
+                icon={FilePlus2} 
+                onClose={onClose} 
+            />
 
-      if (!response.ok) throw new Error("Failed to save form");
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar overscroll-contain transform-gpu">
+                <FormError error={formError} />
 
-      const result = await response.json();
-      
-      // If it's a new form, we might want to stay in the modal to add fields
-      // but the API usually returns the new ID.
-      if (!isEditing && result.data?.id) {
-        // Option 1: Close and refresh
-        // Option 2: Stay and switch to editing mode
-        onSaveSuccess(result.data.id);
-      } else {
-        onSaveSuccess(formId);
-      }
-      
-      if (!isEditing) onClose(); // For now, close on create. User can edit later to add fields.
-    } catch (error) {
-      setFormError(error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const confirmAddField = async () => {
-    if (!fieldData.label.trim() || !fieldData.name.trim()) {
-      setFieldError("Label and Name are required");
-      return;
-    }
-    
-    setIsAddingField(true);
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(`/api/activity-form-add-field?id=${formId}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          label: fieldData.label,
-          name: fieldData.name,
-          type: fieldData.type,
-          is_required: fieldData.is_required ? 1 : 0,
-          options: fieldData.options
-        })
-      });
-
-      if (!response.ok) throw new Error("Failed to add field");
-
-      const addedField = await response.json();
-      setFields(prev => [...prev, { id: addedField.data?.id || Math.random(), ...fieldData }]);
-      setFieldData({ label: "", name: "", type: "text", is_required: false, options: "" });
-      setFieldError("");
-    } catch (err) {
-      setFieldError(err.message);
-    } finally {
-      setIsAddingField(false);
-    }
-  };
-
-  const handleDeleteField = async (fieldId) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(`/api/activity-form-field-delete?id=${fieldId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.ok) {
-        setFields(prev => prev.filter(f => f.id !== fieldId));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-      />
-      
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]"
-      >
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <FilePlus2 size={20} className="text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">{isEditing ? "Edit Activity Form" : "Create New Activity Form"}</h3>
-              <p className="text-xs text-slate-500 font-medium">{isEditing ? "Modify form details and manage fields" : "Define a new form for reporting"}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-400 transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Scrollable Body */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-8">
-          
-          {/* Section 1: Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-              <h4 className="text-sm font-bold text-slate-800">Basic Information</h4>
-              <p className="text-xs text-slate-500 mt-1">Core details about the activity form.</p>
-            </div>
-            <div className="md:col-span-2 space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Form Name <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  placeholder="e.g. Monthly Field Visit"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What is this form used for?"
-                  rows={3}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"
-                />
-              </div>
-              {formError && (
-                <div className="flex items-center gap-2 text-xs font-bold text-red-500 bg-red-50 p-2.5 rounded-lg border border-red-100">
-                  <AlertCircle size={14} />
-                  {formError}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <hr className="border-slate-100" />
-
-          {/* Section 2: Fields (Only if Editing or Saved) */}
-          {isEditing ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1">
-                <h4 className="text-sm font-bold text-slate-800">Form Fields</h4>
-                <p className="text-xs text-slate-500 mt-1">Define the specific data points to be collected.</p>
-              </div>
-              <div className="md:col-span-2 space-y-6">
-                
-                {/* Existing Fields List */}
-                <div className="space-y-3">
-                  {fields.map((field, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 font-bold text-xs">
-                          {idx + 1}
+                <div className="space-y-12">
+                    <FormSection title="Base Parameters" description="Define the form identity." icon={FileText}>
+                        <FormInput 
+                            label="Form Name *" 
+                            icon={Edit2} 
+                            placeholder="e.g., Monthly Field Operations Report" 
+                            value={formName} 
+                            onChange={e => setFormName(e.target.value)} 
+                        />
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Contextual Description</p>
+                            <textarea 
+                                value={description} 
+                                onChange={e => setDescription(e.target.value)}
+                                placeholder="Purpose and usage instructions..."
+                                className="w-full bg-slate-50 border-2 border-transparent rounded-[1.5rem] px-5 py-4 text-sm font-bold text-slate-700 outline-none focus:bg-white focus:border-[#3b52ab]/20 focus:ring-4 focus:ring-[#3b52ab]/5 transition-all min-h-[100px] resize-none shadow-sm shadow-slate-100"
+                            />
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{field.label}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{field.type} {field.is_required ? "• Required" : ""}</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteField(field.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  {fields.length === 0 && (
-                    <div className="text-center py-6 border-2 border-dashed border-slate-100 rounded-2xl">
-                      <p className="text-xs font-bold text-slate-400">No fields added yet</p>
-                    </div>
-                  )}
-                </div>
+                    </FormSection>
 
-                {/* Add New Field Form */}
-                <div className="bg-slate-50/50 border border-slate-200 rounded-2xl p-4 space-y-4">
-                  <h5 className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">Add New Field</h5>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Label (e.g. Full Name)"
-                      value={fieldData.label}
-                      onChange={(e) => setFieldData(p => ({ ...p, label: e.target.value, name: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '_') }))}
-                      className="border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"
+                    <div className="h-px bg-slate-100" />
+
+                    <FormSection title="Schema configuration" description="Define reporting fields." icon={Layers}>
+                        <div className="space-y-8">
+                            {/* Draft / Existing Fields List */}
+                            <div className="grid grid-cols-1 gap-3">
+                                {fields.map((field, idx) => (
+                                    <motion.div 
+                                        layout
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        key={field.id || idx} 
+                                        className="group p-5 bg-white border border-slate-100 rounded-[1.5rem] flex items-center justify-between hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 transition-all"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 font-black text-xs flex items-center justify-center border border-slate-100 group-hover:bg-[#3b52ab] group-hover:text-white transition-all">
+                                                {idx + 1}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-slate-800">{field.label}</p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <p className="text-[10px] font-bold text-[#3b52ab] uppercase tracking-widest bg-[#3b52ab]/5 px-2 py-0.5 rounded-md">{field.type}</p>
+                                                    {field.is_required && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-md">Mandatory</p>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => handleDeleteField(field.id)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all opacity-0 group-hover:opacity-100">
+                                            <Trash size={18} strokeWidth={2.5} />
+                                        </button>
+                                    </motion.div>
+                                ))}
+                                {fields.length === 0 && (
+                                    <div className="p-12 border-2 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center text-center space-y-3 bg-slate-50/30">
+                                        <PlusCircle className="text-slate-200" size={32} />
+                                        <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest leading-relaxed">No fields added to this schema.<br/>Start by constructing your first reporting field below.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Inline Construction UI */}
+                            <div className="p-8 bg-white border-2 border-slate-100 rounded-[2.5rem] shadow-sm space-y-6 relative overflow-hidden group/construct">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#3b52ab]/5 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover/construct:scale-110 pointer-events-none" />
+                                
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-[#3b52ab]/10 text-[#3b52ab] flex items-center justify-center">
+                                        <Plus size={16} strokeWidth={3} />
+                                    </div>
+                                    <h5 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Construct Reporting Field</h5>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <FormInput 
+                                        label="Display Label *" 
+                                        icon={Type} 
+                                        placeholder="e.g., Participant Name" 
+                                        value={fieldData.label} 
+                                        onChange={e => setFieldData(p => ({ ...p, label: e.target.value, name: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '_') }))} 
+                                    />
+                                    <FormSelect 
+                                        label="Input Type *" 
+                                        icon={Hash} 
+                                        options={FIELD_TYPES} 
+                                        value={fieldData.type} 
+                                        onChange={e => setFieldData(p => ({ ...p, type: e.target.value }))} 
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                                    <label className="flex items-center gap-3 cursor-pointer group/check">
+                                        <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${fieldData.is_required ? "bg-[#3b52ab] border-[#3b52ab] shadow-md shadow-[#3b52ab]/20" : "border-slate-200 bg-white group-hover/check:border-slate-300"}`}>
+                                            <input type="checkbox" className="hidden" checked={fieldData.is_required} onChange={e => setFieldData(p => ({ ...p, is_required: e.target.checked }))} />
+                                            {fieldData.is_required && <CheckCircle size={14} strokeWidth={4} className="text-white" />}
+                                        </div>
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Enforce as Mandatory</span>
+                                    </label>
+
+                                    <button 
+                                        type="button"
+                                        onClick={confirmAddField} 
+                                        disabled={isAddingField}
+                                        className="w-full sm:w-auto px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-lg shadow-slate-900/10 active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        {isAddingField ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Plus size={14} strokeWidth={3} />}
+                                        Append Field
+                                    </button>
+                                </div>
+
+                                <AnimatePresence>
+                                    {(fieldData.type === 'dropdown' || fieldData.type === 'radio') && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="pt-4 overflow-hidden">
+                                            <FormInput 
+                                                label="Options Matrix" 
+                                                icon={Layers} 
+                                                placeholder="Choice 1, Choice 2, Choice 3" 
+                                                value={fieldData.options} 
+                                                onChange={e => setFieldData(p => ({ ...p, options: e.target.value }))} 
+                                            />
+                                            <p className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest ml-1">Separate distinct options with commas</p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <FormError error={fieldError} />
+                            </div>
+                        </div>
+                    </FormSection>
+
+                    <FormActions 
+                        onCancel={onClose} 
+                        onConfirm={handleSaveForm} 
+                        isLoading={isSubmitting} 
+                        confirmText={isEditing ? "Sync Structure" : "Register Form & Fields"} 
+                        confirmIcon={CheckCircle} 
                     />
-                    <select
-                      value={fieldData.type}
-                      onChange={(e) => setFieldData(p => ({ ...p, type: e.target.value }))}
-                      className="border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
-                    >
-                      <option value="text">Text</option>
-                      <option value="number">Number</option>
-                      <option value="date">Date</option>
-                      <option value="dropdown">Dropdown</option>
-                      <option value="file">File Upload</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={fieldData.is_required}
-                        onChange={(e) => setFieldData(p => ({ ...p, is_required: e.target.checked }))}
-                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" 
-                      />
-                      <span className="text-xs font-bold text-slate-600">Mark as Required</span>
-                    </label>
-                    <button 
-                      onClick={confirmAddField}
-                      disabled={isAddingField}
-                      className="px-4 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-900 transition-colors flex items-center gap-2"
-                    >
-                      <Plus size={14} /> Add Field
-                    </button>
-                  </div>
-                  {fieldError && <p className="text-[10px] font-bold text-red-500">{fieldError}</p>}
                 </div>
-              </div>
             </div>
-          ) : (
-            <div className="bg-blue-50 rounded-2xl p-6 text-center border border-blue-100">
-              <p className="text-sm font-bold text-blue-700">First, save the basic information to start adding fields to this form.</p>
-            </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
-          <button 
-            onClick={onClose}
-            className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={handleSaveForm}
-            disabled={isSubmitting}
-            className="px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2"
-          >
-            {isSubmitting ? "Saving..." : <><Save size={16} /> {isEditing ? "Save Changes" : "Create Form"}</>}
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
+            <ConfirmationModal 
+                isOpen={confirmModal.isOpen} 
+                onClose={() => { setConfirmModal({ ...confirmModal, isOpen: false }); if (!isEditing) onClose(); }} 
+                title={confirmModal.title} 
+                message={confirmModal.message} 
+                type={confirmModal.type} 
+            />
+        </FormModal>
+    );
 }
