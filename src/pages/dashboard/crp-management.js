@@ -263,6 +263,27 @@ export default function CrpManagement() {
       const result = await response.json();
 
       if (!response.ok || result?.status === false) {
+        // Handle specific object-based error messages (like email exists)
+        if (result?.message && typeof result.message === "object") {
+           setFormErrors(prev => ({ ...prev, ...result.message }));
+           setFormStep(1); // Redirect to first page to fix errors
+           return;
+        }
+
+        // Handle stringified JSON error messages
+        try {
+          const parsed = JSON.parse(result?.message || result?.error || "");
+          if (parsed && typeof parsed === "object") {
+            setFormErrors(prev => ({ ...prev, ...parsed }));
+            setFormStep(1);
+            return;
+          }
+        } catch (e) {
+          // Not a JSON string, fallback to default error handling
+        }
+
+
+
         const msg = typeof result?.message === "string"
           ? result.message
           : JSON.stringify(result?.message ?? result?.error ?? `HTTP ${response.status}`);
@@ -273,11 +294,17 @@ export default function CrpManagement() {
       await fetchCRPs();
     } catch (err) {
       console.error("[CRP Update/Add] Failed:", err);
-      alert(`Failed to ${isEditMode ? "update" : "register"} CRP:\n${err.message}`);
+      
+      // If error was already handled by setting formErrors above, don't alert
+      // We check if formStep was reset to 1 and formErrors has keys
+      if (formStep === 2) {
+          alert(`Failed to ${isEditMode ? "update" : "register"} CRP:\n${err.message}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const handleEditClick = async (crp) => {
     setIsEditMode(true);

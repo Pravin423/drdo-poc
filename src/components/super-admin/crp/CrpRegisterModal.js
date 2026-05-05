@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, UserPlus, Eye, Upload, FileText } from "lucide-react";
+import { X, UserPlus, Eye, Upload, FileText, Landmark, User, CreditCard, Calendar, Users } from "lucide-react";
+import { FormModal, FormHeader, FormInput, FormSelect, FormActions } from "@/components/common/FormUI";
 
 export default function CrpRegisterModal({
   isOpen, onClose,
@@ -18,403 +19,446 @@ export default function CrpRegisterModal({
 }) {
   const clearErr = (f) => setFormErrors((p) => { const n = { ...p }; delete n[f]; return n; });
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-500 backdrop-blur-sm px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white w-full max-w-4xl rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200"
+  const renderStep1 = () => (
+    <motion.div
+      key="step1"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -10 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="p-8 space-y-10"
+    >
+      {/* Step Indicator */}
+      <div className="flex items-center gap-4 max-w-md mx-auto">
+        <div className="flex flex-col items-center gap-2 flex-1">
+          <motion.div 
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-200"
           >
-            {/* Header */}
-            <div className="relative h-28 bg-gradient-to-r from-slate-800 to-slate-900 px-8 flex items-center">
-              <div className="flex items-center gap-5">
-                <div className="p-3.5 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
-                  <UserPlus className="text-white" size={24} />
+            1
+          </motion.div>
+          <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600">Details</span>
+        </div>
+        <div className="h-1 bg-slate-100 flex-1 mb-6 rounded-full overflow-hidden">
+            <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: "0%" }}
+                className="h-full bg-indigo-600"
+            />
+        </div>
+        <div className="flex flex-col items-center gap-2 flex-1 opacity-40">
+          <div className="w-10 h-10 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center font-bold">2</div>
+          <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Review</span>
+        </div>
+      </div>
+
+      {/* Personal Information */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
+          <div className="p-2.5 bg-indigo-50 rounded-2xl text-indigo-600">
+            <User size={18} />
+          </div>
+          <h3 className="text-base font-bold text-slate-800">Personal Information</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormInput
+            label="Full Name *"
+            icon={User}
+            placeholder="Enter full name"
+            value={form.name}
+            onChange={(e) => { setForm({ ...form, name: e.target.value }); clearErr("name"); }}
+            error={formErrors.name}
+          />
+          <FormInput
+            label="Aadhaar Number *"
+            icon={CreditCard}
+            placeholder="0000 0000 0000"
+            maxLength={12}
+            value={form.aadhaar}
+            onChange={(e) => { setForm({ ...form, aadhaar: e.target.value.replace(/\D/g, "") }); clearErr("aadhaar"); }}
+            error={formErrors.aadhaar}
+          />
+          <FormInput
+            label="Mobile Number *"
+            icon={User}
+            placeholder="Enter mobile number"
+            maxLength={10}
+            value={form.mobile}
+            onChange={(e) => { setForm({ ...form, mobile: e.target.value.replace(/\D/g, "") }); clearErr("mobile"); }}
+            error={formErrors.mobile}
+          />
+          <FormInput
+            label="Email Address"
+            icon={User}
+            placeholder="email@domain.com"
+            value={form.email}
+            onChange={(e) => { setForm({ ...form, email: e.target.value }); clearErr("email"); }}
+            error={formErrors.email}
+          />
+          <FormInput
+            label="Date of Birth *"
+            icon={Calendar}
+            type="date"
+            value={form.dob}
+            onChange={(e) => { setForm({ ...form, dob: e.target.value }); clearErr("dob"); }}
+            error={formErrors.dob}
+          />
+          <FormSelect
+            label="Gender *"
+            icon={Users}
+            placeholder="Select Gender"
+            value={form.gender}
+            onChange={(e) => { setForm({ ...form, gender: e.target.value }); clearErr("gender"); }}
+            options={[
+              { label: "Male", value: "Male" },
+              { label: "Female", value: "Female" },
+              { label: "Other", value: "Other" }
+            ]}
+            error={formErrors.gender}
+          />
+        </div>
+      </div>
+
+      {/* Financial Information */}
+      <div className="space-y-6 pt-4">
+        <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
+          <div className="p-2.5 bg-emerald-50 rounded-2xl text-emerald-600">
+            <Landmark size={18} />
+          </div>
+          <h3 className="text-base font-bold text-slate-800">Financial Information</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormInput
+            label="Bank Name *"
+            icon={Landmark}
+            placeholder="e.g. State Bank of India"
+            value={form.bankName}
+            onChange={(e) => { setForm({ ...form, bankName: e.target.value }); clearErr("bankName"); }}
+            error={formErrors.bankName}
+          />
+          <FormInput
+            label="Branch Name *"
+            icon={Landmark}
+            placeholder="e.g. Panaji Branch"
+            value={form.branchName}
+            onChange={(e) => { setForm({ ...form, branchName: e.target.value }); clearErr("branchName"); }}
+            error={formErrors.branchName}
+          />
+          <FormInput
+            label="Account Number *"
+            icon={CreditCard}
+            placeholder="Enter account number"
+            value={form.bankAccount}
+            onChange={(e) => { setForm({ ...form, bankAccount: e.target.value.replace(/\D/g, "") }); clearErr("bankAccount"); }}
+            error={formErrors.bankAccount}
+          />
+          <FormInput
+            label="IFSC Code *"
+            icon={Landmark}
+            placeholder="e.g. SBIN0000001"
+            value={form.ifsc}
+            onChange={(e) => { setForm({ ...form, ifsc: e.target.value.toUpperCase() }); clearErr("ifsc"); }}
+            error={formErrors.ifsc}
+          />
+          <div className="md:col-span-2">
+            <FormInput
+              label="PAN Card Number"
+              icon={CreditCard}
+              placeholder="e.g. ABCDE1234F"
+              value={form.pan}
+              onChange={(e) => { setForm({ ...form, pan: e.target.value.toUpperCase() }); clearErr("pan"); }}
+              error={formErrors.pan}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Documents */}
+      <div className="space-y-6 pt-4">
+        <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
+          <div className="p-2.5 bg-amber-50 rounded-2xl text-amber-600">
+            <FileText size={18} />
+          </div>
+          <h3 className="text-base font-bold text-slate-800">Document Verification</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            { id: "profilePhoto", label: "Profile Photo", desc: "Max 5MB", required: true },
+            { id: "aadhaarCard", label: "Aadhaar Card", desc: "Max 5MB", required: true },
+            { id: "panCard", label: "PAN Card", desc: "Max 5MB", required: true },
+            { id: "educationalCertificates", label: "Edu. Certificates", desc: "Max 5MB", required: true },
+            { id: "passBook", label: "Bank Pass Book", desc: "Max 5MB", required: true },
+          ].map((doc) => (
+            <motion.div 
+              key={doc.id} 
+              whileHover={{ y: -2 }}
+              className={`group relative p-5 rounded-[28px] border-2 border-dashed transition-all duration-300 ${
+                formErrors[doc.id] || docErrors[doc.id] 
+                  ? "border-rose-200 bg-rose-50/30" 
+                  : documents[doc.id] 
+                    ? "border-emerald-200 bg-emerald-50/40" 
+                    : "border-slate-100 bg-slate-50/50 hover:border-indigo-200 hover:bg-white hover:shadow-xl hover:shadow-indigo-900/5"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  {documentPreviews[doc.id] ? (
+                    documents[doc.id]?.type === "application/pdf" || documents[doc.id]?.name?.toLowerCase().endsWith(".pdf")
+                      ? <FileText size={28} className="text-indigo-600" />
+                      : <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
+                  ) : <Upload size={28} className="text-slate-300 group-hover:text-indigo-400 transition-all" />}
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white drop-shadow-sm">
-                    {isEditMode ? "Edit CRP Profile" : "Register New CRP"}
-                  </h2>
-                  <p className="text-slate-400 text-xs font-medium mt-0.5">
-                    {isEditMode
-                      ? "Update the details of an existing Community Resource Person"
-                      : "Onboard a new Community Resource Person to the platform"}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-black uppercase tracking-widest ${
+                    formErrors[doc.id] || docErrors[doc.id] ? "text-rose-600" : "text-slate-400 group-hover:text-indigo-500"
+                  } transition-colors`}>
+                    {doc.label} {doc.required && <span className="text-rose-500">*</span>}
+                  </p>
+                  <p className="text-[14px] font-bold text-slate-800 truncate pr-2 mt-1">
+                    {documents[doc.id] ? documents[doc.id].name : doc.desc}
                   </p>
                 </div>
+                <input 
+                  type="file" 
+                  id={`doc-upload-${doc.id}`} 
+                  className="hidden" 
+                  onChange={(e) => { handleDocumentChange(doc.id)(e); clearErr(doc.id); }}
+                  accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" 
+                />
+                <label 
+                  htmlFor={`doc-upload-${doc.id}`} 
+                  className="px-5 py-2.5 bg-white border border-slate-200 text-[11px] font-black uppercase tracking-wider text-slate-600 rounded-xl cursor-pointer hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-300 shadow-sm active:scale-95"
+                >
+                  Browse
+                </label>
               </div>
-              <button
-                onClick={onClose}
-                className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Steps */}
-            <div className="relative overflow-hidden">
-              <AnimatePresence mode="wait" initial={false}>
-                {formStep === 1 ? (
-                  <motion.div
-                    key="step1"
-                    initial={{ opacity: 0, x: -32 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -32 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-8 custom-scrollbar"
-                  >
-                    {/* Step indicator */}
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 1 ? "bg-slate-900 text-white border-slate-900" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
-                        <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">{formStep === 1 ? "1" : "✓"}</span> Fill Details
-                      </div>
-                      <div className="flex-1 h-px bg-slate-200" />
-                      <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border ${formStep === 2 ? "bg-slate-900 text-white border-slate-900" : "bg-slate-100 text-slate-400 border-slate-200"}`}>
-                        <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review &amp; Confirm
-                      </div>
-                    </div>
-
-                    {/* Personal Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-1">
-                        <h3 className="text-sm font-bold text-slate-900">Personal Information</h3>
-                        <p className="text-xs text-slate-500 mt-1">Identity and contact information.</p>
-                      </div>
-                      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Full Name */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name *</p>
-                          <input
-                            className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.name ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                            placeholder="Enter name"
-                            value={form.name}
-                            onChange={(e) => { setForm({ ...form, name: e.target.value }); clearErr("name"); }}
-                          />
-                          {formErrors.name && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.name}</p>}
-                        </div>
-                        {/* Aadhaar */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Aadhaar Number *</p>
-                          <input
-                            type="text" inputMode="numeric" maxLength={12} placeholder="000000000000"
-                            value={form.aadhaar}
-                            onChange={(e) => { setForm({ ...form, aadhaar: e.target.value.replace(/\D/g, "") }); clearErr("aadhaar"); }}
-                            className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-all ${formErrors.aadhaar ? "bg-red-50 border border-red-400" : "bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500"}`}
-                          />
-                          {formErrors.aadhaar && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.aadhaar}</p>}
-                        </div>
-                        {/* Mobile */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mobile Number *</p>
-                          <input
-                            className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.mobile ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                            placeholder="10-digit mobile"
-                            value={form.mobile}
-                            onChange={(e) => { setForm({ ...form, mobile: e.target.value.replace(/\D/g, "") }); clearErr("mobile"); }}
-                          />
-                          {formErrors.mobile && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.mobile}</p>}
-                        </div>
-                        {/* Email */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</p>
-                          <input
-                            className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm ${formErrors.email ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                            placeholder="email@domain.com"
-                            value={form.email}
-                            onChange={(e) => { setForm({ ...form, email: e.target.value }); clearErr("email"); }}
-                          />
-                          {formErrors.email && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.email}</p>}
-                        </div>
-                        {/* DOB */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Date of Birth *</p>
-                          <input
-                            type="date"
-                            className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.dob ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                            value={form.dob}
-                            onChange={(e) => { setForm({ ...form, dob: e.target.value }); clearErr("dob"); }}
-                          />
-                          {formErrors.dob && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.dob}</p>}
-                        </div>
-                        {/* Gender */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender *</p>
-                          <select
-                            className={`w-full px-4 py-2.5 rounded-xl border focus:bg-white transition-all outline-none text-sm text-slate-600 ${formErrors.gender ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                            value={form.gender}
-                            onChange={(e) => { setForm({ ...form, gender: e.target.value }); clearErr("gender"); }}
-                          >
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                          </select>
-                          {formErrors.gender && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.gender}</p>}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Financial Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-1">
-                        <h3 className="text-sm font-bold text-slate-900">Financial Information</h3>
-                        <p className="text-xs text-slate-500 mt-1">Banking and payment details.</p>
-                      </div>
-                      <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                        {[
-                          { key: "bankName", label: "Bank Name", placeholder: "e.g. Punjab National Bank" },
-                          { key: "branchName", label: "Branch Name", placeholder: "e.g. Panaji Main Branch" },
-                          { key: "bankAccount", label: "Account Number", placeholder: "Account Number", numeric: true },
-                          { key: "ifsc", label: "IFSC Code", placeholder: "e.g. PUNB0026000", upper: true },
-                        ].map(({ key, label, placeholder, numeric, upper }) => (
-                          <div key={key} className="space-y-1">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{label} <span className="text-red-400">*</span></p>
-                            <input
-                              className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors[key] ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                              placeholder={placeholder}
-                              value={form[key]}
-                              onChange={(e) => {
-                                let val = e.target.value;
-                                if (numeric) val = val.replace(/\D/g, "");
-                                if (upper) val = val.toUpperCase();
-                                setForm({ ...form, [key]: val });
-                                clearErr(key);
-                              }}
-                            />
-                            {formErrors[key] && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors[key]}</p>}
-                          </div>
-                        ))}
-
-                        {/* Passbook upload */}
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pass Book</p>
-                          <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-center gap-3">
-                            <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100 text-blue-600">
-                              {documentPreviews.passBook ? (
-                                documents.passBook?.type === "application/pdf" || documents.passBook?.name?.toLowerCase().endsWith(".pdf")
-                                  ? <FileText size={20} className="text-blue-600" />
-                                  : <img src={documentPreviews.passBook} alt="preview" className="w-full h-full object-cover" />
-                              ) : <Upload size={20} className="text-blue-600" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest truncate">Pass Book</p>
-                              <p className="text-xs text-slate-500 truncate pr-2">{documents.passBook ? documents.passBook.name : "Bank details (Max 5MB)"}</p>
-                              {docErrors.passBook && <p className="text-xs text-red-500 mt-1">{docErrors.passBook}</p>}
-                            </div>
-                            <input type="file" id="doc-upload-passBook" className="hidden" onChange={handleDocumentChange("passBook")} accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
-                            <label htmlFor="doc-upload-passBook" className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
-                          </div>
-                        </div>
-
-                        {/* PAN */}
-                        <div className="col-span-2 space-y-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">PAN Card Number</p>
-                          <input
-                            className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:bg-white transition-all ${formErrors.pan ? "bg-red-50 border-red-400" : "bg-slate-50 border-slate-100 focus:border-blue-500"}`}
-                            placeholder="e.g. ABCDE1234F"
-                            value={form.pan}
-                            onChange={(e) => { setForm({ ...form, pan: e.target.value.toUpperCase() }); clearErr("pan"); }}
-                          />
-                          {formErrors.pan && <p className="text-xs text-red-500 mt-1 ml-1">{formErrors.pan}</p>}
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="border-slate-100" />
-
-                    {/* Document Upload */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-1">
-                        <h3 className="text-sm font-bold text-slate-900">Document Upload</h3>
-                        <p className="text-xs text-slate-500 mt-1">Verification documents.</p>
-                      </div>
-                      <div className="md:col-span-2 space-y-4">
-                        {[
-                          { id: "profilePhoto", label: "Profile Photo", desc: "Passport size photo (Max 5MB)", required: true },
-                          { id: "aadhaarCard", label: "Aadhaar Card", desc: "Front and back side (Max 5MB)", required: true },
-                          { id: "panCard", label: "PAN Card", desc: "Clear copy (Max 5MB)", required: true },
-                          { id: "educationalCertificates", label: "Educational Certificates", desc: "Highest qualification (Max 5MB)", required: true },
-                        ].map((doc) => (
-                          <div key={doc.id} className={`p-4 rounded-2xl flex items-center gap-3 border ${formErrors[doc.id] ? "bg-red-50 border-red-300" : "bg-blue-50/50 border-blue-100"}`}>
-                            <div className="bg-white rounded-lg shadow-sm w-12 h-12 flex justify-center items-center shrink-0 overflow-hidden border border-slate-100">
-                              {documentPreviews[doc.id] ? (
-                                documents[doc.id]?.type === "application/pdf" || documents[doc.id]?.name?.toLowerCase().endsWith(".pdf")
-                                  ? <FileText size={20} className="text-blue-600" />
-                                  : <img src={documentPreviews[doc.id]} alt="preview" className="w-full h-full object-cover" />
-                              ) : <Upload size={20} className={formErrors[doc.id] ? "text-red-400" : "text-blue-600"} />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-[10px] font-bold uppercase tracking-widest truncate ${formErrors[doc.id] ? "text-red-500" : "text-blue-600"}`}>
-                                {doc.label}{doc.required && <span className="text-red-400 ml-0.5">*</span>}
-                              </p>
-                              <p className="text-xs text-slate-500 truncate pr-2">{documents[doc.id] ? documents[doc.id].name : doc.desc}</p>
-                              {formErrors[doc.id] && <p className="text-xs text-red-500 mt-0.5">{formErrors[doc.id]}</p>}
-                              {docErrors[doc.id] && <p className="text-xs text-red-500 mt-0.5">{docErrors[doc.id]}</p>}
-                            </div>
-                            <input type="file" id={`doc-upload-${doc.id}`} className="hidden"
-                              onChange={(e) => { handleDocumentChange(doc.id)(e); clearErr(doc.id); }}
-                              accept=".jpeg,.jpg,.png,.pdf,image/jpeg,image/png,application/pdf" />
-                            <label htmlFor={`doc-upload-${doc.id}`} className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">BROWSE</label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="step2"
-                    initial={{ opacity: 0, x: 32 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 32 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="max-h-[70vh] overflow-y-auto pt-8 px-8 pb-4 space-y-6 custom-scrollbar"
-                  >
-                    {/* Step indicator */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
-                        <span className="w-5 h-5 flex items-center justify-center rounded-full bg-emerald-100">✓</span> Fill Details
-                      </div>
-                      <div className="flex-1 h-px bg-emerald-200" />
-                      <div className="flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border bg-slate-900 text-white border-slate-900">
-                        <span className="w-5 h-5 flex items-center justify-center rounded-full bg-white/20">2</span> Review &amp; Confirm
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl bg-blue-50 border border-blue-100 px-5 py-4 flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-xl text-blue-600"><Eye size={18} /></div>
-                      <div>
-                        <p className="text-sm font-bold text-blue-800">Review before submitting</p>
-                        <p className="text-xs text-blue-500 mt-0.5">Please verify all information is accurate. You can go back to edit.</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      {/* Personal */}
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Personal Information</p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {[
-                            { label: "Full Name", value: form.name },
-                            { label: "Aadhaar", value: form.aadhaar },
-                            { label: "Mobile", value: form.mobile },
-                            { label: "Email", value: form.email || "—" },
-                            { label: "Date of Birth", value: form.dob },
-                            { label: "Gender", value: form.gender },
-                          ].map((item) => (
-                            <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
-                              <p className="text-sm font-bold text-slate-800 truncate">{item.value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Financial */}
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Information</p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {[
-                            { label: "Bank Name", value: form.bankName || "—" },
-                            { label: "Branch Name", value: form.branchName || "—" },
-                            { label: "Account Number", value: form.bankAccount || "—" },
-                            { label: "IFSC Code", value: form.ifsc || "—" },
-                            { label: "PAN Card", value: form.pan || "—" },
-                          ].map((item) => (
-                            <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{item.label}</p>
-                              <p className="text-sm font-bold text-slate-800 truncate">{item.value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Documents */}
-                      <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Uploaded Documents</p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {[
-                            { id: "profilePhoto", label: "Profile Photo" },
-                            { id: "aadhaarCard", label: "Aadhaar Card" },
-                            { id: "panCard", label: "PAN Card" },
-                            { id: "educationalCertificates", label: "Edu. Certificates" },
-                            { id: "passBook", label: "Pass Book" },
-                          ].map((doc) => (
-                            <div key={doc.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center gap-2 text-center">
-                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center shadow-sm">
-                                {documentPreviews[doc.id] ? (
-                                  documents[doc.id]?.type === "application/pdf" || documents[doc.id]?.name?.toLowerCase().endsWith(".pdf")
-                                    ? <FileText size={24} className="text-blue-500" />
-                                    : <img src={documentPreviews[doc.id]} alt={doc.label} className="w-full h-full object-cover" />
-                                ) : <Upload size={20} className="text-slate-300" />}
-                              </div>
-                              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{doc.label}</p>
-                              <p className="text-[10px] text-slate-400 truncate w-full">
-                                {documents[doc.id]
-                                  ? <span className="text-emerald-600 font-semibold">✓ Uploaded</span>
-                                  : <span className="text-slate-300">Not uploaded</span>}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Confirmation */}
-                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                        <label className="flex items-start gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={confirmChecked}
-                            onChange={(e) => setConfirmChecked(e.target.checked)}
-                            className="mt-1 w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
-                          />
-                          <span className="text-xs text-amber-800 leading-relaxed font-medium">
-                            I confirm that all the information provided above is accurate and complete. I understand that any discrepancies may lead to the rejection of this registration.
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Footer */}
-            <div className="px-8 py-5 bg-slate-50/80 border-t flex justify-end items-center gap-3">
-              <button
-                onClick={() => {
-                  if (formStep === 2) { setFormStep(1); setConfirmChecked(false); }
-                  else { onClose(); }
-                }}
-                className="px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white transition-all shadow-sm"
-              >
-                {formStep === 2 ? "← Back" : "Cancel"}
-              </button>
-
-              {formStep === 1 ? (
-                <button
-                  onClick={handleNextStep}
-                  className="px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 bg-slate-900 text-white hover:bg-slate-800 active:scale-95"
-                >
-                  Next: Preview →
-                </button>
-              ) : (
-                <button
-                  disabled={!confirmChecked || isSubmitting}
-                  onClick={handleSubmit}
-                  className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200 flex items-center gap-2 ${
-                    confirmChecked && !isSubmitting
-                      ? "bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95"
-                      : "bg-slate-300 text-white cursor-not-allowed"
-                  }`}
-                >
-                  {isSubmitting ? "Processing..." : isEditMode ? "✓ Confirm & Update CRP" : "✓ Confirm & Register CRP"}
-                </button>
+              {(formErrors[doc.id] || docErrors[doc.id]) && (
+                <p className="text-[11px] font-bold text-rose-500 mt-2 ml-1">
+                  {formErrors[doc.id] || docErrors[doc.id]}
+                </p>
               )}
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
-      )}
-    </AnimatePresence>
+      </div>
+
+      <FormActions
+        onCancel={onClose}
+        onConfirm={handleNextStep}
+        confirmText="Next: Preview Profile →"
+        confirmIcon={Eye}
+      />
+    </motion.div>
+  );
+
+  const renderStep2 = () => (
+    <motion.div
+      key="step2"
+      initial={{ opacity: 0, x: 10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="p-8 space-y-10"
+    >
+      {/* Step Indicator */}
+      <div className="flex items-center gap-4 max-w-md mx-auto">
+        <div className="flex flex-col items-center gap-2 flex-1">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-lg shadow-emerald-200">✓</div>
+          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-600">Details</span>
+        </div>
+        <div className="h-1 bg-emerald-100 flex-1 mb-6 rounded-full overflow-hidden">
+            <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                className="h-full bg-emerald-500"
+            />
+        </div>
+        <div className="flex flex-col items-center gap-2 flex-1">
+          <motion.div 
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-200"
+          >
+            2
+          </motion.div>
+          <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600">Review</span>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-[32px] p-8 flex items-start gap-5 shadow-sm">
+        <div className="w-14 h-14 rounded-[22px] bg-white flex items-center justify-center shadow-md text-indigo-600 shrink-0">
+          <Eye size={28} />
+        </div>
+        <div>
+          <h4 className="text-lg font-black text-indigo-900">Review CRP Profile</h4>
+          <p className="text-[14px] font-medium text-indigo-600/70 mt-1 leading-relaxed">
+            Please verify all information before finalizing the registration. You can always go back to make corrections.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+            <h5 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Personal Details</h5>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {[
+              { label: "Full Name", value: form.name, icon: User },
+              { label: "Aadhaar", value: form.aadhaar, icon: CreditCard },
+              { label: "Mobile", value: form.mobile, icon: User },
+              { label: "Email", value: form.email || "—", icon: User },
+              { label: "DOB", value: form.dob, icon: Calendar },
+              { label: "Gender", value: form.gender, icon: Users },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-sm hover:border-slate-200 transition-all duration-300 group">
+                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-50 group-hover:text-indigo-600 transition-colors">
+                  <item.icon size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-indigo-400 transition-colors">{item.label}</p>
+                  <p className="text-[15px] font-black text-slate-800">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+            <h5 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Financial Details</h5>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {[
+              { label: "Bank Name", value: form.bankName, icon: Landmark },
+              { label: "Branch", value: form.branchName, icon: Landmark },
+              { label: "Account No.", value: form.bankAccount, icon: CreditCard },
+              { label: "IFSC Code", value: form.ifsc, icon: Landmark },
+              { label: "PAN Card", value: form.pan || "—", icon: CreditCard },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-sm hover:border-slate-200 transition-all duration-300 group">
+                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-50 group-hover:text-emerald-600 transition-colors">
+                  <item.icon size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider group-hover:text-emerald-400 transition-colors">{item.label}</p>
+                  <p className="text-[15px] font-black text-slate-800">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4 space-y-6">
+        <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-amber-500 rounded-full" />
+            <h5 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Verification Documents</h5>
+        </div>
+        <div className="flex flex-wrap gap-4">
+          {[
+            { id: "profilePhoto", label: "Photo" },
+            { id: "aadhaarCard", label: "Aadhaar" },
+            { id: "panCard", label: "PAN" },
+            { id: "educationalCertificates", label: "Education" },
+            { id: "passBook", label: "Passbook" },
+          ].map((doc) => (
+            <div key={doc.id} className="flex items-center gap-3.5 px-5 py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 hover:bg-emerald-50 transition-colors duration-300 group">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 transition-transform">
+                <FileText size={18} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">{doc.label}</span>
+                <span className="text-sm font-black text-emerald-700">Verified ✓</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div 
+        className={`p-8 rounded-[32px] transition-all duration-500 cursor-pointer border-2 ${
+            confirmChecked 
+            ? "bg-indigo-50/50 border-indigo-200 shadow-xl shadow-indigo-900/5" 
+            : "bg-slate-50/50 border-slate-100 hover:bg-slate-50 hover:border-slate-200"
+        }`} 
+        onClick={() => setConfirmChecked(!confirmChecked)}
+      >
+        <label className="flex items-start gap-5 cursor-pointer">
+          <div className={`mt-1 w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all duration-300 shrink-0 ${
+            confirmChecked ? "bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-200 scale-110" : "bg-white border-slate-300"
+          }`}>
+            {confirmChecked && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><X size={16} className="text-white rotate-45" /></motion.div>}
+          </div>
+          <span className={`text-[14px] leading-relaxed font-bold transition-colors duration-300 ${confirmChecked ? "text-indigo-900" : "text-slate-500"}`}>
+            I confirm that all the information provided above is accurate and complete. I understand that any discrepancies may lead to the rejection of this registration.
+          </span>
+        </label>
+      </div>
+
+      <div className="flex items-center justify-end gap-5 pt-4">
+        <button
+          onClick={() => { setFormStep(1); setConfirmChecked(false); }}
+          className="px-8 py-4 rounded-2xl border border-slate-200 text-[15px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-[0.98]"
+        >
+          ← Back to Edit
+        </button>
+        <button
+          disabled={!confirmChecked || isSubmitting}
+          onClick={handleSubmit}
+          className={`px-10 py-4 rounded-2xl text-[15px] font-bold transition-all flex items-center gap-3 shadow-xl ${
+            confirmChecked && !isSubmitting
+              ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:shadow-emerald-900/20 hover:-translate-y-0.5 active:scale-[0.98]"
+              : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
+          }`}
+        >
+          {isSubmitting ? (
+            <>
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [1, 0.5, 1] 
+                }} 
+                transition={{ 
+                  duration: 1.5, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+              >
+                <Upload size={18} />
+              </motion.div> 
+              <span>Registering...</span>
+            </>
+          ) : (
+            <><UserPlus size={20} /> {isEditMode ? "Confirm & Update Profile" : "Confirm & Complete Registration"}</>
+          )}
+
+        </button>
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <FormModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-4xl">
+      <FormHeader
+        title={isEditMode ? "Edit CRP Profile" : "Register New CRP"}
+        subtitle={isEditMode ? "Update Community Resource Person details" : "Onboard a new Community Resource Person"}
+        icon={UserPlus}
+        onClose={onClose}
+      />
+      
+      <div className="max-h-[80vh] overflow-y-auto custom-scrollbar bg-white">
+        <AnimatePresence mode="popLayout">
+          {formStep === 1 ? renderStep1() : renderStep2()}
+        </AnimatePresence>
+      </div>
+    </FormModal>
   );
 }
+

@@ -5,32 +5,40 @@ import { X, XCircle, ChevronDown } from "lucide-react";
 /**
  * Common Modal Wrapper for Forms
  */
+/**
+ * Common Modal Wrapper for Forms
+ */
 export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) => {
-    if (!isOpen) return null;
-
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/60 backdrop-blur-md px-4 overflow-y-auto py-8">
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="absolute inset-0"
-                />
+            {isOpen && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto px-4 py-8 custom-scrollbar">
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-[8px] z-0"
+                    />
 
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className={`bg-white rounded-[28px] shadow-2xl w-full ${maxWidth} overflow-hidden relative z-10`}
-                >
-                    {children}
-                </motion.div>
-            </div>
+                    {/* Modal Container */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                        className={`bg-white rounded-[32px] shadow-2xl w-full ${maxWidth} overflow-hidden relative z-10 will-change-transform shadow-indigo-900/10`}
+                    >
+                        {children}
+                    </motion.div>
+                </div>
+            )}
         </AnimatePresence>
     );
 };
+
+
 
 /**
  * Common Header for Forms
@@ -99,16 +107,16 @@ export const FormInput = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 group/field">
             {label && (
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1 group-focus-within/field:text-indigo-600 transition-colors duration-300">
                     {label}
                 </label>
             )}
-            <div className="relative group">
+            <div className="relative group/input">
                 {Icon && (
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                        <Icon className="w-5 h-5" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-500 transition-colors duration-300">
+                        <Icon className="w-5 h-5 group-hover/input:scale-110 transition-transform duration-300" />
                     </div>
                 )}
                 <input
@@ -117,17 +125,28 @@ export const FormInput = ({
                     placeholder={placeholder}
                     value={value}
                     onChange={onChange}
-                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all ${
+                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 ${
                         error
-                            ? "border-rose-300 focus:border-rose-500"
-                            : "border-slate-200 focus:border-indigo-500 focus:bg-white"
+                            ? "border-rose-300 focus:border-rose-500 shadow-sm shadow-rose-100"
+                            : "border-slate-100 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:shadow-sm"
                     }`}
                     {...props}
                 />
             </div>
+            {error && (
+                <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] font-bold text-rose-500 ml-1 mt-1 flex items-center gap-1.5"
+                >
+                    <span className="w-1 h-1 rounded-full bg-rose-500" />
+                    {error}
+                </motion.p>
+            )}
         </div>
     );
 };
+
 
 /**
  * Common Actions (Cancel/Confirm) for Forms
@@ -137,15 +156,15 @@ export const FormActions = ({ onCancel, onConfirm, cancelText = "Cancel", confir
         <div className="flex items-center gap-4 mt-10">
             <button
                 onClick={onCancel}
-                className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all active:scale-[0.98]"
+                className="flex-1 py-4 text-[15px] font-bold text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all duration-300 active:scale-[0.98]"
             >
                 {cancelText}
             </button>
             <button
                 onClick={onConfirm}
-                className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#1a2e7a] to-[#2a44a1] rounded-2xl shadow-xl shadow-indigo-900/20 hover:shadow-2xl hover:shadow-indigo-900/30 hover:-translate-y-0.5 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                className="flex-[1.5] py-4 text-[15px] font-bold text-white bg-gradient-to-r from-[#1a2e7a] to-[#2a44a1] rounded-2xl shadow-xl shadow-indigo-900/10 hover:shadow-2xl hover:shadow-indigo-900/20 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 group"
             >
-                {ConfirmIcon && <ConfirmIcon className="w-5 h-5" />}
+                {ConfirmIcon && <ConfirmIcon className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />}
                 <span>{confirmText}</span>
             </button>
         </div>
@@ -166,25 +185,25 @@ export const FormSelect = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 group/field">
             {label && (
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1 group-focus-within/field:text-indigo-600 transition-colors duration-300">
                     {label}
                 </label>
             )}
-            <div className="relative group">
+            <div className="relative group/input">
                 {Icon && (
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                        <Icon className="w-5 h-5" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-500 transition-colors duration-300">
+                        <Icon className="w-5 h-5 group-hover/input:scale-110 transition-transform duration-300" />
                     </div>
                 )}
                 <select
                     value={value}
                     onChange={onChange}
-                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer ${
+                    className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-10 py-4 rounded-2xl border bg-slate-50/50 text-[15px] font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 appearance-none cursor-pointer ${
                         error
                             ? "border-rose-300 focus:border-rose-500"
-                            : "border-slate-200 focus:border-indigo-500 focus:bg-white"
+                            : "border-slate-100 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:shadow-sm"
                     }`}
                     {...props}
                 >
@@ -195,23 +214,35 @@ export const FormSelect = ({
                         </option>
                     ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400">
-                    <ChevronDown className="w-4 h-4" />
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 group-focus-within/input:text-indigo-500 transition-colors duration-300">
+                    <ChevronDown className="w-4 h-4 group-hover/input:translate-y-0.5 transition-transform duration-300" />
                 </div>
             </div>
+            {error && (
+                <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] font-bold text-rose-500 ml-1 mt-1 flex items-center gap-1.5"
+                >
+                    <span className="w-1 h-1 rounded-full bg-rose-500" />
+                    {error}
+                </motion.p>
+            )}
         </div>
     );
 };
+
 
 /**
  * Common Info Display for View Modals
  */
 export const FormInfo = ({ label, value }) => {
     return (
-        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 transition-all hover:bg-slate-100/50">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">{label}</p>
+        <div className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 transition-all duration-300 hover:bg-white hover:shadow-sm hover:border-slate-200 group">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1 group-hover:text-indigo-500 transition-colors">{label}</p>
             <p className="text-[15px] font-bold text-slate-800 ml-1">{value || "N/A"}</p>
         </div>
     );
 };
+
 

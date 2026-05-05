@@ -52,10 +52,10 @@ export default function DataTable({
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px] flex flex-col"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[400px] flex flex-col will-change-transform"
         >
             {/* Header Controls */}
             {(searchProps || filterProps || headerActions) && (
