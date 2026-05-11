@@ -77,7 +77,7 @@ export default function ActiveCRPRoster() {
         setStats({
           present: presentCount,
           absent: absentCount,
-          total: presentCount + absentCount
+          total: safeTotal
         });
       } catch (err) {
         console.error("Failed to fetch active CRPs:", err);
@@ -145,6 +145,8 @@ export default function ActiveCRPRoster() {
                     paddingAngle={3}
                     dataKey="value"
                     stroke="none"
+                    startAngle={90}
+                    endAngle={-270}
                     animationDuration={1500}
                   >
                     {donutData.map((entry, index) => (
