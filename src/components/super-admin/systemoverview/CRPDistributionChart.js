@@ -1,50 +1,15 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { MapPin, TrendingUp } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  LabelList
-} from "recharts";
+import { motion, AnimatePresence } from "framer-motion";
+import { Clock, MapPin, CheckCircle2, UserCircle2 } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
-// ─── Custom Tooltip ───────────────────────────────────────────────────────────
-function CustomTooltip({ active, payload }) {
-  if (!active || !payload?.length) return null;
-  const data = payload[0].payload;
-  
-  return (
-    <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl border border-slate-800 z-50">
-      <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-2 flex items-center gap-1">
-        <MapPin size={10} />
-        {data.area}
-      </p>
-      <div className="space-y-1">
-        <p className="text-sm font-bold flex items-center justify-between gap-4">
-          <span className="text-white">Avg. Attendance</span>
-          <span className={data.attendance >= 85 ? "text-emerald-400" : data.attendance >= 70 ? "text-amber-400" : "text-rose-400"}>
-            {data.attendance}%
-          </span>
-        </p>
-        <p className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-800">
-          Based on {data.totalStaff} total staff members
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── AreaWiseAttendanceChart ──────────────────────────────────────────────────
-export default function AreaWiseAttendanceChart() {
-  const [chartData, setChartData] = useState([]);
+export default function ActiveCRPRoster() {
+  const [activeCRPs, setActiveCRPs] = useState([]);
+  const [stats, setStats] = useState({ present: 0, absent: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchAreaAttendance() {
+    async function fetchLoggedInCRPs() {
       try {
         const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
         const date = new Date().toISOString().split('T')[0];
@@ -57,142 +22,215 @@ export default function AreaWiseAttendanceChart() {
         let rawData = result?.data?.data || result?.data || result?.attendance || [];
         if (!Array.isArray(rawData)) rawData = [];
 
-        const areaStats = {};
-        
-        rawData.forEach(item => {
-          const area = item.taluka_name || item.block || item.district_name || item.district || "Unassigned";
-          if (!areaStats[area]) {
-            areaStats[area] = { present: 0, total: 0 };
-          }
-          
-          areaStats[area].total += 1;
-          
+        let presentCount = 0;
+        let absentCount = 0;
+
+        const loggedIn = [];
+
+        rawData.forEach((item, idx) => {
           const isPresent = item.attendance_status === 1 || !!item.checkin_time;
+          
           if (isPresent) {
-            areaStats[area].present += 1;
+            presentCount++;
+            let timeDisplay = "Checked In";
+            if (item.checkin_time) {
+              try {
+                const parts = item.checkin_time.split(' ');
+                if (parts.length > 1) {
+                  const tParts = parts[1].split(':');
+                  timeDisplay = `${tParts[0]}:${tParts[1]}`;
+                } else {
+                  timeDisplay = item.checkin_time;
+                }
+              } catch (e) {
+                timeDisplay = item.checkin_time;
+              }
+            }
+
+            loggedIn.push({
+              id: item.id || item.employee_id || idx,
+              name: item.fullname || item.name || "Unknown CRP",
+              time: timeDisplay,
+              area: item.taluka_name || item.block || item.district_name || item.district || "Unassigned Location",
+              profile: item.profile || item.image || item.profile_photo || null
+            });
+          } else {
+            absentCount++;
           }
         });
 
-        const processedData = Object.entries(areaStats).map(([area, stats]) => {
-          const attendance = stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0;
-          return {
-            area,
-            attendance,
-            totalStaff: stats.total
-          };
-        }).sort((a, b) => b.attendance - a.attendance);
+        loggedIn.sort((a, b) => {
+          if (a.time > b.time) return -1;
+          if (a.time < b.time) return 1;
+          return 0;
+        });
 
-        setChartData(processedData);
-        
+        setActiveCRPs(loggedIn);
+        setStats({
+          present: presentCount,
+          absent: absentCount,
+          total: presentCount + absentCount
+        });
       } catch (err) {
-        console.error("Failed to fetch area attendance:", err);
+        console.error("Failed to fetch active CRPs:", err);
       } finally {
         setIsLoading(false);
       }
     }
     
-    fetchAreaAttendance();
+    fetchLoggedInCRPs();
   }, []);
+
+  const donutData = [
+    { name: "Checked In", value: stats.present, color: "#10B981" },
+    { name: "Pending / Absent", value: stats.absent, color: "#F1F5F9" }
+  ];
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col min-h-[450px] transition-all hover:shadow-md relative overflow-hidden"
+      className="lg:col-span-2 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col min-h-[450px] transition-all hover:shadow-md overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-2 relative z-10">
+      <div className="flex items-start justify-between p-6 border-b border-slate-100 bg-slate-50/50">
         <div>
           <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Area-wise Attendance Leaderboard
-            <TrendingUp size={18} className="text-slate-400" />
+            Live Check-in Overview
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
           </h2>
           <p className="text-sm text-slate-500">
-            Performance ranked by operational blocks today
+            Real-time attendance status and recent logins
           </p>
         </div>
 
-        {isLoading && (
+        {isLoading ? (
           <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
             <div className="w-3 h-3 border-2 border-[#3b52ab] border-t-transparent rounded-full animate-spin" />
             <span className="text-[10px] font-black uppercase text-[#3b52ab] tracking-widest">Live Sync</span>
           </div>
-        )}
-      </div>
-
-      {/* Chart */}
-      <div className="flex-1 w-full mt-4 flex flex-col justify-center">
-        {!isLoading && chartData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center p-8 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 h-full">
-            <MapPin size={32} className="text-slate-300 mb-3" />
-            <p className="text-sm font-bold text-slate-600">No Attendance Records Yet</p>
-            <p className="text-xs text-slate-400 mt-1 max-w-xs">
-              Waiting for staff members to check in today. The leaderboard will populate automatically once records are received.
-            </p>
-          </div>
         ) : (
-          <ResponsiveContainer width="100%" height={chartData.length * 45 > 300 ? chartData.length * 45 : 300}>
-          <BarChart 
-            layout="vertical" 
-            data={chartData} 
-            margin={{ top: 10, right: 40, left: 10, bottom: 0 }}
-          >
-            <XAxis 
-              type="number" 
-              domain={[0, 100]} 
-              hide 
-            />
-            <YAxis 
-              type="category" 
-              dataKey="area" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fill: "#475569", fontSize: 12, fontWeight: 700 }} 
-              width={90}
-            />
-            <Tooltip 
-              cursor={{ fill: "transparent" }} 
-              content={<CustomTooltip />} 
-            />
-            <Bar
-              dataKey="attendance"
-              barSize={18}
-              radius={[8, 8, 8, 8]}
-              background={{ fill: '#F1F5F9', radius: 8 }}
-              animationDuration={1500}
-            >
-              {chartData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={entry.attendance >= 85 ? "#10B981" : entry.attendance >= 70 ? "#F59E0B" : "#EF4444"} 
-                />
-              ))}
-              <LabelList 
-                dataKey="attendance" 
-                position="right" 
-                formatter={(val) => `${val}%`}
-                style={{ fill: '#64748B', fontSize: 11, fontWeight: 800 }}
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+          <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+            <CheckCircle2 size={14} className="text-emerald-500" />
+            <span className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">{stats.present} Online</span>
+          </div>
         )}
       </div>
 
-      {/* Legend */}
-      <div className="mt-4 flex items-center justify-center gap-6 border-t border-slate-50 pt-4">
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-[#10B981]" />
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Optimal (≥85%)</span>
+      <div className="flex flex-col md:flex-row flex-1">
+        {/* Left Pane: Donut Chart */}
+        <div className="w-full md:w-[35%] border-r border-slate-100 p-6 flex flex-col items-center justify-center bg-white relative">
+          {!isLoading && stats.total > 0 ? (
+            <div className="w-full h-[220px] relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={90}
+                    paddingAngle={3}
+                    dataKey="value"
+                    stroke="none"
+                    animationDuration={1500}
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                    itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-black text-slate-800 tracking-tighter">
+                  {Math.round((stats.present / stats.total) * 100) || 0}%
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Present</span>
+              </div>
+            </div>
+          ) : (
+            <div className="w-40 h-40 rounded-full border-8 border-slate-50 flex items-center justify-center">
+              <span className="text-slate-300 font-medium text-sm">No Data</span>
+            </div>
+          )}
+          
+          <div className="w-full mt-6 space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-100/50">
+              <span className="text-xs font-bold text-emerald-700 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"/>Checked In</span>
+              <span className="text-sm font-black text-emerald-700">{stats.present}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-xs font-bold text-slate-500 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-slate-300"/>Pending</span>
+              <span className="text-sm font-black text-slate-600">{stats.absent}</span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-[#F59E0B]" />
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Average (70-84%)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-[#EF4444]" />
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Low (&lt;70%)</span>
+
+        {/* Right Pane: Live Feed */}
+        <div className="w-full md:w-[65%] p-6 bg-slate-50/30">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <Clock size={14} /> Latest Activity
+          </h3>
+          
+          <div className="h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {!isLoading && activeCRPs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center p-8 bg-white rounded-2xl border border-dashed border-slate-200 h-full">
+                <UserCircle2 size={32} className="text-slate-300 mb-3" />
+                <p className="text-sm font-bold text-slate-600">No Check-ins Yet</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs">
+                  Waiting for staff members to log their attendance today.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <AnimatePresence>
+                  {activeCRPs.map((crp, idx) => (
+                    <motion.div
+                      key={`${crp.id}-${idx}`}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 hover:shadow-md hover:shadow-indigo-50 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold overflow-hidden shrink-0 border border-indigo-100">
+                          {crp.profile ? (
+                            <img src={crp.profile} alt={crp.name} className="w-full h-full object-cover" />
+                          ) : (
+                            crp.name.charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-indigo-600 transition-colors">{crp.name}</span>
+                          <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+                            <MapPin size={10} className="text-slate-400" />
+                            <span className="truncate max-w-[150px]">{crp.area}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className="text-xs font-black text-slate-700 tabular-nums bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                          {crp.time}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Online
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </motion.section>
