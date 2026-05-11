@@ -8,7 +8,7 @@ import CRPDistributionChart from "../../components/super-admin/systemoverview/CR
 import SystemHealth        from "../../components/super-admin/systemoverview/SystemHealth";
 import AttendanceTrends    from "../../components/super-admin/systemoverview/AttendanceTrends";
 import ActivityTable       from "../../components/super-admin/systemoverview/ActivityTable";
-import TaskOverviewMap     from "../../components/super-admin/systemoverview/TaskOverviewMap";
+import EventOverviewMap     from "../../components/super-admin/event-mgmt/EventOverviewMap";
 
 export default function SuperAdmin() {
   const { user } = useAuth();
@@ -30,8 +30,7 @@ export default function SuperAdmin() {
             <SystemHealth />
           </div>
 
-
-          <TaskOverviewMap />
+          <EventOverviewMap />
 
           <AttendanceTrends />
 

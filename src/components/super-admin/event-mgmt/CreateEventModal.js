@@ -50,8 +50,8 @@ export default function CreateEventModal({ isOpen, onClose, onSave }) {
         startTime: "",
         endTime: "",
         location: "",
-        latitude: "19.13582",
-        longitude: "72.83120",
+        latitude: "",
+        longitude: "",
         district_id: "",
         taluka_id: "",
         village_id: "",
@@ -376,7 +376,58 @@ export default function CreateEventModal({ isOpen, onClose, onSave }) {
                                     {isDetectingLocation ? "Detecting..." : "Detect GPS"}
                                 </button>
                             </div>
-                            <FormInput icon={MapPin} placeholder="Address or coordinates" value={formData.location} onChange={e => handleChange("location", e.target.value)} />
+                            {/* Address field — auto-parses "lat, lng" strings into lat/lng fields */}
+                            <FormInput
+                                icon={MapPin}
+                                placeholder='Address, or paste coordinates e.g. "15.4956, 73.9782"'
+                                value={formData.location}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    handleChange("location", val);
+                                    // Auto-parse if it looks like "lat, lng"
+                                    const coordMatch = val.match(/^\s*(-?\d{1,3}\.\d+)\s*[,\s]\s*(-?\d{1,3}\.\d+)\s*$/);
+                                    if (coordMatch) {
+                                        const [, lat, lng] = coordMatch;
+                                        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                                    }
+                                }}
+                            />
+
+                            {/* Explicit lat / lng fields */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Latitude</label>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        placeholder="e.g. 15.4956385"
+                                        value={formData.latitude}
+                                        onChange={e => handleChange("latitude", e.target.value)}
+                                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[#3b52ab] transition-all outline-none text-sm font-bold text-slate-800 shadow-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Longitude</label>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        placeholder="e.g. 73.9782924"
+                                        value={formData.longitude}
+                                        onChange={e => handleChange("longitude", e.target.value)}
+                                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-[#3b52ab] transition-all outline-none text-sm font-bold text-slate-800 shadow-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Live GPS badge */}
+                            {formData.latitude && formData.longitude && (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+                                    <Navigation size={12} className="text-emerald-600 rotate-45 shrink-0" />
+                                    <span className="text-[11px] font-bold text-emerald-700">
+                                        📍 {parseFloat(formData.latitude).toFixed(6)}°N, {parseFloat(formData.longitude).toFixed(6)}°E
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </FormSection>
 

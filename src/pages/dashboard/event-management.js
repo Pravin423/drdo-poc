@@ -12,6 +12,7 @@ import {
   Users,
   BarChart3,
   LayoutDashboard,
+  Map as MapIcon,
   X,
   Trash2,
 } from "lucide-react";
@@ -29,6 +30,7 @@ import EventAnalyticsTab from "../../components/super-admin/event-mgmt/EventAnal
 import CreateEventModal from "../../components/super-admin/event-mgmt/CreateEventModal";
 import AddParticipantModal from "../../components/super-admin/event-mgmt/AddParticipantModal";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
+import EventOverviewMap from "../../components/super-admin/event-mgmt/EventOverviewMap";
 
 export default function EventManagement() {
   const router = useRouter();
@@ -85,7 +87,9 @@ export default function EventManagement() {
           capacity: 0,
           description: e.description || "",
           status: e.status || "upcoming",
-          participants_count: e.participants_count || 0
+          participants_count: e.participants_count || 0,
+          latitude: e.latitude || "",
+          longitude: e.longitude || "",
         }));
         setEvents(mappedEvents);
       }
@@ -191,6 +195,7 @@ export default function EventManagement() {
     { id: "ongoing",      label: "Ongoing",     icon: Clock },
     { id: "completed",    label: "Completed",   icon: CheckCircle2 },
     { id: "closed",       label: "Closed",      icon: X },
+    { id: "map",          label: "Map View",    icon: MapIcon },
   ];
 
   const filteredEvents = useMemo(() => {
@@ -291,6 +296,8 @@ export default function EventManagement() {
                   <div className="w-16 h-16 border-4 border-slate-100 border-t-tech-blue-500 rounded-full animate-spin mb-4" />
                   <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Fetching Events...</p>
                 </div>
+              ) : activeTab === "map" ? (
+                <EventOverviewMap events={events} />
               ) : (
                 (activeTab === "all" || activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed" || activeTab === "closed") && (
                   <EventListTab
