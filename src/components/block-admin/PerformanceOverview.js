@@ -230,36 +230,46 @@ export default function PerformanceOverview({ user }) {
             <div className="w-full h-full bg-slate-50 rounded-2xl animate-pulse" />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={talukas} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <BarChart data={talukas} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.7} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
-                  angle={-45}
+                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                  angle={-30}
                   textAnchor="end"
+                  dy={10}
                   interval={0}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }}
+                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                  dx={-10}
                 />
                 <Tooltip 
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ 
                     borderRadius: '16px', 
                     border: 'none', 
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
                     padding: '12px'
                   }}
+                  itemStyle={{ fontWeight: 800, color: '#1e293b' }}
                 />
                 <Bar 
                   dataKey="shgCount" 
-                  fill="#6366f1" 
-                  radius={[8, 8, 0, 0]} 
-                  barSize={40}
+                  name="SHGs Mapped"
+                  fill="url(#barGradient)" 
+                  radius={[6, 6, 0, 0]} 
+                  maxBarSize={50}
                   animationDuration={1500}
                 />
               </BarChart>
