@@ -6,8 +6,6 @@ import PageHeader          from "../../components/super-admin/systemoverview/Pag
 import SummaryCards        from "../../components/super-admin/systemoverview/SummaryCards";
 import CRPDistributionChart from "../../components/super-admin/systemoverview/CRPDistributionChart";
 import SystemHealth        from "../../components/super-admin/systemoverview/SystemHealth";
-import AttendanceTrends    from "../../components/super-admin/systemoverview/AttendanceTrends";
-import ActivityTable       from "../../components/super-admin/systemoverview/ActivityTable";
 import EventOverviewMap     from "../../components/super-admin/event-mgmt/EventOverviewMap";
 
 export default function SuperAdmin() {
@@ -31,11 +29,6 @@ export default function SuperAdmin() {
           </div>
 
           <EventOverviewMap />
-
-          <AttendanceTrends />
-
-         
-          <ActivityTable />
 
         </div>
       </DashboardLayout>
