@@ -101,6 +101,15 @@ export const SIDEBAR_CONFIG = {
     },
   ],
 
+  "state-admin": [
+    {
+      section: "COMMUNICATION & ESCALATIONS",
+      items: [
+        { name: "Escalations Inbox", path: "/dashboard/state-admin/escalations" },
+      ],
+    },
+  ],
+
   "Block-admin": [
     {
       section: "SELF MANAGEMENT",
