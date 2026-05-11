@@ -22,8 +22,8 @@ export const AuthProvider = ({ children }) => {
 
   const ROLE_MAP = [
     { match: "super admin",                          role: "super-admin",    dashboard: "/dashboard/super-admin" },
-    { match: "state program manager - mis",          role: "state-admin",    dashboard: "/dashboard/super-admin" },
-    { match: "state program manager - hr",           role: "state-admin",    dashboard: "/dashboard/super-admin" },
+    { match: "state program manager - mis",          role: "state-admin",    dashboard: "/dashboard/state-admin/escalations" },
+    { match: "state program manager - hr",           role: "state-admin",    dashboard: "/dashboard/state-admin/escalations" },
     { match: "block manager",                        role: "Block-admin",    dashboard: "/dashboard/block-admin" },
     { match: "block program manager",                role: "Block-admin",    dashboard: "/dashboard/block-admin" },
     { match: "block resource person",                role: "supervisor",     dashboard: "/dashboard/supervisor" },

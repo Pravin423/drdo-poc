@@ -1,18 +1,24 @@
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 import DashboardLayout from "../../components/DashboardLayout";
 import ProtectedRoute from "../../components/ProtectedRoute";
 
 export default function StateAdmin() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect automatically to default dashboard
+    router.replace("/dashboard/state-admin/escalations");
+  }, [router]);
+
   return (
     <ProtectedRoute allowedRole="state-admin">
       <DashboardLayout>
-        <div className="space-y-3">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
-            State Admin overview
-          </h1>
-          <p className="text-sm text-slate-300 max-w-xl">
-            High-level view of CRP coverage and performance across all
-            districts. Use this space to spot emerging gaps early.
-          </p>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+            <p className="text-sm font-bold text-slate-500 animate-pulse tracking-wide">Initializing Dashboard...</p>
+          </div>
         </div>
       </DashboardLayout>
     </ProtectedRoute>
