@@ -195,7 +195,6 @@ export default function EventManagement() {
     { id: "ongoing",      label: "Ongoing",     icon: Clock },
     { id: "completed",    label: "Completed",   icon: CheckCircle2 },
     { id: "closed",       label: "Closed",      icon: X },
-    { id: "map",          label: "Map View",    icon: MapIcon },
   ];
 
   const filteredEvents = useMemo(() => {
@@ -264,6 +263,9 @@ export default function EventManagement() {
           {/* Stats Cards */}
           <EventOverviewStats stats={stats} />
 
+          {/* Map Overview */}
+          <EventOverviewMap events={events} />
+
           {/* Tab Navigation */}
           <div className="flex p-1.5 bg-slate-100/50 rounded-[2rem] w-fit backdrop-blur-md border border-slate-200/50">
             {tabs.map((tab) => (
@@ -296,8 +298,6 @@ export default function EventManagement() {
                   <div className="w-16 h-16 border-4 border-slate-100 border-t-tech-blue-500 rounded-full animate-spin mb-4" />
                   <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Fetching Events...</p>
                 </div>
-              ) : activeTab === "map" ? (
-                <EventOverviewMap events={events} />
               ) : (
                 (activeTab === "all" || activeTab === "upcoming" || activeTab === "ongoing" || activeTab === "completed" || activeTab === "closed") && (
                   <EventListTab
