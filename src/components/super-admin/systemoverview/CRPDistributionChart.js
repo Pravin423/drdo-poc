@@ -14,20 +14,26 @@ export default function ActiveCRPRoster() {
         const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
         const date = new Date().toISOString().split('T')[0];
         
-        const res = await fetch(`/api/attendance-report?date=${date}`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        const result = await res.json();
+        // Fetch attendance and total registered CRPs simultaneously
+        const [attRes, crpRes] = await Promise.all([
+          fetch(`/api/attendance-report?date=${date}`, { headers: { "Authorization": `Bearer ${token}` } }),
+          fetch(`/api/crp-employee`, { headers: { "Authorization": `Bearer ${token}` } })
+        ]);
+
+        const attResult = await attRes.json();
+        const crpResult = await crpRes.json();
         
-        let rawData = result?.data?.data || result?.data || result?.attendance || [];
-        if (!Array.isArray(rawData)) rawData = [];
+        let attData = attResult?.data?.data || attResult?.data || attResult?.attendance || [];
+        if (!Array.isArray(attData)) attData = [];
 
+        let crpData = crpResult?.data || crpResult?.crps || [];
+        if (!Array.isArray(crpData)) crpData = [];
+
+        const trueTotalCRPs = crpData.length || 0;
         let presentCount = 0;
-        let absentCount = 0;
-
         const loggedIn = [];
 
-        rawData.forEach((item, idx) => {
+        attData.forEach((item, idx) => {
           const isPresent = item.attendance_status === 1 || !!item.checkin_time;
           
           if (isPresent) {
@@ -54,10 +60,12 @@ export default function ActiveCRPRoster() {
               area: item.taluka_name || item.block || item.district_name || item.district || "Unassigned Location",
               profile: item.profile || item.image || item.profile_photo || null
             });
-          } else {
-            absentCount++;
           }
         });
+
+        // Ensure total is at least equal to present (in case of data sync issues)
+        const safeTotal = Math.max(trueTotalCRPs, presentCount);
+        const absentCount = safeTotal - presentCount;
 
         loggedIn.sort((a, b) => {
           if (a.time > b.time) return -1;
@@ -149,11 +157,11 @@ export default function ActiveCRPRoster() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
                 <span className="text-3xl font-black text-slate-800 tracking-tighter">
-                  {Math.round((stats.present / stats.total) * 100) || 0}%
+                  {stats.present} <span className="text-slate-300 text-2xl">/</span> {stats.total}
                 </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Present</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Checked In</span>
               </div>
             </div>
           ) : (
