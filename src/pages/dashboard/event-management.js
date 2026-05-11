@@ -17,6 +17,8 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { useAuth } from "../../context/AuthContext";
+
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
 import { exportToExcel } from "../../lib/exportToExcel";
@@ -33,8 +35,11 @@ import ConfirmationModal from "../../components/common/ConfirmationModal";
 import EventOverviewMap from "../../components/super-admin/event-mgmt/EventOverviewMap";
 
 export default function EventManagement() {
+  const { user } = useAuth();
   const router = useRouter();
-  const isViewOnly = router.query.viewOnly === "true";
+  
+  // Enforce view-only if explicit query param is set OR if the user holds the restricted state-admin role
+  const isViewOnly = router.query.viewOnly === "true" || user?.role === "state-admin";
 
   const [activeTab, setActiveTab] = useState("upcoming");
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);

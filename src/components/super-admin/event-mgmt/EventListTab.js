@@ -100,46 +100,48 @@ export default function EventListTab({ status, events, onEventAction, isViewOnly
                       {event.type}
                     </div>
                     
-                    <div className="relative">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuId(activeMenuId === event.id ? null : event.id);
-                        }}
-                        className={`p-2 rounded-xl transition-all ${activeMenuId === event.id ? 'bg-[#1a2e7a] text-white' : 'text-slate-300 hover:text-slate-600 hover:bg-slate-50'}`}
-                      >
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
+                    {!isViewOnly && (
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenuId(activeMenuId === event.id ? null : event.id);
+                          }}
+                          className={`p-2 rounded-xl transition-all ${activeMenuId === event.id ? 'bg-[#1a2e7a] text-white' : 'text-slate-300 hover:text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
 
-                      <AnimatePresence>
-                        {activeMenuId === event.id && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className="absolute right-0 mt-2 w-52 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-20 p-2"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {event.status !== 'completed' && event.status !== 'closed' && (
-                              <button
-                                onClick={() => { setActiveMenuId(null); onCloseEvent?.(event); }}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-all"
-                              >
-                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                Close Event
-                              </button>
-                            )}
-                            <button
-                              onClick={() => { setActiveMenuId(null); onDeleteEvent?.(event); }}
-                              className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
+                        <AnimatePresence>
+                          {activeMenuId === event.id && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className="absolute right-0 mt-2 w-52 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-20 p-2"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <Trash2 className="w-4 h-4 text-rose-500" />
-                              Delete Event
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                              {event.status !== 'completed' && event.status !== 'closed' && (
+                                <button
+                                  onClick={() => { setActiveMenuId(null); onCloseEvent?.(event); }}
+                                  className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-all"
+                                >
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                  Close Event
+                                </button>
+                              )}
+                              <button
+                                onClick={() => { setActiveMenuId(null); onDeleteEvent?.(event); }}
+                                className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
+                              >
+                                <Trash2 className="w-4 h-4 text-rose-500" />
+                                Delete Event
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                   </div>
 
                   <h3 className="text-xl font-black text-slate-900 group-hover:text-[#1a2e7a] transition-colors leading-tight mb-4 line-clamp-1">
