@@ -54,7 +54,21 @@ export default function ProtectedRoute({ allowedRole, children }) {
     }
   }, [user, authLoading, isAllowed, router.pathname]);
 
-  if (authLoading) return <p>Checking session...</p>;
+  if (authLoading) {
+    return (
+      <div className="fixed inset-0 bg-slate-50 flex flex-col items-center justify-center z-50">
+        <div className="relative flex items-center justify-center">
+          <div className="w-16 h-16 border-4 border-indigo-100 rounded-full absolute animate-ping opacity-50" />
+          <div className="w-16 h-16 border-4 border-indigo-100 rounded-full" />
+          <div className="w-16 h-16 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin absolute" />
+        </div>
+        <div className="mt-6 flex flex-col items-center">
+          <h2 className="text-sm font-bold text-slate-800 tracking-widest uppercase">Authenticating</h2>
+          <p className="text-xs text-slate-500 font-medium mt-1 animate-pulse">Establishing secure session...</p>
+        </div>
+      </div>
+    );
+  }
   if (!isAllowed) return null;
 
   return children;
