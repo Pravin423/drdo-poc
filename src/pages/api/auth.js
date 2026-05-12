@@ -23,7 +23,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ status: false, message: "Password must be at least 8 characters" });
       }
       
-      console.log("[Server/API] 🔐 Calling real API: POST", `${API_BASE}/login`, "| mobile:", mobile);
       const apiRes = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
