@@ -105,7 +105,7 @@ export default function ActiveCRPRoster() {
       <div className="flex items-start justify-between p-6 border-b border-slate-100 bg-slate-50/50">
         <div>
           <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Live Check-in Overview
+            CRP Live Check-in Overview
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
