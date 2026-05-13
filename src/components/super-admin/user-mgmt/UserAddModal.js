@@ -102,10 +102,28 @@ export default function UserAddModal({ isOpen, onClose, onUserAdded }) {
         } catch (err) { console.error(err); }
     };
 
+    const selectedRoleObj = roles.find(r => String(r.value) === String(form?.role_id));
+    const isSingleTaluka = (selectedRoleObj?.label || "").toLowerCase().includes("block program manager");
+
+    // If the user switches to a single-taluka role, auto-prune to 1 taluka
+    useEffect(() => {
+        if (isSingleTaluka && form?.taluka_ids?.length > 1) {
+            const first = form.taluka_ids.find(id => id !== undefined);
+            setForm(f => ({ ...f, taluka_ids: first ? [first] : [] }));
+        }
+    }, [isSingleTaluka, form?.role_id]);
+
     const handleTalukaToggle = (id) => {
         const current = form.taluka_ids || [];
-        const updated = current.includes(id) ? current.filter(i => i !== id) : [...current, id];
-        setForm(f => ({ ...f, taluka_ids: updated }));
+        if (isSingleTaluka) {
+            // For single-taluka roles, behave as a radio button group: 
+            // clicking an unselected one selects ONLY it, clicking it again clears it.
+            setForm(f => ({ ...f, taluka_ids: current.includes(id) ? [] : [id] }));
+        } else {
+            // Traditional multi-select checkbox group logic
+            const updated = current.includes(id) ? current.filter(i => i !== id) : [...current, id];
+            setForm(f => ({ ...f, taluka_ids: updated }));
+        }
     };
 
     const handleFile = (e) => {
@@ -214,9 +232,11 @@ export default function UserAddModal({ isOpen, onClose, onUserAdded }) {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Assigned Talukas ({form.taluka_ids.length})</p>
-                                    <button type="button" onClick={() => setForm(f => ({ ...f, taluka_ids: f.taluka_ids.length === talukas.length ? [] : talukas.map(t => String(t.id)) }))} className="text-[10px] font-black text-[#3b52ab] uppercase tracking-widest">
-                                        {form.taluka_ids.length === talukas.length ? "Deselect All" : "Select All"}
-                                    </button>
+                                    {!isSingleTaluka && (
+                                        <button type="button" onClick={() => setForm(f => ({ ...f, taluka_ids: f.taluka_ids.length === talukas.length ? [] : talukas.map(t => String(t.id)) }))} className="text-[10px] font-black text-[#3b52ab] uppercase tracking-widest">
+                                            {form.taluka_ids.length === talukas.length ? "Deselect All" : "Select All"}
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 rounded-[2rem] max-h-48 overflow-y-auto custom-scrollbar">
                                     {talukas.map(t => (
