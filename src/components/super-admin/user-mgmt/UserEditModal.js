@@ -55,17 +55,46 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
 
     // Initialize form with user data
     useEffect(() => {
-        if (user && isOpen) {
+        const initForm = async () => {
+            if (!user || !isOpen) return;
+            setIsLoadingData(true);
+            setApiError("");
+
+            let fullUserData = { ...user };
+            try {
+                // Fetch deep details to get district_id, taluka_id reliably
+                const detailRes = await fetch(`/api/employee-details?id=${user.id}`);
+                const result = await detailRes.json();
+                if (result.status === 1 && result.data) {
+                    const detail = Array.isArray(result.data) ? result.data[0] : result.data;
+                    fullUserData = { ...fullUserData, ...detail };
+                }
+            } catch (err) {
+                console.warn("Could not fetch deep user details, falling back to list data.", err);
+            }
+
+            let parsedTalukas = [];
+            if (Array.isArray(fullUserData.taluka_id)) {
+                parsedTalukas = fullUserData.taluka_id.map(String);
+            } else if (typeof fullUserData.taluka_id === 'string') {
+                try { 
+                    const raw = JSON.parse(fullUserData.taluka_id);
+                    parsedTalukas = Array.isArray(raw) ? raw.map(String) : []; 
+                } catch { parsedTalukas = []; }
+            }
+
             setForm({
-                ...user,
-                role_id: String(user.role_id || ""),
-                district_id: String(user.district_id || ""),
-                taluka_ids: Array.isArray(user.taluka_id) ? user.taluka_id.map(String) : [],
+                ...fullUserData,
+                role_id: String(fullUserData.role_id || ""),
+                district_id: String(fullUserData.district_id || ""),
+                taluka_ids: parsedTalukas,
                 password: "", // Keep password empty unless changing
             });
-            setProfilePreview(user.profile);
-            setApiError("");
-        }
+            setProfilePreview(fullUserData.profile);
+            setIsLoadingData(false);
+        };
+
+        initForm();
     }, [user, isOpen]);
 
     useEffect(() => {
@@ -132,7 +161,7 @@ export default function UserEditModal({ isOpen, user, onClose, onSave }) {
             payload.append("role_id", form.role_id);
             if (form.district_id) payload.append("district_id", form.district_id);
             
-            form.taluka_ids.forEach(tid => payload.append("taluka_ids", tid));
+            form.taluka_ids.forEach((tid, index) => payload.append(`taluka_id[${index}]`, tid));
 
             if (form.profile instanceof File) {
                 payload.append("profile", form.profile);

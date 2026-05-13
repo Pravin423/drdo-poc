@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
 import { 
-  Plus, Download, Upload, Trash2, Edit, X 
+  Plus, Download, Upload, Edit, Eye, X 
 } from "lucide-react";
 
 import ProtectedRoute from "../../../components/ProtectedRoute";
@@ -18,6 +18,7 @@ import UserFilterPanel from "../../../components/super-admin/user-mgmt/UserFilte
 import UserAddModal from "../../../components/super-admin/user-mgmt/UserAddModal";
 import UserEditModal from "../../../components/super-admin/user-mgmt/UserEditModal";
 import UserImportModal from "../../../components/super-admin/user-mgmt/UserImportModal";
+import UserViewModal from "../../../components/super-admin/user-mgmt/UserViewModal";
 
 const ROLES_LIST = [
   "super-admin",
@@ -38,7 +39,13 @@ const ROLE_STYLES = {
 };
 
 // Mapping functions for API data
-const mapStatus = (s) => (s === 1 || s === "1" ? "Active" : "Inactive");
+const mapStatus = (s) => {
+  const code = Number(s);
+  if (code === 0) return "Active";
+  if (code === 1) return "Inactive";
+  if (code === 2) return "Deleted";
+  return "Active"; // default fallback
+};
 const mapSignature = (s) => {
   if (s === 1 || s === "1") return "Approved";
   if (s === 2 || s === "2") return "Rejected";
@@ -57,10 +64,11 @@ export default function UserList() {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   
   const [editTarget, setEditTarget] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [viewTarget, setViewTarget] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -83,6 +91,16 @@ export default function UserList() {
       setLoading(false);
     }
   };
+
+  // Lock body scroll when modals are open to prevent stutter/double-scrolling
+  useEffect(() => {
+    if (addOpen || editOpen || importOpen || viewOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [addOpen, editOpen, importOpen, viewOpen]);
 
   useEffect(() => {
     fetchUsers();
@@ -119,6 +137,31 @@ export default function UserList() {
     fetchUsers(); // Refresh list from server
   };
 
+  const handleViewClick = async (user) => {
+    setViewOpen(true);
+    setViewLoading(true);
+    setViewTarget(user); // Set listing row first
+    try {
+      const res = await fetch(`/api/employee-details?id=${user.id}`);
+      const result = await res.json();
+      if (result.status === 1 && result.data) {
+        const detail = Array.isArray(result.data) ? result.data[0] : result.data;
+        setViewTarget({
+          ...user,
+          ...detail,
+          talukas: detail.taluka_data || detail.talukas || [],
+          district_name: detail.district_name || detail.district || detail.distName || user.district_name,
+          status: mapStatus(detail.status),
+          signature_status: mapSignature(detail.signature_status),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load user details:", err);
+    } finally {
+      setViewLoading(false);
+    }
+  };
+
   const handleUserUpdated = (updatedUser) => {
     fetchUsers(); // Refresh list from server
     setEditOpen(false);
@@ -127,14 +170,6 @@ export default function UserList() {
 
   const handleImported = (newUsers) => {
     fetchUsers(); // Refresh list from server
-  };
-
-  const confirmDelete = () => {
-    // In a real app, you'd call a DELETE API here
-    const updated = users.filter(u => u.id !== deleteTarget.id);
-    setUsers(updated);
-    setDeleteOpen(false);
-    setDeleteTarget(null);
   };
 
   const columns = [
@@ -269,19 +304,21 @@ export default function UserList() {
   },
 ];
 
-  const actions = isViewOnly ? [] : [
+  const actions = [
     {
-      icon: Edit,
-      onClick: (row) => { setEditTarget(row); setEditOpen(true); },
-      title: "Edit User",
-      className: "hover:text-blue-600 hover:bg-blue-50 rounded"
+      icon: Eye,
+      onClick: (row) => handleViewClick(row),
+      title: "View Details",
+      className: "hover:text-[#3b52ab] hover:bg-[#3b52ab]/5 rounded"
     },
-    {
-      icon: Trash2,
-      onClick: (row) => { setDeleteTarget(row); setDeleteOpen(true); },
-      title: "Delete User",
-      className: "hover:text-red-600 hover:bg-red-50 rounded"
-    }
+    ...(isViewOnly ? [] : [
+      {
+        icon: Edit,
+        onClick: (row) => { setEditTarget(row); setEditOpen(true); },
+        title: "Edit User",
+        className: "hover:text-blue-600 hover:bg-blue-50 rounded"
+      }
+    ])
   ];
 
   return (
@@ -381,26 +418,15 @@ export default function UserList() {
             onImport={handleImported} 
           />
         )}
-        {deleteOpen && deleteTarget && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setDeleteOpen(false)} />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }} transition={{ type: "spring", duration: 0.4, bounce: 0.4 }}
-              className="bg-white rounded-3xl shadow-xl w-full max-w-sm z-10">
-              <div className="p-8 text-center flex flex-col items-center">
-                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-5 -rotate-3"><Trash2 size={32} /></div>
-                <h3 className="text-xl font-extrabold text-slate-800 mb-2">Delete User?</h3>
-                <p className="text-sm font-medium text-slate-500 mb-8">
-                  Are you sure you want to delete <span className="font-bold text-slate-700">{deleteTarget.fullname}</span>? This cannot be undone.
-                </p>
-                <div className="flex gap-3 w-full">
-                  <button onClick={() => setDeleteOpen(false)} className="flex-1 px-4 py-3 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Keep It</button>
-                  <button onClick={confirmDelete} className="flex-1 px-4 py-3 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-500/20 transition-colors active:scale-95">Yes, Delete</button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+        {viewOpen && (
+          <UserViewModal 
+            isOpen={viewOpen} 
+            onClose={() => { setViewOpen(false); setViewTarget(null); }} 
+            userData={viewTarget} 
+            isLoading={viewLoading} 
+            onStatusChange={(newStatus) => setViewTarget(prev => prev ? ({ ...prev, status: newStatus }) : null)}
+            fetchList={fetchUsers}
+          />
         )}
       </AnimatePresence>
     </ProtectedRoute>

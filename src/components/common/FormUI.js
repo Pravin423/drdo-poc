@@ -73,6 +73,19 @@ export const FormHeader = ({ title, subtitle, icon: Icon, onClose }) => {
  * Common Error Message for Forms
  */
 export const FormError = ({ error }) => {
+    const renderError = () => {
+        if (typeof error === "string") return error;
+        if (typeof error === "object" && error !== null) {
+            return Object.entries(error)
+                .map(([key, val]) => {
+                    const msg = Array.isArray(val) ? val.join(", ") : String(val);
+                    return `${key}: ${msg}`;
+                })
+                .join(" | ");
+        }
+        return String(error);
+    };
+
     return (
         <AnimatePresence>
             {error && (
@@ -83,7 +96,7 @@ export const FormError = ({ error }) => {
                     className="mb-8 px-6 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold rounded-2xl flex items-center gap-3"
                 >
                     <XCircle size={18} strokeWidth={2.5} />
-                    {error}
+                    <span className="flex-1">{renderError()}</span>
                 </motion.div>
             )}
         </AnimatePresence>
