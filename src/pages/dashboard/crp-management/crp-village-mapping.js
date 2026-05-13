@@ -36,7 +36,7 @@ export default function CRPVillageMapping() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const res = await fetch("/api/crp-shg-list", {
+      const res = await fetch("/api/crp-village-mapping", {
         method: "GET",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
@@ -59,8 +59,33 @@ export default function CRPVillageMapping() {
         status: m.status === 0 || m.status === "0" || m.status === "Active" ? "Active" : "Inactive",
       })));
 
-      setCrps(Array.isArray(result.crp_list) ? result.crp_list : []);
-      setShgs(Array.isArray(result.shglist) ? result.shglist : []);
+      // Populate lists. Fallback to /api/crp-shg-list if they are not provided by the primary API
+      if (Array.isArray(result.crp_list) && result.crp_list.length > 0) {
+        setCrps(result.crp_list);
+      }
+      if (Array.isArray(result.shglist) && result.shglist.length > 0) {
+        setShgs(result.shglist);
+      }
+
+      if (!Array.isArray(result.crp_list) || !Array.isArray(result.shglist) || result.crp_list.length === 0 || result.shglist.length === 0) {
+        try {
+          const listRes = await fetch("/api/crp-shg-list", {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          });
+          if (listRes.ok) {
+            const listResult = await listRes.json();
+            if (!result.crp_list || result.crp_list.length === 0) {
+              setCrps(Array.isArray(listResult.crp_list) ? listResult.crp_list : []);
+            }
+            if (!result.shglist || result.shglist.length === 0) {
+              setShgs(Array.isArray(listResult.shglist) ? listResult.shglist : []);
+            }
+          }
+        } catch (fallbackErr) {
+          console.error("[CRP-Village Mapping] Fallback fetch error:", fallbackErr);
+        }
+      }
     } catch (err) {
       console.error("[CRP-Village Mapping] Fetch error:", err);
       setMappings([]); setCrps([]); setShgs([]);
