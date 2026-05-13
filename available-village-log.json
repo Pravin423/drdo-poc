@@ -1,0 +1,75 @@
+{
+  "body": {
+    "district_id": 21,
+    "taluka_id": 25
+  },
+  "response": {
+    "status": 1,
+    "message": "Available villages",
+    "data": [
+      {
+        "id": 347,
+        "name": "Anjadip",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 62702,
+        "latitude": "19.13582995",
+        "longitude": "72.83124534"
+      },
+      {
+        "id": 348,
+        "name": "test village csv",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 6767,
+        "latitude": "19.13582995",
+        "longitude": "72.83124534"
+      },
+      {
+        "id": 349,
+        "name": "test village csv",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 6768,
+        "latitude": "20.13582995",
+        "longitude": "73.83124534"
+      },
+      {
+        "id": 350,
+        "name": "test village csv",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 6769,
+        "latitude": "21.13582995",
+        "longitude": "74.83124534"
+      },
+      {
+        "id": 351,
+        "name": "test village csv",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 6770,
+        "latitude": "22.13582995",
+        "longitude": "75.83124534"
+      },
+      {
+        "id": 352,
+        "name": "test village csv",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 6771,
+        "latitude": "23.13582995",
+        "longitude": "76.83124534"
+      },
+      {
+        "id": 353,
+        "name": "test village csv",
+        "taluka_id": 25,
+        "district_id": 21,
+        "census_code": 6772,
+        "latitude": "24.13582995",
+        "longitude": "77.83124534"
+      }
+    ]
+  }
+}

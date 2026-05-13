@@ -42,12 +42,12 @@ export default function VillageMappingModal({
   }, [formData.district_id]);
 
   useEffect(() => {
-    if (formData.taluka_id) {
-      fetchVillages(formData.taluka_id);
+    if (formData.district_id && formData.taluka_id) {
+      fetchVillages(formData.district_id, formData.taluka_id);
     } else {
       setVillages([]);
     }
-  }, [formData.taluka_id]);
+  }, [formData.district_id, formData.taluka_id]);
 
   const fetchDistricts = async () => {
     try {
@@ -76,15 +76,22 @@ export default function VillageMappingModal({
     }
   };
 
-  const fetchVillages = async (talukaId) => {
+  const fetchVillages = async (districtId, talukaId) => {
     try {
-      const res = await fetch(`/api/villages?taluka_id=${talukaId}`);
+      const res = await fetch("/api/available-village", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          district_id: Number(districtId),
+          taluka_id: Number(talukaId),
+        }),
+      });
       const data = await res.json();
       if (data.status === 1 || data.status === true) {
         setVillages(data.data || []);
       }
     } catch (err) {
-      console.error("Failed to fetch villages", err);
+      console.error("Failed to fetch available villages", err);
     }
   };
 
