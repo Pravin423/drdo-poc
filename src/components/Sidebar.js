@@ -199,7 +199,7 @@ function SidebarContent({ onNavigate, onToggle, onProfileClick }) {
 
   if (!user) return null;
 
-  const menus = getSidebarForRole(user.role) || [];
+  const menus = getSidebarForRole(user) || [];
 
   return (
     <div className="flex flex-col h-full">

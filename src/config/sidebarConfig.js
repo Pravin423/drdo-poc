@@ -126,6 +126,12 @@ export const SIDEBAR_CONFIG = {
       ],
     },
     {
+      section: "CRP OPERATIONS",
+      items: [
+        { name: "View all CRPs under them", path: "/dashboard/crp-management" },
+      ],
+    },
+    {
       section: "COMMUNICATION & ESCALATIONS",
       items: [
         { name: "Escalate to SPM", path: "/dashboard/block-admin/escalations" },
@@ -155,7 +161,12 @@ export const SIDEBAR_CONFIG = {
   ],
 };
 
-export const getSidebarForRole = (role) => {
+export const getSidebarForRole = (roleOrUser) => {
+  // Support both a raw role string or a hydrated User context object
+  const userObj = typeof roleOrUser === 'object' ? roleOrUser : { role: roleOrUser };
+  const role = userObj?.role;
+  const rawRoleName = (userObj?.role_name || "").toLowerCase();
+
   // Super-admin sees all sections with full access
   if (role === "super-admin") {
     return SIDEBAR_CONFIG["super-admin"];
@@ -177,7 +188,18 @@ export const getSidebarForRole = (role) => {
       viewOnly: true,
     }));
 
-  // Combine their own config (full access) with the inherited super-admin config (view-only)
-  return [...ownSections, ...viewOnlySections];
+  // 3. Combine configurations
+  let activeMenus = [...ownSections, ...viewOnlySections];
+
+  // 4. Enforce strict runtime role constraints (e.g. isolate BPM specific modules from general Block Managers)
+  if (role === "Block-admin") {
+    const isBpm = rawRoleName.includes("block program manager");
+    if (!isBpm) {
+      // Prune the CRP Operations item for regular Block Managers who share this technical role key
+      activeMenus = activeMenus.filter(section => section.section !== "CRP OPERATIONS");
+    }
+  }
+
+  return activeMenus;
 };
 

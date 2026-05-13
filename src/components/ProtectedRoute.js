@@ -26,7 +26,7 @@ export default function ProtectedRoute({ allowedRole, children }) {
     }
 
     // 2. Check if the current route is granted to this user via their sidebar config (e.g. viewOnly access)
-    const menus = getSidebarForRole(user.role) || [];
+    const menus = getSidebarForRole(user) || [];
     let hasSidebarAccess = false;
     
     for (const group of menus) {

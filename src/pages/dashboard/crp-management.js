@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardLayout from "../../components/DashboardLayout";
+import { useAuth } from "../../context/AuthContext";
 import { exportToExcel } from "../../lib/exportToExcel";
 
 // CRP Components
@@ -24,7 +25,8 @@ import CrpProfileImageModal from "../../components/super-admin/crp/CrpProfileIma
 
 export default function CrpManagement() {
   const router = useRouter();
-  const isViewOnly = router.query.viewOnly === "true";
+  const { user } = useAuth();
+  const isViewOnly = router.query.viewOnly === "true" || user?.role === "Block-admin";
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [crpList, setCrpList] = useState([]);
@@ -81,6 +83,7 @@ export default function CrpManagement() {
           lastActivity: c.lastActivity || c.last_activity || "",
           time: c.time || c.created_at || c.createdAt || "",
           image: c.profile || c.image || c.profile_photo || c.profilePhoto || `https://i.pravatar.cc/150?img=${i + 1}`,
+          talukaId: c.taluka_id || c.talukaId || c.block_id || "",
         };
       }));
     } catch (err) {
@@ -102,7 +105,25 @@ export default function CrpManagement() {
       String(crp.aadhaar ?? "").includes(search) ||
       String(crp.mobile ?? "").includes(search);
     const matchStatus = status === "All Status" || crp.status === status;
-    return matchSearch && matchStatus;
+    
+    // Enforce regional filtering for Block Program Managers
+    let matchRoleAccess = true;
+    if (user?.role === "Block-admin") {
+      const assignedTalukaIds = user?.taluka_id;
+      let targetTalukaIds = [];
+      if (assignedTalukaIds) {
+        if (typeof assignedTalukaIds === 'string' && assignedTalukaIds.startsWith('[')) {
+          try { targetTalukaIds = JSON.parse(assignedTalukaIds).map(String); } catch {}
+        } else if (Array.isArray(assignedTalukaIds)) {
+          targetTalukaIds = assignedTalukaIds.map(String);
+        } else {
+          targetTalukaIds = [String(assignedTalukaIds)];
+        }
+      }
+      matchRoleAccess = targetTalukaIds.length === 0 || targetTalukaIds.includes(String(crp.talukaId || ""));
+    }
+
+    return matchSearch && matchStatus && matchRoleAccess;
   });
 
   const totalCRPs = filteredCRPs.length;
