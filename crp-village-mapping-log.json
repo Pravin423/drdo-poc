@@ -1,5 +1,50 @@
 {
   "status": 1,
   "message": "Village mapped list",
-  "data": []
+  "data": [
+    {
+      "id": 4,
+      "crp_id": 25,
+      "district_id": 1,
+      "taluka_id": 1,
+      "village_id": 4,
+      "district_name": "North Goaa",
+      "taluka_name": "Canacona",
+      "village_name": "Cola",
+      "crp_name": "Diksha Yadav"
+    },
+    {
+      "id": 5,
+      "crp_id": 25,
+      "district_id": 1,
+      "taluka_id": 1,
+      "village_id": 5,
+      "district_name": "North Goaa",
+      "taluka_name": "Canacona",
+      "village_name": "Cotigao",
+      "crp_name": "Diksha Yadav"
+    },
+    {
+      "id": 6,
+      "crp_id": 25,
+      "district_id": 1,
+      "taluka_id": 1,
+      "village_id": 6,
+      "district_name": "North Goaa",
+      "taluka_name": "Canacona",
+      "village_name": "Gaodongrem",
+      "crp_name": "Diksha Yadav"
+    },
+    {
+      "id": 7,
+      "crp_id": 4,
+      "district_id": 1,
+      "taluka_id": 1,
+      "village_id": 7,
+      "district_name": "North Goaa",
+      "taluka_name": "Canacona",
+      "village_name": "Loliem",
+      "crp_name": "Kiran"
+    }
+  ]
 }
