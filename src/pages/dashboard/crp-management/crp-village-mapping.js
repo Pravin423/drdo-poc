@@ -47,7 +47,10 @@ export default function CRPVillageMapping() {
       const mappingsList = Array.isArray(result.data) ? result.data : [];
       setMappings(mappingsList.map((m, idx) => ({
         id: m.id || m.shg_mapping_id || m.mapping_id || idx + 1,
-        crpId: m.user_id || m.crpuser || "",
+        crpId: m.crp_id || m.user_id || m.crpuser || "",
+        districtId: m.district_id || "",
+        talukaId: m.taluka_id || "",
+        villageId: m.village_id || "",
         shgId: m.shg_id || m.shggroup || "",
         name: m.fullname || m.crp_name || m.name || "N/A",
         email: m.email || m.crp_email || "N/A",
@@ -151,34 +154,35 @@ export default function CRPVillageMapping() {
 
   // ── Add Modal ─────────────────────────────────────────────────────────────
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ crpuser: "", shggroup: "", status: 0 });
+  const [formData, setFormData] = useState({ crp_id: "", district_id: "", taluka_id: "", village_ids: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSaveMapping = async () => {
-    if (!formData.crpuser || !formData.shggroup) {
-      alert("Please select both CRP and SHG");
+    if (!formData.crp_id || !formData.district_id || !formData.taluka_id || !formData.village_ids || formData.village_ids.length === 0) {
+      alert("Please select CRP, District, Taluka, and at least one Village");
       return;
     }
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("authToken");
       const payload = {
-        crpuser: Number(formData.crpuser),
-        shggroup: Number(formData.shggroup),
-        status: Number(formData.status),
+        crp_id: Number(formData.crp_id),
+        district_id: String(formData.district_id),
+        taluka_id: String(formData.taluka_id),
+        village_id: formData.village_ids,
       };
-      const res = await fetch("/api/crp-shg-mapping", {
+      const res = await fetch("/api/crp-village-mapping", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok || data.status === false) throw new Error(data.message || "Failed to save mapping");
+      if (!res.ok || data.status !== 1) throw new Error(data.message || "Failed to save mapping");
       
       setSuccessMsg("CRP to Village mapping has been saved successfully.");
       setShowSuccess(true);
       setIsModalOpen(false);
-      setFormData({ crpuser: "", shggroup: "", status: 0 });
+      setFormData({ crp_id: "", district_id: "", taluka_id: "", village_ids: [] });
       fetchMappings();
     } catch (err) {
       console.error(err);
@@ -190,42 +194,41 @@ export default function CRPVillageMapping() {
 
   // ── Edit Modal ────────────────────────────────────────────────────────────
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({ mappingId: "", crpuser: "", shggroup: "", status: 0 });
+  const [editFormData, setEditFormData] = useState({ mappingId: "", crp_id: "", district_id: "", taluka_id: "", village_ids: [] });
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleEditClick = (mapping) => {
     setEditFormData({
       mappingId: mapping.id,
-      crpuser: mapping.crpId,
-      shggroup: mapping.shgId,
-      status: mapping.status === "Active" ? 0 : 1,
+      crp_id: mapping.crpId,
+      district_id: String(mapping.districtId || ""),
+      taluka_id: String(mapping.talukaId || ""),
+      village_ids: mapping.villageId ? [Number(mapping.villageId)] : [],
     });
     setIsEditModalOpen(true);
   };
 
   const handleUpdateMapping = async () => {
-    if (!editFormData.crpuser || !editFormData.shggroup) {
-      alert("Please select both CRP and SHG");
+    if (!editFormData.crp_id || !editFormData.district_id || !editFormData.taluka_id || !editFormData.village_ids || editFormData.village_ids.length === 0) {
+      alert("Please select CRP, District, Taluka, and at least one Village");
       return;
     }
     setIsUpdating(true);
     try {
       const token = localStorage.getItem("authToken");
       const payload = {
-        mapping_id: editFormData.mappingId,
-        crpuser: Number(editFormData.crpuser),
-        shggroup: Number(editFormData.shggroup),
-        status: Number(editFormData.status),
+        crp_id: Number(editFormData.crp_id),
+        district_id: String(editFormData.district_id),
+        taluka_id: String(editFormData.taluka_id),
+        village_id: editFormData.village_ids,
       };
-      const res = await fetch("/api/edit-crp-shg-mapping", {
+      const res = await fetch("/api/crp-village-mapping", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.status === false) console.warn(data.message);
-      }
+      const data = await res.json();
+      if (!res.ok || data.status !== 1) throw new Error(data.message || "Failed to update mapping");
       
       setSuccessMsg("The mapping has been updated successfully.");
       setShowSuccess(true);
@@ -233,7 +236,7 @@ export default function CRPVillageMapping() {
       fetchMappings();
     } catch (err) {
       console.error(err);
-      alert("An error occurred while updating the mapping");
+      alert(err.message || "An error occurred while updating the mapping");
     } finally {
       setIsUpdating(false);
     }
@@ -322,7 +325,6 @@ export default function CRPVillageMapping() {
         onClose={() => setIsModalOpen(false)}
         title="Village Mapping"
         crps={crps}
-        shgs={shgs}
         formData={formData}
         setFormData={setFormData}
         onSave={handleSaveMapping}
@@ -336,7 +338,6 @@ export default function CRPVillageMapping() {
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Village Mapping"
         crps={crps}
-        shgs={shgs}
         formData={editFormData}
         setFormData={setEditFormData}
         onSave={handleUpdateMapping}
