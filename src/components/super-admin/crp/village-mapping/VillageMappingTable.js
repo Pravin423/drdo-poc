@@ -15,7 +15,6 @@ export default function VillageMappingTable({
   isViewOnly,
 }) {
 
-  // ✅ Columns (NO Action column here)
   const columns = [
     {
       header: "ID",
@@ -28,28 +27,9 @@ export default function VillageMappingTable({
       key: "name",
       render: (val) => <span className="font-semibold text-slate-900">{val}</span>,
     },
-    { header: "Email", key: "email" },
-    { header: "Mobile", key: "mobile" },
-    { header: "SHGs Name", key: "shgName" },
     { header: "Village", key: "village" },
     { header: "Taluka", key: "taluka" },
     { header: "District", key: "district" },
-
-    {
-      header: "Status",
-      key: "status",
-      render: (val) => (
-        <span
-          className={`px-2 py-1 rounded text-xs rounded-2xl font-semibold ${
-            val === "Active"
-              ? "text-emerald-700 bg-emerald-50 border border-emerald-100"
-              : "text-slate-600 bg-slate-100 border border-slate-200"
-          }`}
-        >
-          {val}
-        </span>
-      ),
-    },
   ];
 
   // ✅ Actions (THIS replaces Action column)

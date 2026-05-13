@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Layers, Activity, Clock, MapPin, Download, Link as LinkIcon } from "lucide-react";
+import { Layers, Activity, Clock, MapPin, Download, Link as LinkIcon, Users } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
@@ -52,13 +52,13 @@ export default function CRPVillageMapping() {
         talukaId: m.taluka_id || "",
         villageId: m.village_id || "",
         shgId: m.shg_id || m.shggroup || "",
-        name: m.fullname || m.crp_name || m.name || "N/A",
+        name: m.crp_name || m.fullname || m.name || "N/A",
         email: m.email || m.crp_email || "N/A",
         mobile: m.mobile || m.crp_mobile || "N/A",
         shgName: m.shg_name || m.shgName || "N/A",
-        village: m.village || m.shg_village || "N/A",
-        taluka: m.taluka || m.shg_taluka || "N/A",
-        district: m.district || m.shg_district || "N/A",
+        village: m.village_name || m.village || m.shg_village || "N/A",
+        taluka: m.taluka_name || m.taluka || m.shg_taluka || "N/A",
+        district: m.district_name || m.district || m.shg_district || "N/A",
         status: m.status === 0 || m.status === "0" || m.status === "Active" ? "Active" : "Inactive",
       })));
 
@@ -100,15 +100,15 @@ export default function CRPVillageMapping() {
   useEffect(() => { fetchMappings(); }, []);
 
   const stats = useMemo(() => {
-    const active = mappings.filter(m => m.status === "Active").length;
-    const inactive = mappings.length - active;
+    const uniqueCrps = new Set(mappings.map(m => m.crpId).filter(Boolean)).size;
     const uniqueVillages = new Set(mappings.map(m => m.village).filter(v => v && v !== "N/A")).size;
+    const uniqueTalukas = new Set(mappings.map(m => m.taluka).filter(t => t && t !== "N/A")).size;
     
     return [
       { label: "Total Mappings", value: mappings.length, icon: Layers, variant: "blue" },
-      { label: "Active Connections", value: active, icon: Activity, variant: "emerald" },
-      { label: "Inactive / Pending", value: inactive, icon: Clock, variant: "amber" },
+      { label: "Mapped CRPs", value: uniqueCrps, icon: Users, variant: "emerald" },
       { label: "Villages Covered", value: uniqueVillages, icon: MapPin, variant: "indigo" },
+      { label: "Talukas Covered", value: uniqueTalukas, icon: Activity, variant: "amber" },
     ];
   }, [mappings]);
 
@@ -125,16 +125,12 @@ export default function CRPVillageMapping() {
   }, [search]);
 
   const handleExport = () => {
-    const headers = ["CRP Name", "CRP Email", "CRP Mobile", "SHG Name", "Village", "Taluka", "District", "Status"];
+    const headers = ["CRP Name", "Village", "Taluka", "District"];
     const rows = filteredMappings.map(m => [
       m.name,
-      m.email,
-      m.mobile,
-      m.shgName,
       m.village,
       m.taluka,
-      m.district,
-      m.status
+      m.district
     ]);
 
     exportToExcel({
