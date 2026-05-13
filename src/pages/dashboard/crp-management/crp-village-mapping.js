@@ -206,19 +206,20 @@ export default function CRPVillageMapping() {
 
   const handleUpdateMapping = async () => {
     if (!editFormData.crp_id || !editFormData.district_id || !editFormData.taluka_id || !editFormData.village_ids || editFormData.village_ids.length === 0) {
-      alert("Please select CRP, District, Taluka, and at least one Village");
+      alert("Please select CRP, District, Taluka, and one Village to update.");
       return;
     }
     setIsUpdating(true);
     try {
       const token = localStorage.getItem("authToken");
+      // Construct the update payload strictly following the API image contract (everything numeric)
       const payload = {
         crp_id: Number(editFormData.crp_id),
-        district_id: String(editFormData.district_id),
-        taluka_id: String(editFormData.taluka_id),
-        village_id: editFormData.village_ids,
+        district_id: Number(editFormData.district_id),
+        taluka_id: Number(editFormData.taluka_id),
+        village_id: Number(editFormData.village_ids[0]),
       };
-      const res = await fetch("/api/crp-village-mapping", {
+      const res = await fetch("/api/crp-village-mapping-update", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -339,6 +340,7 @@ export default function CRPVillageMapping() {
         onSave={handleUpdateMapping}
         isSaving={isUpdating}
         saveLabel="Update Mapping"
+        isEditMode={true}
       />
 
       <SuccessModal

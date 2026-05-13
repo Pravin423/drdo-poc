@@ -15,6 +15,7 @@ export default function VillageMappingModal({
   onSave,
   isSaving,
   saveLabel = "Save Mapping",
+  isEditMode = false,
 }) {
   const [districts, setDistricts] = useState([]);
   const [talukas, setTalukas] = useState([]);
@@ -96,6 +97,11 @@ export default function VillageMappingModal({
   };
 
   const handleVillageToggle = (villageId) => {
+    if (isEditMode) {
+      // In edit mode, we only select exactly one village
+      setFormData((prev) => ({ ...prev, village_ids: [Number(villageId)] }));
+      return;
+    }
     const current = formData.village_ids || [];
     const updated = current.includes(Number(villageId))
       ? current.filter((id) => id !== Number(villageId))
@@ -168,28 +174,30 @@ export default function VillageMappingModal({
               />
             </div>
 
-            {/* Multi-select Villages */}
+            {/* Multi-select / Single-select Villages */}
             {formData.taluka_id && villages.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black text-slate-800 uppercase tracking-widest">
-                    Select Target Villages * ({formData.village_ids?.length || 0} selected)
+                    {isEditMode ? "Select Target Village *" : `Select Target Villages * (${formData.village_ids?.length || 0} selected)`}
                   </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        village_ids:
-                          (prev.village_ids?.length === villages.length)
-                            ? []
-                            : villages.map((v) => Number(v.id)),
-                      }))
-                    }
-                    className="text-[10px] font-black text-[#3b52ab] uppercase tracking-widest hover:underline"
-                  >
-                    {(formData.village_ids?.length === villages.length) ? "Deselect All" : "Select All"}
-                  </button>
+                  {!isEditMode && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          village_ids:
+                            (prev.village_ids?.length === villages.length)
+                              ? []
+                              : villages.map((v) => Number(v.id)),
+                        }))
+                      }
+                      className="text-[10px] font-black text-[#3b52ab] uppercase tracking-widest hover:underline"
+                    >
+                      {(formData.village_ids?.length === villages.length) ? "Deselect All" : "Select All"}
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-slate-50 rounded-[2rem] max-h-64 overflow-y-auto custom-scrollbar border border-slate-100">
                   {villages.map((v) => {

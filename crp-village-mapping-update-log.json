@@ -1,0 +1,12 @@
+{
+  "body": {
+    "crp_id": 27,
+    "district_id": 21,
+    "taluka_id": 25,
+    "village_id": 347
+  },
+  "response": {
+    "status": 1,
+    "message": "Village mapped updated successfully"
+  }
+}

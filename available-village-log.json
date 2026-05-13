@@ -8,15 +8,6 @@
     "message": "Available villages",
     "data": [
       {
-        "id": 347,
-        "name": "Anjadip",
-        "taluka_id": 25,
-        "district_id": 21,
-        "census_code": 62702,
-        "latitude": "19.13582995",
-        "longitude": "72.83124534"
-      },
-      {
         "id": 348,
         "name": "test village csv",
         "taluka_id": 25,
