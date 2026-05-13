@@ -20,12 +20,7 @@ import CrpViewModal from "../../components/super-admin/crp/CrpViewModal";
 import CrpBulkImportModal from "../../components/super-admin/crp/CrpBulkImportModal";
 import CrpProfileImageModal from "../../components/super-admin/crp/CrpProfileImageModal";
 
-const goaVillages = [
-  "Panjim", "Mapusa", "Margao", "Vasco da Gama", "Ponda",
-  "Calangute", "Candolim", "Benaulim", "Colva", "Curchorem",
-  "Quepem", "Sanquelim", "Pernem", "Canacona", "Assagao",
-  "Siolim", "Anjuna", "Aldona", "Saligao", "Verna",
-];
+
 
 export default function CrpManagement() {
   const router = useRouter();
@@ -143,6 +138,7 @@ export default function CrpManagement() {
     bankName: "", branchName: "", bankAccount: "", ifsc: "", pan: "", photo: null,
   });
   const [formErrors, setFormErrors] = useState({});
+  const [errorTrigger, setErrorTrigger] = useState(0);
 
   const [documents, setDocuments] = useState({
     profilePhoto: null, aadhaarCard: null, panCard: null,
@@ -164,8 +160,8 @@ export default function CrpManagement() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setDocErrors((prev) => ({ ...prev, [docType]: "File size must be less than 5MB" }));
+    if (file.size > 2 * 1024 * 1024) {
+      setDocErrors((prev) => ({ ...prev, [docType]: "File size must be less than 2MB" }));
       setDocuments((prev) => ({ ...prev, [docType]: null }));
       if (documentPreviews[docType]) URL.revokeObjectURL(documentPreviews[docType]);
       setDocumentPreviews((prev) => ({ ...prev, [docType]: null }));
@@ -218,7 +214,10 @@ export default function CrpManagement() {
     }
 
     setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      setErrorTrigger((prev) => prev + 1);
+      return;
+    }
     setFormStep(2);
   };
 
@@ -228,6 +227,7 @@ export default function CrpManagement() {
     setEditingId(null);
     setFormStep(1);
     setFormErrors({});
+    setErrorTrigger(0);
     setForm({ name: "", aadhaar: "", mobile: "", email: "", dob: "", gender: "", district: "", taluka: "", block: "", villages: [], vertical: "", bankName: "", branchName: "", bankAccount: "", ifsc: "", pan: "", photo: null });
     Object.values(documentPreviews).forEach((url) => { if (url) URL.revokeObjectURL(url); });
     setDocuments({ profilePhoto: null, aadhaarCard: null, panCard: null, educationalCertificates: null, passBook: null });
@@ -266,6 +266,7 @@ export default function CrpManagement() {
         // Handle specific object-based error messages (like email exists)
         if (result?.message && typeof result.message === "object") {
            setFormErrors(prev => ({ ...prev, ...result.message }));
+           setErrorTrigger((prev) => prev + 1);
            setFormStep(1); // Redirect to first page to fix errors
            return;
         }
@@ -275,6 +276,7 @@ export default function CrpManagement() {
           const parsed = JSON.parse(result?.message || result?.error || "");
           if (parsed && typeof parsed === "object") {
             setFormErrors(prev => ({ ...prev, ...parsed }));
+            setErrorTrigger((prev) => prev + 1);
             setFormStep(1);
             return;
           }
@@ -508,6 +510,7 @@ export default function CrpManagement() {
         handleNextStep={handleNextStep}
         handleSubmit={handleSubmit}
         handleDocumentChange={handleDocumentChange}
+        errorTrigger={errorTrigger}
       />
 
       <CrpViewModal

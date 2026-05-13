@@ -24,61 +24,77 @@ export default function handler(req, res) {
     return res.status(401).json({ status: false, message: "No authorization header" });
   }
 
-  // ── Parse multipart ─────────────────────────────────────────────────────
-  const form = new IncomingForm({ keepExtensions: true, multiples: false });
+  // Return a Promise so Next.js knows to wait for the asynchronous formidable parser
+  return new Promise((resolve) => {
+    const form = new IncomingForm({ keepExtensions: true, multiples: false });
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error("[add-crp] formidable parse error:", err);
-      return res.status(500).json({ status: false, message: "Failed to parse form data" });
-    }
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        console.error("[add-crp] formidable parse error:", err);
+        res.status(500).json({ status: false, message: "Failed to parse form data" });
+        return resolve();
+      }
 
-    try {
-      // formidable v3 wraps values in arrays
-      const get = (k) => (Array.isArray(fields[k]) ? fields[k][0] : fields[k]) ?? "";
+      try {
+        const get = (k) => (Array.isArray(fields[k]) ? fields[k][0] : fields[k]) ?? "";
 
-      // Use Node 18+ native FormData so native fetch handles boundaries correctly
-      const fd = new FormData();
-      fd.append("fullname",       get("fullname"));
-      fd.append("aadharnumber",   get("aadharnumber"));
-      fd.append("mobile",         get("mobile"));
-      fd.append("email",          get("email"));
-      fd.append("gender",         get("gender"));
-      fd.append("dob",            get("dob"));
-      fd.append("pan_number",     get("pan_number"));
-      fd.append("bank_name",      get("bank_name"));
-      fd.append("branch_name",    get("branch_name"));
-      fd.append("account_number", get("account_number"));
-      fd.append("ifsc",           get("ifsc"));
+        const fd = new FormData();
+        fd.append("fullname",       get("fullname"));
+        fd.append("aadharnumber",   get("aadharnumber"));
+        fd.append("mobile",         get("mobile"));
+        fd.append("email",          get("email"));
+        fd.append("gender",         get("gender"));
+        fd.append("dob",            get("dob"));
+        fd.append("pan_number",     get("pan_number"));
+        fd.append("bank_name",      get("bank_name"));
+        fd.append("branch_name",    get("branch_name"));
+        fd.append("account_number", get("account_number"));
+        fd.append("ifsc",           get("ifsc"));
 
-      // File helper — convert formidable temp file → Blob → append
-      const appendFile = (fdKey, fileKey) => {
-        const f = Array.isArray(files[fileKey]) ? files[fileKey][0] : files[fileKey];
-        if (f?.filepath) {
-          const buf  = fs.readFileSync(f.filepath);
-          const blob = new Blob([buf], { type: f.mimetype ?? "application/octet-stream" });
-          fd.append(fdKey, blob, f.originalFilename ?? f.newFilename ?? fdKey);
+        const appendFile = (fdKey, fileKey) => {
+          const f = Array.isArray(files[fileKey]) ? files[fileKey][0] : files[fileKey];
+          if (f?.filepath) {
+            const buf  = fs.readFileSync(f.filepath);
+            const blob = new Blob([buf], { type: f.mimetype ?? "application/octet-stream" });
+            fd.append(fdKey, blob, f.originalFilename ?? f.newFilename ?? fdKey);
+          }
+        };
+
+        appendFile("profile_img",      "profile_img");
+        appendFile("aadhaar_img",      "aadhaar_img");
+        appendFile("pan_img",          "pan_img");
+        appendFile("edu_certificates", "edu_certificates");
+        appendFile("passbook_img",     "passbook_img");
+
+        // Forward request
+        const response = await fetch(
+          "https://goadrda.runtime-solutions.net/admin/api/add-crp",
+          { method: "POST", headers: { Authorization: authHeader }, body: fd }
+        );
+
+        // Safely intercept HTML errors if server fails to return JSON
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.error("[add-crp] Remote responded with non-JSON HTML. Snapshot:", text.substring(0, 500));
+          res.status(response.status || 500).json({
+            status: false,
+            message: `Remote server error (${response.status}). The server responded with an invalid page.`,
+            htmlSnapshot: text.substring(0, 300),
+          });
+          return resolve();
         }
-      };
 
-      appendFile("profile_img",      "profile_img");
-      appendFile("aadhaar_img",      "aadhaar_img");
-      appendFile("pan_img",          "pan_img");
-      appendFile("edu_certificates", "edu_certificates");
-      appendFile("passbook_img",     "passbook_img");
-
-      // ── Forward to remote API ───────────────────────────────────────────
-      const response = await fetch(
-        "https://goadrda.runtime-solutions.net/admin/api/add-crp",
-        { method: "POST", headers: { Authorization: authHeader }, body: fd }
-      );
-
-      const data = await response.json();
-      console.log("[add-crp] Remote response:", JSON.stringify(data));
-      return res.status(response.status).json(data);
-    } catch (error) {
-      console.error("[add-crp] Proxy error:", error);
-      return res.status(500).json({ status: false, message: "Proxy request failed", error: error.message });
-    }
+        console.log("[add-crp] Remote response:", JSON.stringify(data));
+        res.status(response.status).json(data);
+        return resolve();
+      } catch (error) {
+        console.error("[add-crp] Proxy error:", error);
+        res.status(500).json({ status: false, message: "Proxy request failed", error: error.message });
+        return resolve();
+      }
+    });
   });
 }

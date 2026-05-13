@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, UserPlus, Eye, Upload, FileText, Landmark, User, CreditCard, Calendar, Users } from "lucide-react";
 import { FormModal, FormHeader, FormInput, FormSelect, FormActions } from "@/components/common/FormUI";
@@ -16,8 +17,28 @@ export default function CrpRegisterModal({
   isSubmitting,
   handleNextStep, handleSubmit,
   handleDocumentChange,
+  errorTrigger,
 }) {
   const clearErr = (f) => setFormErrors((p) => { const n = { ...p }; delete n[f]; return n; });
+  
+  const scrollRef = useRef(null);
+
+  // Auto-scroll to the first validation error when explicit errorTrigger event fires
+  useEffect(() => {
+    if (errorTrigger > 0 && scrollRef.current) {
+      setTimeout(() => {
+        // Find first visual error element (input error paragraph, or document card error)
+        const firstErrorEl = scrollRef.current.querySelector(".text-rose-500, .border-rose-200, .text-rose-600");
+        if (firstErrorEl) {
+          // Scroll so that the error is positioned in the center of the viewport smoothly
+          firstErrorEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          // Fallback: scroll back to top if we couldn't locate specific field
+          scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }, 100);
+    }
+  }, [errorTrigger]);
 
   const renderStep1 = () => (
     <motion.div
@@ -187,11 +208,11 @@ export default function CrpRegisterModal({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[
-            { id: "profilePhoto", label: "Profile Photo", desc: "Max 5MB", required: true },
-            { id: "aadhaarCard", label: "Aadhaar Card", desc: "Max 5MB", required: true },
-            { id: "panCard", label: "PAN Card", desc: "Max 5MB", required: true },
-            { id: "educationalCertificates", label: "Edu. Certificates", desc: "Max 5MB", required: true },
-            { id: "passBook", label: "Bank Pass Book", desc: "Max 5MB", required: true },
+            { id: "profilePhoto", label: "Profile Photo", desc: "Max 2MB", required: true },
+            { id: "aadhaarCard", label: "Aadhaar Card", desc: "Max 2MB", required: true },
+            { id: "panCard", label: "PAN Card", desc: "Max 2MB", required: true },
+            { id: "educationalCertificates", label: "Edu. Certificates", desc: "Max 2MB", required: true },
+            { id: "passBook", label: "Bank Pass Book", desc: "Max 2MB", required: true },
           ].map((doc) => (
             <motion.div 
               key={doc.id} 
@@ -453,7 +474,10 @@ export default function CrpRegisterModal({
         onClose={onClose}
       />
       
-      <div className="max-h-[80vh] overflow-y-auto custom-scrollbar bg-white">
+      <div 
+        ref={scrollRef}
+        className="max-h-[80vh] overflow-y-auto custom-scrollbar bg-white scroll-smooth"
+      >
         <AnimatePresence mode="popLayout">
           {formStep === 1 ? renderStep1() : renderStep2()}
         </AnimatePresence>
