@@ -349,6 +349,7 @@ export default function Login() {
                   onPasswordBlur={handlePasswordBlur}
                   onShowPasswordToggle={() => setShowPassword(!showPassword)}
                   onSubmit={handleSubmit}
+                  globalError={error}
                 />
               )}
 
