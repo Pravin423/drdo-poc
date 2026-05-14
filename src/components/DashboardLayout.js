@@ -13,6 +13,42 @@ export default function DashboardLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user } = useAuth();
+  const [districts, setDistricts] = useState([]);
+
+  useEffect(() => {
+    const loadDistricts = async () => {
+      try {
+        const response = await fetch("/api/districts", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.ok) {
+          const result = await response.json();
+          const list = result.data || result || [];
+          if (Array.isArray(list)) {
+            setDistricts(list);
+          }
+        }
+      } catch (err) {
+        console.error("[DashboardLayout] Failed to load districts:", err);
+      }
+    };
+    if (user) {
+      loadDistricts();
+    }
+  }, [user]);
+
+  const matchedDistrict = user?.district_id
+    ? districts.find(d => String(d.id || d.district_id || d._id) === String(user.district_id))
+    : null;
+
+  const rawLabel = matchedDistrict
+    ? (matchedDistrict.district_name || matchedDistrict.name || matchedDistrict.districtName || matchedDistrict.district)
+    : null;
+
+  // Sanitize and correct spelling typos currently stored in the live DB (e.g. 'Goaa' -> 'Goa')
+  const districtLabel = rawLabel ? rawLabel.replace(/Goaa/gi, "Goa").trim() : null;
 
   const sidebarW = sidebarCollapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_EXPANDED_W;
   
@@ -72,8 +108,10 @@ export default function DashboardLayout({ children }) {
                   <div className="flex items-center gap-1 text-slate-500">
                     <MapPin size={13} />
                     <span className="text-xs font-medium">
-                      State Level —{" "}
-                      <span className="text-slate-900">Goa</span>
+                      District —{" "}
+                      <span className="text-slate-900 font-bold">
+                        {districtLabel ? ` ${districtLabel}` : ""}
+                      </span>
                     </span>
                   </div>
                 </div>
