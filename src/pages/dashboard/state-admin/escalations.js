@@ -15,6 +15,14 @@ import {
   CheckCircle
 } from "lucide-react";
 import DashboardLayout from "../../../components/DashboardLayout";
+import { 
+  FormModal, 
+  FormHeader, 
+  FormSelect, 
+  FormTextArea, 
+  FormActions, 
+  FormInput 
+} from "../../../components/common/FormUI";
 
 // Mock Data for Escalated Tickets
 const MOCK_ESCALATIONS = [
@@ -81,6 +89,20 @@ export default function EscalationsInbox() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState(MOCK_ESCALATIONS[0]);
   const [tickets, setTickets] = useState(MOCK_ESCALATIONS);
+
+  // UI Interactivity States
+  const [showActionDropdown, setShowActionDropdown] = useState(false);
+  const [showPriorityModal, setShowPriorityModal] = useState(false);
+  const [showEscalateModal, setShowEscalateModal] = useState(false);
+
+  // Priority Management Form State
+  const [newPriority, setNewPriority] = useState("Medium");
+  const [priorityComment, setPriorityComment] = useState("");
+
+  // Escalation Management Form State
+  const [spmName, setSpmName] = useState("Dr. Kiran Rao (Super Admin)");
+  const [escalateComment, setEscalateComment] = useState("");
+  const [attachment, setAttachment] = useState(null);
 
   const filteredTickets = tickets.filter(t => {
     const matchesTab = activeTab === "all" || t.status === activeTab;
@@ -249,9 +271,56 @@ export default function EscalationsInbox() {
                             <CheckCircle2 size={16} /> Resolve
                           </button>
                         )}
-                        <button className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 transition-colors shadow-sm">
-                          <MoreHorizontal size={18} />
-                        </button>
+                        <div className="relative">
+                          <button 
+                            onClick={() => setShowActionDropdown(!showActionDropdown)}
+                            className={`w-9 h-9 flex items-center justify-center rounded-xl border transition-all shadow-sm ${
+                              showActionDropdown 
+                                ? "bg-slate-100 border-slate-300 text-indigo-600 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]" 
+                                : "bg-white border-slate-200 hover:bg-slate-50 text-slate-500"
+                            }`}
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+
+                          <AnimatePresence>
+                            {showActionDropdown && (
+                              <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowActionDropdown(false)} />
+                                <motion.div 
+                                  initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                                  transition={{ duration: 0.15, ease: "easeOut" }}
+                                  className="absolute right-0 mt-2 w-56 bg-white border border-slate-200/80 rounded-2xl shadow-xl py-1.5 z-50 overflow-hidden transform origin-top-right"
+                                >
+                                  <button 
+                                    onClick={() => {
+                                      setShowActionDropdown(false);
+                                      setNewPriority(selectedTicket.priority);
+                                      setShowPriorityModal(true);
+                                    }}
+                                    className="w-full px-4 py-2.5 text-left text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2.5 transition-colors"
+                                  >
+                                    <AlertCircle size={16} className="text-slate-400" />
+                                    Change Priority
+                                  </button>
+                                  <div className="h-px bg-slate-100 my-1" />
+                                  <button 
+                                    onClick={() => {
+                                      setShowActionDropdown(false);
+                                      setShowEscalateModal(true);
+                                    }}
+                                    className="w-full px-4 py-2.5 text-left text-xs font-bold text-rose-600 hover:bg-rose-50/50 flex items-center gap-2.5 transition-colors"
+                                  >
+                                    <CornerDownRight size={16} className="text-rose-500" />
+                                    Escalate to Superadmin
+                                  </button>
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </div>
                     </div>
 
@@ -343,6 +412,97 @@ export default function EscalationsInbox() {
 
         </div>
       </div>
+
+      {/* Change Priority Modal */}
+      <FormModal isOpen={showPriorityModal} onClose={() => setShowPriorityModal(false)}>
+        <FormHeader 
+          title="Update Priority" 
+          subtitle={`Ticket #${selectedTicket?.id}`} 
+          icon={AlertCircle}
+          onClose={() => setShowPriorityModal(false)}
+        />
+        <div className="p-8 space-y-6 overflow-y-auto">
+          <FormSelect 
+            label="Select Priority Level"
+            value={newPriority}
+            onChange={(e) => setNewPriority(e.target.value)}
+            options={[
+              { value: "High", label: "High Priority" },
+              { value: "Medium", label: "Medium Priority" },
+              { value: "Low", label: "Low Priority" }
+            ]}
+          />
+          <FormTextArea 
+            label="Justification Comment"
+            placeholder="Provide reasoning for updating the priority level..."
+            value={priorityComment}
+            onChange={(e) => setPriorityComment(e.target.value)}
+          />
+          <FormActions 
+            onCancel={() => setShowPriorityModal(false)}
+            onConfirm={() => {
+              setTickets(tickets.map(t => t.id === selectedTicket.id ? { ...t, priority: newPriority } : t));
+              setSelectedTicket(prev => ({ ...prev, priority: newPriority }));
+              setShowPriorityModal(false);
+              setPriorityComment("");
+            }}
+            confirmText="Save Changes"
+          />
+        </div>
+      </FormModal>
+
+      {/* Escalate to Superadmin Modal */}
+      <FormModal isOpen={showEscalateModal} onClose={() => setShowEscalateModal(false)}>
+        <FormHeader 
+          title="Escalate to Superadmin" 
+          subtitle={`Forwarding Ticket #${selectedTicket?.id}`} 
+          icon={CornerDownRight}
+          onClose={() => setShowEscalateModal(false)}
+        />
+        <div className="p-8 space-y-6 overflow-y-auto">
+          <FormInput 
+            label="Forwarded to (SPM Name)"
+            value={spmName}
+            disabled
+            readOnly
+            icon={User}
+          />
+          <FormTextArea 
+            label="Escalation Details / Comments"
+            placeholder="Provide supporting details to assist the Superadmin in resolving..."
+            value={escalateComment}
+            onChange={(e) => setEscalateComment(e.target.value)}
+          />
+          
+          <div className="space-y-2 font-sans">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+              Attach Supporting Document
+            </label>
+            <div className="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl p-6 text-center flex flex-col items-center justify-center hover:border-indigo-400 hover:bg-indigo-50/20 transition-all duration-200 cursor-pointer relative group/attach">
+              <input 
+                type="file" 
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={(e) => setAttachment(e.target.files[0])}
+              />
+              <Paperclip size={24} className="text-slate-400 mb-2 group-hover/attach:text-indigo-500 transition-colors" />
+              <p className="text-xs font-bold text-slate-700">
+                {attachment ? attachment.name : "Click to upload file or drag and drop"}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-1">PDF, DOC, XLS, PNG or ZIP up to 20MB</p>
+            </div>
+          </div>
+
+          <FormActions 
+            onCancel={() => setShowEscalateModal(false)}
+            onConfirm={() => {
+              setShowEscalateModal(false);
+              setEscalateComment("");
+              setAttachment(null);
+            }}
+            confirmText="Forward & Escalate"
+          />
+        </div>
+      </FormModal>
     </DashboardLayout>
   );
 }
