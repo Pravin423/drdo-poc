@@ -108,8 +108,25 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
      return reportData.calendar.find(a => a.day === day);
   };
 
+  const isFutureDay = (day) => {
+    if (!day) return true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, day);
+    target.setHours(0, 0, 0, 0);
+    return target > today;
+  };
+
   const getDummyStatus = (day) => {
     if (!selectedEmployee) return null;
+    
+    // Never show absent for future dates
+    if (isFutureDay(day)) {
+      // Future holidays are still valid to show
+      if ([1, 8, 15, 22, 29].includes(day)) return "Holiday";
+      return null;
+    }
+
     if ([1, 8, 15, 22, 29].includes(day)) return "Holiday";
     if ([2,3,4,5,6,7,9,10,11,12,13,14, 16,17,18,19,20,21,23,24,25,26,27,28,30,31].includes(day)) return "Absent";
     return null;
@@ -299,21 +316,21 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
                           <p className="font-semibold text-slate-900">{error}</p>
                       </div>
                     ) : (
-                      <div className="w-full h-full border border-slate-200 rounded-xl overflow-visible bg-white pt-px">
+                      <div className="w-full h-full bg-white pt-px">
                         {/* Headers */}
-                        <div className="grid grid-cols-7 border-b border-t-0 border-slate-200 bg-white rounded-t-xl overflow-hidden">
+                        <div className="grid grid-cols-7 bg-slate-50/70 rounded-2xl border border-slate-200/60 mb-3.5 overflow-hidden">
                             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                              <div key={day} className={`py-4 text-center text-[13px] font-bold ${day === 'Sun' ? 'text-slate-900' : 'text-slate-700'}`}>
+                              <div key={day} className={`py-3 text-center text-[11px] font-black uppercase tracking-widest ${day === 'Sun' ? 'text-rose-600' : 'text-slate-500'}`}>
                                 {day}
                               </div>
                             ))}
                         </div>
                         
                         {/* Grid */}
-                        <div className="grid grid-cols-7 bg-white">
+                        <div className="grid grid-cols-7 gap-2.5">
                             {calendarDays.map((day, index) => {
                               if (!day) {
-                                return <div key={`empty-${index}`} className="min-h-[110px] p-2 border-b border-r border-slate-200 last:border-r-0 bg-white" />
+                                return <div key={`empty-${index}`} className="min-h-[105px] p-2 bg-slate-50/40 rounded-2xl border border-dashed border-slate-200/60" />
                               }
                               
                               let record = getDayRecord(day);
@@ -323,40 +340,50 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
                               }
 
                               const isSunday = index % 7 === 0;
+                              const isFuture = isFutureDay(day);
 
-                              let cellClass = "min-h-[110px] p-2 border-b border-r border-slate-200 relative transition-colors flex flex-col items-center justify-center group hover:z-20 ";
-                              let textClass = "absolute top-2 right-2 text-sm font-semibold ";
-                              let badgeClass = "text-[10px] font-bold uppercase tracking-wider mb-1 px-2 py-0.5 rounded-full ";
+                              let cellClass = "min-h-[105px] p-3 rounded-2xl border relative transition-all duration-300 flex flex-col items-center justify-center group hover:shadow-lg hover:shadow-slate-900/5 hover:-translate-y-[1px] ";
+                              let textClass = "absolute top-2.5 right-3 text-[12px] font-bold ";
+                              let badgeClass = "text-[9px] font-black uppercase tracking-widest mb-1 px-2.5 py-1 rounded-lg border shadow-xs ";
 
                               if (status === "Holiday" || status === "H" || (isSunday && status !== "A" && status !== "Absent" && status !== "P" && status !== "Present")) {
-                                cellClass += "bg-[#FFFCEB] "; 
+                                cellClass += "bg-amber-50/30 border-amber-100/70 hover:bg-amber-50 hover:border-amber-200 "; 
                                 textClass += "text-rose-500";
                                 status = "Holiday";
-                                badgeClass += "text-amber-700 bg-amber-100";
+                                badgeClass += "text-amber-700 bg-white border-amber-100/60";
                               } else if (status === "Absent" || status === "A") {
-                                cellClass += "bg-[#FBEBEB] "; 
-                                textClass += "text-slate-900";
-                                badgeClass += "text-rose-700 bg-rose-100";
-                                status = "Absent";
+                                if (isFuture) {
+                                  cellClass += "bg-white border-slate-100/80 hover:border-slate-200 ";
+                                  textClass += "text-slate-400";
+                                  badgeClass = "hidden";
+                                  status = null;
+                                } else {
+                                  cellClass += "bg-rose-50/30 border-rose-100/70 hover:bg-rose-50 hover:border-rose-200 "; 
+                                  textClass += "text-slate-900";
+                                  badgeClass += "text-rose-600 bg-white border-rose-100/60";
+                                  status = "Absent";
+                                }
                               } else if (status === "Present" || status === "P") {
-                                cellClass += "bg-[#EAFDF2] cursor-pointer hover:bg-emerald-50 "; 
-                                textClass += "text-slate-900";
-                                badgeClass += "text-emerald-700 bg-emerald-100 group-hover:opacity-0 transition-opacity";
+                                cellClass += "bg-emerald-50/70 border-emerald-200/80 cursor-pointer hover:bg-emerald-100/60 hover:border-emerald-300/80 "; 
+                                textClass += "text-slate-900 font-extrabold";
+                                badgeClass += "text-white bg-emerald-600 border-emerald-600 shadow-md shadow-emerald-600/10 group-hover:scale-95 group-hover:opacity-0 transition-all duration-200";
                                 status = "Present";
                               } else if (status === "Late" || status === "L") {
-                                cellClass += "bg-[#FFF4E5] "; 
+                                cellClass += "bg-orange-50/30 border-orange-100/70 hover:bg-orange-50 hover:border-orange-200 "; 
                                 textClass += "text-slate-900";
-                                badgeClass += "text-orange-700 bg-orange-100";
+                                badgeClass += "text-orange-600 bg-white border-orange-100/60";
                                 status = "Late";
                               } else {
-                                cellClass += "bg-white ";
-                                textClass += "text-slate-900";
+                                cellClass += isFuture 
+                                  ? "bg-slate-50/20 border-slate-100/60 opacity-70 hover:opacity-100 hover:bg-slate-50 " 
+                                  : "bg-white border-slate-100/80 hover:border-slate-200 ";
+                                textClass += isFuture ? "text-slate-300 font-medium" : "text-slate-500 font-bold";
                                 badgeClass = "hidden";
                                 status = null;
                               }
 
                               if (day === 17 && status === "Absent" && !record) {
-                                  cellClass = cellClass.replace("bg-[#FBEBEB]", "bg-[#E8D1D1]");
+                                  cellClass = cellClass.replace("bg-rose-50/30", "bg-rose-100/50");
                               }
 
                               return (
@@ -407,7 +434,7 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
                             })}
                             
                             {Array.from({ length: (7 - (calendarDays.length % 7)) % 7 }).map((_, i) => (
-                              <div key={`pad-${i}`} className="min-h-[110px] p-2 border-b border-r border-slate-200 bg-white" />
+                              <div key={`pad-${i}`} className="min-h-[105px] p-2 bg-slate-50/40 rounded-2xl border border-dashed border-slate-200/60" />
                             ))}
                         </div>
                       </div>
