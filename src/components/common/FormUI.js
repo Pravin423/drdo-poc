@@ -29,7 +29,7 @@ export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) 
                         initial={{ opacity: 0, scale: 0.98, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                        className={`relative w-full ${maxWidth} max-h-[94vh] bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] overflow-hidden border border-slate-200 flex flex-col pointer-events-auto transform-gpu overscroll-contain`}
+                        className={`relative font-sans w-full ${maxWidth} max-h-[94vh] bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] overflow-hidden border border-slate-200 flex flex-col pointer-events-auto transform-gpu overscroll-contain`}
                     >
                         {children}
                     </motion.div>
@@ -45,7 +45,7 @@ export const FormModal = ({ isOpen, onClose, children, maxWidth = "max-w-lg" }) 
  */
 export const FormHeader = ({ title, subtitle, icon: Icon, onClose }) => {
     return (
-        <div className="bg-gradient-to-br from-[#1a2e7a] to-[#3b52ab] px-10 py-8 text-white relative shrink-0">
+        <div className="bg-gradient-to-br font-sans from-[#1a2e7a] to-[#3b52ab] px-10 py-8 text-white relative shrink-0">
             {Icon && (
                 <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
                     <Icon className="w-40 h-40 -rotate-12" />
@@ -54,7 +54,7 @@ export const FormHeader = ({ title, subtitle, icon: Icon, onClose }) => {
             <div className="relative z-10 flex items-center justify-between">
                 <div className="space-y-1">
                     <h2 className="text-2xl font-black tracking-tight leading-tight">{title}</h2>
-                    {subtitle && <p className="text-blue-100/60 text-[10px] font-bold uppercase tracking-[0.2em]">{subtitle}</p>}
+                    {subtitle && <p className="text-blue-100/60 text-[10px]  uppercase tracking-[0.1em]">{subtitle}</p>}
                 </div>
                 {onClose && (
                     <button
@@ -93,7 +93,7 @@ export const FormError = ({ error }) => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mb-8 px-6 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold rounded-2xl flex items-center gap-3"
+                    className="mb-8 font-sans px-6 py-4 bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold rounded-2xl flex items-center gap-3"
                 >
                     <XCircle size={18} strokeWidth={2.5} />
                     <span className="flex-1">{renderError()}</span>
@@ -118,7 +118,7 @@ export const FormInput = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2 group/field w-full">
+        <div className="space-y-2 font-sans group/field w-full">
             {label && (
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within/field:text-[#3b52ab] transition-colors">
                     {label}
@@ -154,7 +154,7 @@ export const FormInput = ({
  */
 export const FormActions = ({ onCancel, onConfirm, cancelText = "Cancel", confirmText = "Confirm", confirmIcon: ConfirmIcon, isLoading, confirmDisabled }) => {
     return (
-        <div className="flex justify-end items-center gap-4 mt-12 pt-8 border-t border-slate-100">
+        <div className="flex font-sans justify-end items-center gap-4 mt-12 pt-8 border-t border-slate-100">
             <button
                 type="button"
                 onClick={onCancel}
@@ -197,7 +197,7 @@ export const FormSelect = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2 group/field w-full">
+        <div className="space-y-2 font-sans group/field w-full">
             {label && (
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within/field:text-[#3b52ab] transition-colors">
                     {label}
@@ -238,7 +238,7 @@ export const FormSelect = ({
  */
 export const FormInfo = ({ label, value, icon: Icon }) => {
     return (
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+        <div className="p-4 font-sans rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
             <div className="flex items-center gap-2 mb-1 opacity-60">
                 {Icon && <Icon size={12} strokeWidth={3} className="text-slate-400" />}
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{label}</p>
@@ -262,7 +262,7 @@ export const FormTextArea = ({
     ...props 
 }) => {
     return (
-        <div className="space-y-2 group/field w-full">
+        <div className="space-y-2 font-sans group/field w-full">
             {label && (
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within/field:text-[#3b52ab] transition-colors">
                     {label}
@@ -297,7 +297,7 @@ export const FormTextArea = ({
  */
 export const FormSection = ({ title, description, icon: Icon, children }) => {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 py-2">
+        <div className="grid font-sans grid-cols-1 lg:grid-cols-12 gap-8 py-2">
             <div className="lg:col-span-4 space-y-1.5">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-slate-100 rounded-xl text-slate-500">
@@ -319,7 +319,7 @@ export const FormSection = ({ title, description, icon: Icon, children }) => {
  */
 export const FormCheckbox = ({ label, checked, onChange, error }) => {
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 font-sans">
             <label className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-slate-100 transition-all cursor-pointer group">
                 <div className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
                     checked 
