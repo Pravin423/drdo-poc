@@ -131,7 +131,7 @@ export const Navbar = () => {
                         }`}
                     >
                         <LogIn size={18} strokeWidth={2} className="transition-transform duration-300 group-hover:translate-x-1" />
-                        <span className="hidden sm:inline">Login</span>
+                        <span className="hidden sm:inline">Portal Access</span>
                     </Link>
 
                 </div>
