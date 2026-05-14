@@ -137,6 +137,12 @@ export const SIDEBAR_CONFIG = {
         { name: "Escalate to SPM", path: "/dashboard/block-admin/escalations" },
       ],
     },
+    {
+      section: "Task and Assignments",
+      items: [
+        { name: "All Tasks", path: "/dashboard/task-assignment" }
+      ],
+    },
   ],
 
   "supervisor": [

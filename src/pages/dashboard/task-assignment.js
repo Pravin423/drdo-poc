@@ -228,7 +228,7 @@ export default function TaskAssignment() {
 
 
   return (
-    <ProtectedRoute allowedRole={["super-admin", "state-admin"]}>
+    <ProtectedRoute allowedRole={["super-admin", "state-admin", "Block-admin"]}>
       <DashboardLayout>
         <div className="min-h-screen p-2 lg:p-3 xl:p-4">
           <div className="max-w-[1600px] mx-auto space-y-8">

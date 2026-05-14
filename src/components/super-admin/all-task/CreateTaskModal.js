@@ -25,12 +25,15 @@ import {
     FormError
 } from "../../common/FormUI";
 
+import { useAuth } from "../../../context/AuthContext";
+
 const TASK_TYPES = [
     { value: "SPECIAL", label: "SPECIAL (Manual Selection)" },
     { value: "REGULAR", label: "REGULAR (Auto Assignment)" }
 ];
 
 const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputChange, handleCreateTask, handleClearForm, onClose, apiError }) {
+    const { user } = useAuth();
     const [taskCreationData, setTaskCreationData] = useState({ forms: [], crps: [], verticals: [] });
     const [dataLoading, setDataLoading] = useState(true);
 
@@ -83,9 +86,10 @@ const CreateTaskModal = memo(function CreateTaskModal({ formData, handleInputCha
                                 label="Task Type *" 
                                 name="taskType" 
                                 icon={Zap} 
-                                options={TASK_TYPES} 
+                                options={user?.role === "Block-admin" ? [{ value: "SPECIAL", label: "SPECIAL (Manual Selection)" }] : TASK_TYPES} 
                                 value={formData.taskType} 
                                 onChange={handleInputChange} 
+                                disabled={user?.role === "Block-admin"}
                             />
                         </div>
                         <div className="space-y-2">
