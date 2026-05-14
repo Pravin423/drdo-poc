@@ -12,6 +12,7 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
   const [initialData, setInitialData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [systemHolidays, setSystemHolidays] = useState([]);
 
   const months = [
     { value: "1", label: "January" },
@@ -30,6 +31,51 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
+
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const res = await fetch('/api/holiday', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+          }
+        });
+        const data = await res.json();
+        let holidayData = data?.data || [];
+        if (Array.isArray(holidayData)) {
+          const activeHolidays = holidayData
+            .filter(h => h.status === 'active')
+            .map(h => {
+              const startObj = new Date(h.start_date);
+              const sY = startObj.getFullYear();
+              const sM = String(startObj.getMonth() + 1).padStart(2, '0');
+              const sD = String(startObj.getDate()).padStart(2, '0');
+              const startDateStr = `${sY}-${sM}-${sD}`;
+
+              let endDateStr = startDateStr;
+              if (h.end_date) {
+                const endObj = new Date(h.end_date);
+                const eY = endObj.getFullYear();
+                const eM = String(endObj.getMonth() + 1).padStart(2, '0');
+                const eD = String(endObj.getDate()).padStart(2, '0');
+                endDateStr = `${eY}-${eM}-${eD}`;
+              }
+
+              return {
+                start: startDateStr,
+                end: endDateStr
+              };
+            });
+          setSystemHolidays(activeHolidays);
+        }
+      } catch (err) {
+        console.error("Failed to fetch system holidays", err);
+      }
+    };
+    fetchHolidays();
+  }, []);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -117,18 +163,20 @@ const WorkReportTab = memo(function WorkReportTab({ employees = [] }) {
     return target > today;
   };
 
+  const isSystemHoliday = (day) => {
+    if (!day) return false;
+    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return systemHolidays.find(h => dateStr >= h.start && dateStr <= h.end);
+  };
+
   const getDummyStatus = (day) => {
     if (!selectedEmployee) return null;
     
-    // Never show absent for future dates
-    if (isFutureDay(day)) {
-      // Future holidays are still valid to show
-      if ([1, 8, 15, 22, 29].includes(day)) return "Holiday";
-      return null;
-    }
+    const isHol = isSystemHoliday(day);
 
-    if ([1, 8, 15, 22, 29].includes(day)) return "Holiday";
-    if ([2,3,4,5,6,7,9,10,11,12,13,14, 16,17,18,19,20,21,23,24,25,26,27,28,30,31].includes(day)) return "Absent";
+    // Holidays are valid for both past and future
+    if (isHol) return "Holiday";
+    
     return null;
   }
 
