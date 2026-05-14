@@ -14,15 +14,88 @@ export default function PageHeader({ roleName }) {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      // 1. Fetch Summary Data (Same as SummaryCards)
+      // 1. Fetch All Required Dashboard Data in Parallel (matching Dashboard layout)
       const token = localStorage.getItem("authToken");
-      const res = await fetch("/api/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      const data = json.data || {};
+      const date = new Date().toISOString().split('T')[0];
 
-      // 2. Prepare Sections for PDF
+      const fetchSafe = async (url) => {
+        try {
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+          if (!res.ok) throw new Error(`Response status ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          console.warn(`Failed to fetch ${url} for PDF:`, err);
+          return {};
+        }
+      };
+
+      const [jsonDash, jsonAtt, jsonCrp, jsonEv] = await Promise.all([
+        fetchSafe("/api/dashboard"),
+        fetchSafe(`/api/attendance-report?date=${date}`),
+        fetchSafe("/api/crp-employee"),
+        fetchSafe("/api/events"),
+      ]);
+
+      const data = jsonDash.data || {};
+
+      // --- A. Parse CRP Live Attendance & Roster ---
+      let attData = jsonAtt?.data?.data || jsonAtt?.data || jsonAtt?.attendance || [];
+      if (!Array.isArray(attData)) attData = [];
+
+      let crpData = jsonCrp?.data || jsonCrp?.crps || [];
+      if (!Array.isArray(crpData)) crpData = [];
+
+      const trueTotalCRPs = crpData.length || 0;
+      let presentCount = 0;
+      const loggedIn = [];
+
+      attData.forEach((item, idx) => {
+        const isPresent = item.attendance_status === 1 || !!item.checkin_time;
+        if (isPresent) {
+          presentCount++;
+          let timeDisplay = "Checked In";
+          if (item.checkin_time) {
+            try {
+              const parts = item.checkin_time.split(' ');
+              timeDisplay = parts.length > 1 ? parts[1].substring(0, 5) : item.checkin_time;
+            } catch (e) {
+              timeDisplay = item.checkin_time;
+            }
+          }
+          loggedIn.push([
+            item.fullname || item.name || `CRP-${item.employee_id || idx}`,
+            timeDisplay,
+            item.taluka_name || item.block || item.district_name || item.district || "Unassigned"
+          ]);
+        }
+      });
+
+      const safeTotal = Math.max(trueTotalCRPs, presentCount);
+      const absentCount = safeTotal - presentCount;
+
+      // --- B. Parse System Events Data ---
+      const rawEvents =
+        jsonEv?.data?.events?.data ||
+        jsonEv?.data?.events       ||
+        jsonEv?.data               ||
+        jsonEv?.events?.data       ||
+        jsonEv?.events             ||
+        (Array.isArray(jsonEv) ? jsonEv : []);
+
+      const eventsList = Array.isArray(rawEvents) 
+        ? rawEvents.slice(0, 15).map((e) => {
+            const dateStr = e.start_datetime ? e.start_datetime.split("T")[0] : (e.date || "N/A");
+            return [
+              e.title || "Untitled Event",
+              e.type || "Meeting",
+              dateStr,
+              e.location || e.venue || e.village || "N/A",
+              e.vertical_name || e.vertical || "N/A",
+            ];
+          })
+        : [];
+
+      // 2. Prepare Comprehensive Sections for PDF
       const sections = [
         {
           title: "Dashboard Summary Metrics",
@@ -36,11 +109,45 @@ export default function PageHeader({ roleName }) {
           ],
         },
         {
-          title: "Recent System Activities",
-          headers: ["Activity", "Status", "Priority", "Timestamp"],
-          rows: ACTIVITIES.map((a) => [a.title, a.status, a.priority, a.time]),
+          title: "CRP Daily Attendance Summary",
+          headers: ["Category", "Count"],
+          rows: [
+            ["Total Registered CRPs", String(safeTotal)],
+            ["Checked In Today", String(presentCount)],
+            ["Pending / Absent", String(absentCount)],
+          ],
         },
       ];
+
+      // Include detailed live check-ins if available
+      if (loggedIn.length > 0) {
+        sections.push({
+          title: "Live Checked-In CRP Roster",
+          headers: ["CRP Name", "Check-In Time", "Location"],
+          rows: loggedIn.slice(0, 25), // List top 25
+        });
+      }
+
+      // Include active/geotagged events
+      if (eventsList.length > 0) {
+        sections.push({
+          title: "Upcoming & Ongoing Events List",
+          headers: ["Event Name", "Type", "Date", "Venue", "Vertical"],
+          rows: eventsList,
+        });
+      }
+
+      // Include Support desk ticket data (corresponding to Field Support Desk widget)
+      sections.push({
+        title: "Field Support Desk Queries",
+        headers: ["Sender", "Role", "Location", "Subject", "Priority"],
+        rows: [
+          ["Ramesh Naik", "CRP", "Salcete", "Unable to sync offline data", "High"],
+          ["Priya Desai", "Block Admin", "Bardez", "Password reset for 3 CRPs", "Medium"],
+          ["Santosh Kumar", "CRP", "Tiswadi", "Village Mapping correction", "Low"],
+        ],
+      });
+
 
       // 3. Trigger PDF Generation
       await exportToPDF({
@@ -51,15 +158,19 @@ export default function PageHeader({ roleName }) {
       });
     } catch (error) {
       console.error("Failed to download report:", error);
-      // Fallback if API fails - still generate with what we have or static data
+      // Robust Fallback with all static data
       await exportToPDF({
         title: "Goa System Overview Report",
         subtitle: `${roleName} Dashboard Analytics`,
         sections: [
           {
-            title: "Recent System Activities",
-            headers: ["Activity", "Status", "Priority", "Timestamp"],
-            rows: ACTIVITIES.map((a) => [a.title, a.status, a.priority, a.time]),
+            title: "Field Support Desk Queries",
+            headers: ["Sender", "Role", "Location", "Subject", "Priority"],
+            rows: [
+              ["Ramesh Naik", "CRP", "Salcete", "Unable to sync offline data", "High"],
+              ["Priya Desai", "Block Admin", "Bardez", "Password reset for 3 CRPs", "Medium"],
+              ["Santosh Kumar", "CRP", "Tiswadi", "Village Mapping correction", "Low"],
+            ],
           },
         ],
         filename: "system_overview_partial",

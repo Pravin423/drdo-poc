@@ -3,81 +3,40 @@
   "message": "Village mapped list",
   "data": [
     {
-      "id": 4,
-      "crp_id": 25,
-      "district_id": 1,
-      "taluka_id": 1,
-      "village_id": 4,
-      "district_name": "North Goaa",
-      "taluka_name": "Canacona",
-      "village_name": "Cola",
-      "crp_name": "Diksha Yadav"
-    },
-    {
-      "id": 5,
-      "crp_id": 25,
-      "district_id": 1,
-      "taluka_id": 1,
-      "village_id": 5,
-      "district_name": "North Goaa",
-      "taluka_name": "Canacona",
-      "village_name": "Cotigao",
-      "crp_name": "Diksha Yadav"
-    },
-    {
-      "id": 6,
-      "crp_id": 25,
-      "district_id": 1,
-      "taluka_id": 1,
-      "village_id": 6,
-      "district_name": "North Goaa",
-      "taluka_name": "Canacona",
-      "village_name": "Gaodongrem",
-      "crp_name": "Diksha Yadav"
-    },
-    {
-      "id": 7,
       "crp_id": 4,
       "district_id": 1,
       "taluka_id": 1,
-      "village_id": 7,
       "district_name": "North Goaa",
       "taluka_name": "Canacona",
-      "village_name": "Loliem",
-      "crp_name": "Kiran"
+      "crp_name": "Kiran",
+      "village_names": "Loliem"
     },
     {
-      "id": 8,
+      "crp_id": 25,
+      "district_id": 1,
+      "taluka_id": 1,
+      "district_name": "North Goaa",
+      "taluka_name": "Canacona",
+      "crp_name": "Diksha Yadav",
+      "village_names": "Cola, Cotigao, Gaodongrem"
+    },
+    {
+      "crp_id": 27,
+      "district_id": 21,
+      "taluka_id": 25,
+      "district_name": "west GOA",
+      "taluka_name": "test talukas",
+      "crp_name": "hansi",
+      "village_names": "Agondaaaaaaaaa, Anjadip"
+    },
+    {
       "crp_id": 43,
       "district_id": 1,
       "taluka_id": 7,
-      "village_id": 170,
       "district_name": "North Goaa",
       "taluka_name": "Bicholim",
-      "village_name": "Amone",
-      "crp_name": "test 211"
-    },
-    {
-      "id": 10,
-      "crp_id": 27,
-      "district_id": 21,
-      "taluka_id": 25,
-      "village_id": 346,
-      "district_name": "west GOA",
-      "taluka_name": "test talukas",
-      "village_name": "Agondaaaaaaaaa",
-      "crp_name": "hansi"
-    },
-    {
-      "id": 11,
-      "crp_id": 27,
-      "district_id": 21,
-      "taluka_id": 25,
-      "village_id": 347,
-      "district_name": "west GOA",
-      "taluka_name": "test talukas",
-      "village_name": "Anjadip",
-      "crp_name": "hansi"
+      "crp_name": "test 211",
+      "village_names": "Amone"
     }
   ]
 }
